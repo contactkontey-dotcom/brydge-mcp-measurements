@@ -1,0 +1,95 @@
+{
+  "pass": true,
+  "fingerprint": "f9c1fc3b6f57f43ae20ad1804f509e13251d6b15af132d18c5d57d169bb68c8d",
+  "ranAt": "2026-09-27T23:39:10.643Z",
+  "lines": [
+    "ok   liar-node: 20 probes, 11 security findings, all as planted",
+    "ok   liar-python: 3 probes, 4 security findings, all as planted"
+  ],
+  "files": [
+    {
+      "path": "engine/comparison/judge.ts",
+      "sha256": "5e8efa3ca7f1a873e945a7a6d54a5f59a976224324a91e82dbc093aead29881d"
+    },
+    {
+      "path": "engine/comparison/task.ts",
+      "sha256": "a74383875340c28ba493d58fa277567be05b6dd28ca7298920c8164725da0ce5"
+    },
+    {
+      "path": "engine/supervision/digest.ts",
+      "sha256": "a15754cc832b90edc58dfacbf5df601786041022fec9c90bbf2b1cf7e3299005"
+    },
+    {
+      "path": "harness/analyze.ts",
+      "sha256": "0d0402283790b1fc5e5242478e55cc9df1bde7de621c5b6eec09dad65a919f4b"
+    },
+    {
+      "path": "harness/canaries.ts",
+      "sha256": "4955f4e414a05515fc1c2292f2bab0d4f61f46b7def309c4d8f47ff316bd1a54"
+    },
+    {
+      "path": "harness/client.ts",
+      "sha256": "6aae7702e2489fa3061e78270686b0665f339e5f24aaa24d6098b63d1b3ede0a"
+    },
+    {
+      "path": "harness/fingerprint.ts",
+      "sha256": "ffdefa92d8608f1d14fe1c0322aaaf08a1d2ed32c380a36698180c099718dbbf"
+    },
+    {
+      "path": "harness/honesty.ts",
+      "sha256": "84e029dd8b1320b074af486fa98dec8f17f23b8a3a609e1ead2d90c4e95a4e0e"
+    },
+    {
+      "path": "harness/limits.ts",
+      "sha256": "aacbd9761fe9a39610cb41008277f81774a575536d7815fbbe15f0caeec670b0"
+    },
+    {
+      "path": "harness/net.ts",
+      "sha256": "c40470fa9ba1bfb71cd26a8d20380325a35e079310d935d159c9fe701be6532b"
+    },
+    {
+      "path": "harness/oracles.ts",
+      "sha256": "eddf76a46e5e8b7a3e54b212cd18a1e5a5377fe693e0e5ead9b62748ea08849b"
+    },
+    {
+      "path": "harness/probelog.ts",
+      "sha256": "41a161b37662c00ee2c35f9dd9c32fd1c457892cff8497a54a0847bd27eb9709"
+    },
+    {
+      "path": "harness/probes/lo-up.py",
+      "sha256": "971e37320d3a19df2cdaef9d6bebdfff3d378f82e5dfaf35d4d1964fb3133c55"
+    },
+    {
+      "path": "harness/probes/node-probe.cjs",
+      "sha256": "2dcc6c04d39de0edd6f3578cbdc9dc6db63e1f3822a33e9bfbffa6328d9ed869"
+    },
+    {
+      "path": "harness/probes/sitecustomize.py",
+      "sha256": "05f9924af95758b15ead510abad32e1adf94bd5319ee6435c233d8ac083e8137"
+    },
+    {
+      "path": "harness/session.ts",
+      "sha256": "755cbb93f795c44f63ffd3e2f7c3a582bc0458189c5bb6f7e952b8701083912c"
+    },
+    {
+      "path": "harness/snapshot.ts",
+      "sha256": "0f1768e3a42bafe266909281cfce75294116a32ffb630ca61cf3d9134941afe6"
+    },
+    {
+      "path": "harness/trace.ts",
+      "sha256": "b9913b1a7440234c10dc1d51257a4b16a0447f2750dc170a4bedae31110cbc93"
+    },
+    {
+      "path": "harness/types.ts",
+      "sha256": "ceba2af85cb0c5477f2565cabcaa6fea8371e60d5cdda32dd645a539c622cb06"
+    },
+    {
+      "path": "harness/xlsx.ts",
+      "sha256": "cf2a62500e8a4a3378aad1c2992e80e70037479be4e71d91bb1fa1402383483e"
+    },
+    {
+      "path": "measure.ts",
+      "sha256": "dcb64b211e4d9483b87eabe949879fe8c9bf876280f4000bfd4ff3ae3a4845ea"
+    }
+  ]
+}

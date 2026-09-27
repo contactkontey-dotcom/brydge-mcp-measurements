@@ -1,0 +1,13 @@
+{
+  "name": "brydge-liar-node",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A deliberately dishonest MCP server. Every tool either tells the truth or tells a specific, known lie. Used only to prove the measurement harness catches the lies it should and accuses nothing honest. Never published to a registry.",
+  "type": "commonjs",
+  "bin": {
+    "brydge-liar-node": "server.js"
+  },
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  }
+}

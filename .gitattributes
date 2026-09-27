@@ -1,0 +1,4 @@
+# Files here are compared byte for byte with the copies BRYDGE publishes from.
+* text=auto eol=lf
+*.xlsx binary
+*.gz binary

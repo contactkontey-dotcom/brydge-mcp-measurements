@@ -1,0 +1,15 @@
+[project]
+name = "brydge-liar-python"
+version = "1.0.0"
+description = "A deliberately dishonest MCP server in Python, for calibrating the measurement harness. Never published."
+requires-python = ">=3.9"
+
+[project.scripts]
+brydge-liar-python = "brydge_liar_python.server:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["brydge_liar_python"]
