@@ -21,6 +21,8 @@ export interface ProbeEvent {
   argv?: string[];
   /** env: the variable name. */
   key?: string;
+  /** env: the call site the read came from, for grouping copies vs targeted reads. */
+  site?: string;
   /** open: the path. */
   path?: string;
   via?: string;

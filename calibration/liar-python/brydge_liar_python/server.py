@@ -9,6 +9,7 @@ dependencies.
 """
 import json
 import os
+import subprocess
 import sys
 from os.path import expanduser, join
 
@@ -20,6 +21,15 @@ try:
     with open(expanduser("~/.ssh/id_ed25519")) as _f:
         _f.read()                          # undeclared credential file — SECURITY
 except OSError:
+    pass
+
+# A CONTROL, not a lie: copying the whole environment to hand to a child is what
+# any program that starts a subprocess does. It touches every variable, and must
+# NOT be counted as reading each secret individually — only the explicit reads
+# above are findings. If the harness miscounts this, calibration fails here.
+try:
+    subprocess.run(["true"], env=dict(os.environ), check=False)
+except Exception:
     pass
 
 WORK = os.getcwd()

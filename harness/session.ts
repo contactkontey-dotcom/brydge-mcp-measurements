@@ -208,7 +208,9 @@ async function main(): Promise<void> {
     LC_ALL: "C.UTF-8",
     TMPDIR: join(runDir, "tmp"),
     ...canaries.env,
-    ...(spec.env ?? {}),
+    /* Non-secret configuration the README says to set, with {work}/{home}/{web}
+     * resolved so a spec can point a server at a path inside the sandbox. */
+    ...Object.fromEntries(Object.entries(spec.env ?? {}).map(([k, v]) => [k, resolve(v, { paths, web })])),
     BRYDGE_PROBE_LOG: probeLogPath,
     NODE_OPTIONS: `--require ${join(probeDir, "node-probe.cjs")}`,
     PYTHONPATH: probeDir,
@@ -367,7 +369,7 @@ async function main(): Promise<void> {
     findings,
     anySecurity,
     session: {
-      trace: trace.map((e) => ({ t: e.t, syscall: e.syscall, path: e.path, flags: e.flags, argv: e.argv, address: e.address, port: e.port, result: e.result, errno: e.errno })),
+      trace: trace.map((e) => ({ t: e.t, pid: e.pid, syscall: e.syscall, path: e.path, flags: e.flags, argv: e.argv, address: e.address, port: e.port, result: e.result, errno: e.errno })),
       probeLog,
       dns: nets.dns,
       caught: nets.caught,

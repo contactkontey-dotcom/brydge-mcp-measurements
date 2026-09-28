@@ -32,31 +32,43 @@ if (LOG && !globalThis.__brydgeProbe) {
       .filter((s) => !s.includes("node-probe.cjs"));
   write({ event: "loaded", runtime: "node", argv: process.argv.slice(0, 4) });
 
-  const seen = new Set();
-  let enumerating = false;
+  /* A server may shell out to a package manager to do its work (mcp-server-fetch
+   * runs npm to extract readable text). npm and npx REFUSE to run when
+   * process.env is a Proxy — they exit before doing anything — so wrapping it
+   * here would break the child and turn a working tool into a false failure.
+   * When this process IS a package manager, we leave process.env untouched (the
+   * file-open logging below is harmless and stays). The manager's own reads of
+   * its config are then judged by the analyzer, which knows npm reading ~/.npmrc
+   * is npm being npm, not the server stealing a credential. */
+  const argvList = process.argv || [];
+  const isPackageManager =
+    argvList.some((a) => /(?:^|\/)(npm|npx|npm-cli\.js|npx-cli\.js|corepack)$/.test(a)) || /npm-cli\.js|npx-cli\.js|\/npm\/bin\//.test(argvList.join(" "));
+
+  /* Record every read and the SITE it came from; the analyzer decides which
+   * site was copying the environment and which was targeting a secret — the
+   * same rule for both runtimes. A membership test (`"X" in process.env`) is a
+   * presence check, not a read of the value, so it is not logged. */
+  const seen = new Set(); // "key\x00site"
   const read = (k) => {
-    if (typeof k !== "string" || k === "BRYDGE_PROBE_LOG" || enumerating || seen.has(k)) return;
-    seen.add(k);
-    write({ event: "env", key: k, stack: where() });
+    if (typeof k !== "string" || k === "BRYDGE_PROBE_LOG") return;
+    const stack = where();
+    const site = stack[0] || "?";
+    const tag = `${k}\x00${site}`;
+    if (seen.has(tag)) return;
+    seen.add(tag);
+    write({ event: "env", key: k, site, stack: stack.slice(0, 6) });
   };
-  process.env = new Proxy(process.env, {
-    get(target, key) {
-      read(key);
-      return Reflect.get(target, key);
-    },
-    has(target, key) {
-      read(key);
-      return Reflect.has(target, key);
-    },
-    ownKeys(target) {
-      write({ event: "env-all", stack: where() });
-      enumerating = true;
-      queueMicrotask(() => {
-        enumerating = false;
-      });
-      return Reflect.ownKeys(target);
-    },
-  });
+  if (!isPackageManager)
+    process.env = new Proxy(process.env, {
+      get(target, key) {
+        read(key);
+        return Reflect.get(target, key);
+      },
+      ownKeys(target) {
+        write({ event: "env-all", stack: where() });
+        return Reflect.ownKeys(target);
+      },
+    });
 
   /* Opens under $HOME, attributed. The kernel trace is the complete record; this names the code. */
   const underHome = (p) => {

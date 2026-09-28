@@ -1,0 +1,165 @@
+{
+  "slug": "mcp-server-time",
+  "name": "mcp-server-time",
+  "registry": "pypi",
+  "version": "2026.8.18",
+  "readmeCommand": "uvx mcp-server-time",
+  "bin": "/srv/brydge-measure/mcp-server-time-1790556712993/install/venv/bin/mcp-server-time",
+  "args": [],
+  "note": "Tokyo is UTC+9 year round, so the conversion has one right answer.",
+  "measuredAt": "2026-09-28T00:51:57.623Z",
+  "fingerprint": "12faeeb9c3d5393bdcf58ce6a219709dfb4b0ec77c0e90f378c5c09223bd5601",
+  "serverInfo": {
+    "name": "mcp-time",
+    "version": "1.30.0"
+  },
+  "initError": null,
+  "declared": {
+    "credentials": [],
+    "tools": {
+      "names": [
+        "get_current_time",
+        "convert_time"
+      ],
+      "source": {
+        "url": "https://pypi.org/project/mcp-server-time/",
+        "quote": "The README documents get_current_time and convert_time over IANA time zones."
+      }
+    },
+    "destinations": []
+  },
+  "offered": [
+    "convert_time",
+    "get_current_time"
+  ],
+  "notChecked": [],
+  "results": [
+    {
+      "key": "get_current_time",
+      "tool": "get_current_time",
+      "claim": "Get the current time in a given time zone.",
+      "reading": "the time returned is the real current time in that zone, to the hour",
+      "arguments": {
+        "timezone": "Asia/Tokyo"
+      },
+      "oracle": "compute",
+      "where": {
+        "mode": "now",
+        "timezone": "Asia/Tokyo"
+      },
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "now",
+          "says": "the time is right for the zone",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "491a78c8bb090de4bfea48fc1909811e1c37b9ace765f6709a39280c421d12e2",
+      "observed": {
+        "expected": "2026-09-28T09",
+        "replyText": "{\n  \"timezone\": \"Asia/Tokyo\",\n  \"datetime\": \"2026-09-28T09:51:57+09:00\",\n  \"day_of_week\": \"Monday\",\n  \"is_dst\": false\n}",
+        "matches": true
+      },
+      "reply": {
+        "isError": false,
+        "text": "{\n  \"timezone\": \"Asia/Tokyo\",\n  \"datetime\": \"2026-09-28T09:51:57+09:00\",\n  \"day_of_week\": \"Monday\",\n  \"is_dst\": false\n}",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "convert_time",
+      "tool": "convert_time",
+      "claim": "Convert a time between two time zones.",
+      "reading": "12:00 UTC converts to 21:00 in Tokyo",
+      "arguments": {
+        "source_timezone": "UTC",
+        "time": "12:00",
+        "target_timezone": "Asia/Tokyo"
+      },
+      "oracle": "compute",
+      "where": {
+        "expected": "21:00"
+      },
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "converted",
+          "says": "the converted time is 21:00",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "fc934466d6b56f25f494648506aaf9729c5c30e69a3a978c549f3b146e7228e1",
+      "observed": {
+        "expected": "21:00",
+        "replyText": "{\n  \"source\": {\n    \"timezone\": \"UTC\",\n    \"datetime\": \"2026-09-28T12:00:00+00:00\",\n    \"day_of_week\": \"Monday\",\n    \"is_dst\": false\n  },\n  \"target\": {\n    \"timezone\": \"Asia/Tokyo\",\n    \"datetime\": \"2026-09-28T21:00:00+09:00\",\n    \"day_of_week\": \"Monday\",\n    \"is_dst\": false\n  },\n  \"time_difference\": \"+9.0h\"\n}",
+        "structured": "",
+        "matches": true
+      },
+      "reply": {
+        "isError": false,
+        "text": "{\n  \"source\": {\n    \"timezone\": \"UTC\",\n    \"datetime\": \"2026-09-28T12:00:00+00:00\",\n    \"day_of_week\": \"Monday\",\n    \"is_dst\": false\n  },\n  \"target\": {\n    \"timezone\": \"Asia/Tokyo\",\n    \"datetime\": \"2026-09-28T21:00:00+09:00\",\n    \"day_of_week\": \"Monday\",\n    \"is_dst\": false\n  },\n  \"time_difference\": \"+9.0h\"\n}",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "pypi mcp_server_time-2026.8.18-py3-none-any.whl sha256:1407583af42dc0163909d855c9ef20114a12b4981c3975033721a7906cdd212a",
+        "pypi mcp_server_time-2026.8.18.tar.gz sha256:ec1313feb558a848838217d922bd218e9f7ca217cb0f7b890ee75ab94bf962e0"
+      ]
+    }
+  ],
+  "held": false,
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ]
+}

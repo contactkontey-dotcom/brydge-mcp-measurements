@@ -252,7 +252,17 @@ export async function measureServer(spec: ServerSpec): Promise<{ report: ServerR
 
 function writeReport(report: ServerReport, raw: unknown): string {
   const dir = join(ROOT, report.held ? "held" : "results");
+  const other = join(ROOT, report.held ? "results" : "held");
   mkdirSync(dir, { recursive: true });
+  /* If a server moved between published and held since the last run, drop its
+   * stale file from the other side so it is never in both. */
+  for (const suffix of [".json", ".raw.json"]) {
+    try {
+      rmSync(join(other, `${report.slug}${suffix}`));
+    } catch {
+      /* nothing there */
+    }
+  }
   writeFileSync(join(dir, `${report.slug}.json`), JSON.stringify(report, null, 2));
   writeFileSync(join(dir, `${report.slug}.raw.json`), JSON.stringify(raw));
   return join(dir, `${report.slug}.json`);

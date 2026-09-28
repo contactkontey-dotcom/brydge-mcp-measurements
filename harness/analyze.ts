@@ -48,21 +48,55 @@ export interface RunLogs {
 const has = (list: { name: string; kind: string }[], kind: string, name: string) =>
   list.some((d) => d.kind === kind && d.name.replace(/^~\//, "").replace(/^\.\//, "") === name.replace(/^~\//, "").replace(/^\.\//, ""));
 
+/**
+ * How to tell a whole-environment COPY (handing os.environ to a subprocess) from
+ * a targeted reach for a secret: the copy touches the MUNDANE variables — PATH,
+ * HOME, LANG, TMPDIR and the like — that a credential grab has no reason to read.
+ * A call site that read at least this many distinct variables which are neither
+ * a planted secret nor credential-shaped was iterating the whole environment,
+ * and its reads of planted secrets are part of that copy, not a targeting. A
+ * site that read only secrets, or a couple of mundane variables, was not.
+ * Published, so the line can be argued with.
+ */
+export const SWEEP_MUNDANE_MIN = 4;
+
+/** Group env reads by call site, and mark the sites that copied the environment. */
+export function classifySites(probeLog: ProbeEvent[]): { perSite: Map<string, Set<string>>; sweep: Set<string>; total: number } {
+  const perSite = new Map<string, Set<string>>();
+  const all = new Set<string>();
+  for (const e of probeLog) {
+    if (e.event !== "env" || !e.key) continue;
+    const site = e.site ?? "?";
+    (perSite.get(site) ?? perSite.set(site, new Set()).get(site)!).add(e.key);
+    all.add(e.key);
+  }
+  const planted = new Set<string>(PLANTED_ENV as readonly string[]);
+  const mundane = (keys: Set<string>) => [...keys].filter((k) => !planted.has(k) && !CREDENTIAL_LIKE.test(k)).length;
+  const sweep = new Set([...perSite].filter(([, keys]) => mundane(keys) >= SWEEP_MUNDANE_MIN).map(([site]) => site));
+  return { perSite, sweep, total: all.size };
+}
+
 /* ── Credentials: the reading of a planted secret ─────────────────────────── */
 
 function credentialFindings(run: RunLogs, declared: Declared, canaries: Canaries, home: string): Finding[] {
   const findings: Finding[] = [];
 
-  /* (1) Individual reads of a planted environment variable. The probe already
-   * excludes reads made while the whole environment was being enumerated. */
-  const readEnv = new Map<string, string[]>();
+  /* (1) Reads of a planted environment variable — but a program that COPIES the
+   * whole environment (to hand to a subprocess) reads every variable, and that
+   * is not reaching for any one secret. We separate the two by CALL SITE: a site
+   * that read most of the environment was copying it; a site that read a handful
+   * was targeting them. A planted variable counts as an individual read only if
+   * SOME site read it deliberately, i.e. a site that was not a whole-environment
+   * sweep. This is the published rule, and SWEEP is the number of distinct
+   * variables that marks a site as a copy. */
+  const { sweep: sweepSites } = classifySites(run.probeLog);
+  const targetedReads = new Map<string, string>(); // planted var -> a site that read it deliberately
   for (const e of run.probeLog) {
-    if (e.event === "env" && e.key && (PLANTED_ENV as readonly string[]).includes(e.key)) {
-      const stack = (readEnv.get(e.key) ?? []).concat((e.stack ?? []).slice(0, 3));
-      readEnv.set(e.key, stack);
+    if (e.event === "env" && e.key && (PLANTED_ENV as readonly string[]).includes(e.key) && !sweepSites.has(e.site ?? "?") && !targetedReads.has(e.key)) {
+      targetedReads.set(e.key, e.site ?? "?");
     }
   }
-  for (const [name, stack] of readEnv) {
+  for (const [name, site] of targetedReads) {
     const declaredHere = has(declared.credentials, "env", name);
     findings.push({
       id: `credential:env:${name}`,
@@ -71,7 +105,7 @@ function credentialFindings(run: RunLogs, declared: Declared, canaries: Canaries
       says: declaredHere
         ? `Read the environment variable ${name}, which it declares it needs.`
         : `Read the environment variable ${name}, a planted credential it never declared.`,
-      evidence: [`first read at: ${stack.slice(0, 3).join(" | ") || "native code (no JS/Python frame)"}`],
+      evidence: [`read deliberately at ${site}`],
     });
   }
 
@@ -84,11 +118,36 @@ function credentialFindings(run: RunLogs, declared: Declared, canaries: Canaries
       openedFiles.set(e.path, (openedFiles.get(e.path) ?? []).concat(e));
     }
   }
-  for (const path of openedFiles.keys()) {
+  /* Every program the server ran, so we can tell when a credential file was read
+   * by a package manager it invoked (npm reading ~/.npmrc) rather than by the
+   * server reaching for the secret. Forked worker processes do not re-exec, so
+   * per-process attribution misses them; a manager that ran ANYWHERE in the
+   * session, reading its OWN config file, is that manager loading config. A
+   * server that both runs npm and separately steals ~/.npmrc could hide behind
+   * this — a stated limit. */
+  const sessionExecs = run.trace.filter((e) => e.syscall === "exec" && e.result >= 0).map((e) => [e.path ?? "", ...(e.argv ?? [])].join(" "));
+  const ran = (re: RegExp) => sessionExecs.some((x) => re.test(x));
+  const CONFIG_OWNER: Array<{ file: string; by: RegExp; manager: string }> = [
+    { file: ".npmrc", by: /(?:^|[\/\s])(npm|npx)(?:[\s]|$)|npm-cli\.js/, manager: "npm" },
+    { file: ".pypirc", by: /(?:^|[\/\s])(pip|uv|twine)(?:[\s]|$)/, manager: "pip/uv" },
+    { file: ".netrc", by: /(?:^|[\/\s])(npm|pip|uv|curl|wget)(?:[\s]|$)|npm-cli\.js/, manager: "a tool" },
+  ];
+  for (const [path] of openedFiles) {
     const origin = canaries.where.get(canaries.files[path]) ?? path;
     const rel = path.startsWith(home + "/") ? "~/" + path.slice(home.length + 1) : path;
     const declaredHere = has(declared.credentials, "file", rel) || has(declared.credentials, "file", path);
     const attribution = run.probeLog.find((e) => e.event === "open" && e.path === path)?.stack?.slice(0, 3);
+    const owner = CONFIG_OWNER.find((c) => rel.endsWith(c.file) && ran(c.by));
+    if (owner) {
+      findings.push({
+        id: `credential:config:${rel}`,
+        kind: "credential",
+        security: false,
+        says: `Ran ${owner.manager}, which read its own ${rel} while loading configuration. That is the tool reading its config, not the server reaching for a credential.`,
+        evidence: [`${owner.manager} ran in this session; the read of ${rel} is its config loading`],
+      });
+      continue;
+    }
     findings.push({
       id: `credential:file:${rel}`,
       kind: "credential",
@@ -153,20 +212,21 @@ function credentialFindings(run: RunLogs, declared: Declared, canaries: Canaries
 
 function environmentNotes(run: RunLogs): Finding[] {
   const findings: Finding[] = [];
-  const enumerated = run.probeLog.filter((e) => e.event === "env-all");
-  if (enumerated.length) {
+  const { perSite, sweep } = classifySites(run.probeLog);
+  if (sweep.size) {
     findings.push({
       id: "credential:note:enumerated",
       kind: "credential",
       security: false,
-      says: `Enumerated or copied the whole environment ${enumerated.length} time(s) — normal when starting a subprocess, and NOT counted as reading any one secret.`,
-      evidence: enumerated.slice(0, 2).map((e) => (e.stack ?? []).slice(0, 2).join(" | ")).filter(Boolean),
+      says: `Copied the whole environment at ${sweep.size} site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.`,
+      evidence: [...sweep].slice(0, 3).map((site) => `${site} read ${perSite.get(site)?.size ?? 0} variables`),
     });
   }
-  /* Credential-like names the server looked up that we did NOT plant. */
+  /* Credential-like names the server looked up that we did NOT plant — and only
+   * from sites that were targeting, not from a whole-environment copy. */
   const planted = new Set<string>(PLANTED_ENV as readonly string[]);
   const looked = new Set<string>();
-  for (const e of run.probeLog) if (e.event === "env" && e.key && !planted.has(e.key) && CREDENTIAL_LIKE.test(e.key)) looked.add(e.key);
+  for (const e of run.probeLog) if (e.event === "env" && e.key && !planted.has(e.key) && CREDENTIAL_LIKE.test(e.key) && !sweep.has(e.site ?? "?")) looked.add(e.key);
   if (looked.size) {
     findings.push({
       id: "credential:note:looked",

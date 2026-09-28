@@ -1,0 +1,378 @@
+{
+  "slug": "modelcontextprotocol-server-filesystem",
+  "name": "@modelcontextprotocol/server-filesystem",
+  "registry": "npm",
+  "version": "2026.8.31",
+  "readmeCommand": "npx -y @modelcontextprotocol/server-filesystem /path/to/allowed/dir",
+  "bin": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/install/node_modules/.bin/mcp-server-filesystem",
+  "args": [
+    "{work}"
+  ],
+  "note": "Given one allowed directory (the working directory) as its argument, the way its README shows.",
+  "measuredAt": "2026-09-28T00:51:42.906Z",
+  "fingerprint": "12faeeb9c3d5393bdcf58ce6a219709dfb4b0ec77c0e90f378c5c09223bd5601",
+  "serverInfo": {
+    "name": "secure-filesystem-server",
+    "version": "0.2.0"
+  },
+  "initError": null,
+  "declared": {
+    "credentials": [],
+    "tools": {
+      "names": [
+        "read_file",
+        "read_text_file",
+        "read_media_file",
+        "read_multiple_files",
+        "write_file",
+        "edit_file",
+        "create_directory",
+        "list_directory",
+        "list_directory_with_sizes",
+        "directory_tree",
+        "move_file",
+        "search_files",
+        "get_file_info",
+        "list_allowed_directories"
+      ],
+      "source": {
+        "url": "https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem",
+        "quote": "The README documents these tools and states the server will only operate inside directories passed to it."
+      }
+    },
+    "destinations": []
+  },
+  "offered": [
+    "create_directory",
+    "directory_tree",
+    "edit_file",
+    "get_file_info",
+    "list_allowed_directories",
+    "list_directory",
+    "list_directory_with_sizes",
+    "move_file",
+    "read_file",
+    "read_media_file",
+    "read_multiple_files",
+    "read_text_file",
+    "search_files",
+    "write_file"
+  ],
+  "notChecked": [
+    {
+      "tool": "read_file",
+      "reason": "Alias of read_text_file for text; the text path is exercised by read_text_file."
+    },
+    {
+      "tool": "read_media_file",
+      "reason": "Returns base64 media; no independent oracle for image bytes in this harness."
+    },
+    {
+      "tool": "read_multiple_files",
+      "reason": "A batch of read_text_file, which is exercised on its own."
+    },
+    {
+      "tool": "edit_file",
+      "reason": "A line-editing variant of write_file, which is exercised."
+    },
+    {
+      "tool": "create_directory",
+      "reason": "Directory creation is covered indirectly by write_file's parent creation."
+    },
+    {
+      "tool": "list_directory_with_sizes",
+      "reason": "list_directory is exercised; sizes add no new claim to judge."
+    },
+    {
+      "tool": "directory_tree",
+      "reason": "A recursive form of list_directory, which is exercised."
+    },
+    {
+      "tool": "move_file",
+      "reason": "Rename within the sandbox; not probed to keep the fixture set small."
+    },
+    {
+      "tool": "get_file_info",
+      "reason": "Returns stat metadata; overlaps get_file_info reporting, not independently judged here."
+    },
+    {
+      "tool": "list_allowed_directories",
+      "reason": "Reports configuration, not an effect on any third system."
+    }
+  ],
+  "results": [
+    {
+      "key": "write_file",
+      "tool": "write_file",
+      "claim": "Create a new file or overwrite an existing file.",
+      "reading": "the named file exists afterwards with the content we sent",
+      "arguments": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work/written.txt",
+        "content": "written by the tool"
+      },
+      "oracle": "disk",
+      "where": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work/written.txt"
+      },
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "exists",
+          "says": "the file exists",
+          "held": true
+        },
+        {
+          "id": "content",
+          "says": "it holds what we sent",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "6cbc2e98f6a96d6ed3537e0cad5dc23b3ea72f5574e0cfb29890b08f2e8cd9d8",
+      "observed": {
+        "exists": true,
+        "content": "written by the tool",
+        "created": "work/written.txt",
+        "modified": "",
+        "removed": "",
+        "changedCount": 1,
+        "escapedWork": false,
+        "escapedTo": ""
+      },
+      "reply": {
+        "isError": false,
+        "text": "Successfully wrote to /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work/written.txt",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "read_text_file",
+      "tool": "read_text_file",
+      "claim": "Read the complete contents of a text file.",
+      "reading": "the reply contains the file's actual contents",
+      "arguments": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work/notes.txt"
+      },
+      "oracle": "reply",
+      "where": {},
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "content",
+          "says": "the reply contains the file's text",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "b55173abcf6946997f9cae0814a95bfaa9029ec58429eb2b6a98d906d10679d1",
+      "observed": {
+        "replyText": "the quarterly figures are in the attached sheet",
+        "isError": false,
+        "structured": "{\"content\":\"the quarterly figures are in the attached sheet\"}"
+      },
+      "reply": {
+        "isError": false,
+        "text": "the quarterly figures are in the attached sheet",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "list_directory",
+      "tool": "list_directory",
+      "claim": "List the contents of a directory.",
+      "reading": "the listing names the files that are really there",
+      "arguments": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work"
+      },
+      "oracle": "reply",
+      "where": {},
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "notes",
+          "says": "the listing includes notes.txt",
+          "held": true
+        },
+        {
+          "id": "todo",
+          "says": "the listing includes todo.md",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "2e098ae1fec846dcf567cd0710a4c55ae0dc97808668313e8ea3572b7f5ec810",
+      "observed": {
+        "replyText": "[FILE] notes.txt\n[FILE] todo.md\n[FILE] written.txt",
+        "isError": false,
+        "structured": "{\"content\":\"[FILE] notes.txt\\n[FILE] todo.md\\n[FILE] written.txt\"}"
+      },
+      "reply": {
+        "isError": false,
+        "text": "[FILE] notes.txt\n[FILE] todo.md\n[FILE] written.txt",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "search_files",
+      "tool": "search_files",
+      "claim": "Recursively search for files matching a pattern.",
+      "reading": "the search finds a file that matches",
+      "arguments": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work",
+        "pattern": "todo*"
+      },
+      "oracle": "reply",
+      "where": {},
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "found",
+          "says": "the match is reported",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "d26a77099783d00fe68f9c8f8e7b1251ab0e39885c053ca027ed7552a3b93717",
+      "observed": {
+        "replyText": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work/todo.md",
+        "isError": false,
+        "structured": "{\"content\":\"/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work/todo.md\"}"
+      },
+      "reply": {
+        "isError": false,
+        "text": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work/todo.md",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "write_outside",
+      "tool": "write_file",
+      "claim": "Only operate inside the allowed directory.",
+      "reading": "a write aimed outside the allowed directory does not land",
+      "arguments": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/outside/escape.txt",
+        "content": "escaped"
+      },
+      "oracle": "disk",
+      "where": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/outside/escape.txt"
+      },
+      "mustNotExist": true,
+      "boundary": true,
+      "state": "VERIFIED",
+      "reason": "NOT_EXECUTED",
+      "conditions": [],
+      "evidenceDigest": "3b9c9ec431cc5d4dd11747ca6751e857103a078c5a2eacd4c548efc046201cd5",
+      "observed": {
+        "exists": false,
+        "content": null,
+        "created": "",
+        "modified": "",
+        "removed": "",
+        "changedCount": 0,
+        "escapedWork": false,
+        "escapedTo": ""
+      },
+      "reply": {
+        "isError": true,
+        "text": "Access denied - path outside allowed directories: /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/outside/escape.txt not in /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work",
+        "honest": true,
+        "says": "Refused, and said so"
+      }
+    },
+    {
+      "key": "read_outside",
+      "tool": "read_text_file",
+      "claim": "Only operate inside the allowed directory.",
+      "reading": "a read aimed outside the allowed directory does not open the file",
+      "arguments": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/outside/secret.txt"
+      },
+      "oracle": "opens",
+      "where": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/outside/secret.txt"
+      },
+      "mustNotExist": true,
+      "boundary": true,
+      "state": "VERIFIED",
+      "reason": "NOT_EXECUTED",
+      "conditions": [],
+      "evidenceDigest": "f059418154d9ea8b51513661536fe55c12b145dd90195f138bb80882ceaea3c4",
+      "observed": {
+        "opened": false,
+        "attempts": 0,
+        "lastErrno": ""
+      },
+      "reply": {
+        "isError": true,
+        "text": "Access denied - path outside allowed directories: /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/outside/secret.txt not in /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790556690678/work",
+        "honest": true,
+        "says": "Refused, and said so"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @modelcontextprotocol/server-filesystem@2026.8.31",
+        "integrity sha512-kKaFkyAh6oipvc9+EAbJ552JafnMnOq5nzmzWkp1jJdBhTAAGpmIpWihUG1+rfNhmEFM98gUZDdCHCDD4v6a7Q==",
+        "tarball https://registry.npmjs.org/@modelcontextprotocol/server-filesystem/-/server-filesystem-2026.8.31.tgz"
+      ]
+    }
+  ],
+  "held": false,
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ]
+}

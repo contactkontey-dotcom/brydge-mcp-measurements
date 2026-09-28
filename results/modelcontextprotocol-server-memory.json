@@ -1,0 +1,249 @@
+{
+  "slug": "modelcontextprotocol-server-memory",
+  "name": "@modelcontextprotocol/server-memory",
+  "registry": "npm",
+  "version": "2026.8.31",
+  "readmeCommand": "npx -y @modelcontextprotocol/server-memory",
+  "bin": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790556702910/install/node_modules/.bin/mcp-server-memory",
+  "args": [],
+  "note": "Its memory file is pointed at the working directory via MEMORY_FILE_PATH, as its README describes.",
+  "measuredAt": "2026-09-28T00:51:52.991Z",
+  "fingerprint": "12faeeb9c3d5393bdcf58ce6a219709dfb4b0ec77c0e90f378c5c09223bd5601",
+  "serverInfo": {
+    "name": "memory-server",
+    "version": "0.6.3"
+  },
+  "initError": null,
+  "declared": {
+    "credentials": [],
+    "tools": {
+      "names": [
+        "create_entities",
+        "create_relations",
+        "add_observations",
+        "delete_entities",
+        "delete_observations",
+        "delete_relations",
+        "read_graph",
+        "search_nodes",
+        "open_nodes"
+      ],
+      "source": {
+        "url": "https://www.npmjs.com/package/@modelcontextprotocol/server-memory",
+        "quote": "The README documents a knowledge-graph memory persisted to a JSON file at MEMORY_FILE_PATH."
+      }
+    },
+    "destinations": []
+  },
+  "offered": [
+    "add_observations",
+    "create_entities",
+    "create_relations",
+    "delete_entities",
+    "delete_observations",
+    "delete_relations",
+    "open_nodes",
+    "read_graph",
+    "search_nodes"
+  ],
+  "notChecked": [
+    {
+      "tool": "create_relations",
+      "reason": "Relations need two entities first; kept out to keep the fixture set small."
+    },
+    {
+      "tool": "add_observations",
+      "reason": "A follow-up mutation on create_entities, which is exercised."
+    },
+    {
+      "tool": "delete_entities",
+      "reason": "Deletion is a mutation not needed to judge whether writes land."
+    },
+    {
+      "tool": "delete_observations",
+      "reason": "As delete_entities."
+    },
+    {
+      "tool": "delete_relations",
+      "reason": "As delete_entities."
+    },
+    {
+      "tool": "open_nodes",
+      "reason": "A by-name read overlapping search_nodes, which is exercised."
+    }
+  ],
+  "results": [
+    {
+      "key": "create_entities",
+      "tool": "create_entities",
+      "claim": "Create entities in the knowledge graph.",
+      "reading": "the entity is written to the memory file on disk",
+      "arguments": {
+        "entities": [
+          {
+            "name": "Acme Corp",
+            "entityType": "company",
+            "observations": [
+              "ships widgets"
+            ]
+          }
+        ]
+      },
+      "oracle": "disk",
+      "where": {
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790556702910/work/memory.json"
+      },
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "exists",
+          "says": "the memory file exists",
+          "held": true
+        },
+        {
+          "id": "entity",
+          "says": "it records the entity",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "ae31b27ac8de86ea171c96fe4410e560abd518ff7d9707a4f466e4e76ea92686",
+      "observed": {
+        "exists": true,
+        "content": "{\"type\":\"entity\",\"name\":\"Acme Corp\",\"entityType\":\"company\",\"observations\":[\"ships widgets\"]}",
+        "created": "work/memory.json",
+        "modified": "",
+        "removed": "",
+        "changedCount": 1,
+        "escapedWork": false,
+        "escapedTo": ""
+      },
+      "reply": {
+        "isError": false,
+        "text": "[\n  {\n    \"name\": \"Acme Corp\",\n    \"entityType\": \"company\",\n    \"observations\": [\n      \"ships widgets\"\n    ]\n  }\n]",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "read_graph",
+      "tool": "read_graph",
+      "claim": "Read the entire knowledge graph.",
+      "reading": "the graph it returns contains the entity just created",
+      "arguments": {},
+      "oracle": "reply",
+      "where": {},
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "entity",
+          "says": "the graph includes the entity",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "c5ae1d5b0668ac8bae08a64038ff0a97ebfe8981f015b7248a00a9cefa86e528",
+      "observed": {
+        "replyText": "{\n  \"entities\": [\n    {\n      \"name\": \"Acme Corp\",\n      \"entityType\": \"company\",\n      \"observations\": [\n        \"ships widgets\"\n      ]\n    }\n  ],\n  \"relations\": []\n}",
+        "isError": false,
+        "structured": "{\"entities\":[{\"name\":\"Acme Corp\",\"entityType\":\"company\",\"observations\":[\"ships widgets\"]}],\"relations\":[]}"
+      },
+      "reply": {
+        "isError": false,
+        "text": "{\n  \"entities\": [\n    {\n      \"name\": \"Acme Corp\",\n      \"entityType\": \"company\",\n      \"observations\": [\n        \"ships widgets\"\n      ]\n    }\n  ],\n  \"relations\": []\n}",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "search_nodes",
+      "tool": "search_nodes",
+      "claim": "Search for nodes by query.",
+      "reading": "a search for the entity finds it",
+      "arguments": {
+        "query": "Acme"
+      },
+      "oracle": "reply",
+      "where": {},
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "found",
+          "says": "the search finds the entity",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "c5ae1d5b0668ac8bae08a64038ff0a97ebfe8981f015b7248a00a9cefa86e528",
+      "observed": {
+        "replyText": "{\n  \"entities\": [\n    {\n      \"name\": \"Acme Corp\",\n      \"entityType\": \"company\",\n      \"observations\": [\n        \"ships widgets\"\n      ]\n    }\n  ],\n  \"relations\": []\n}",
+        "isError": false,
+        "structured": "{\"entities\":[{\"name\":\"Acme Corp\",\"entityType\":\"company\",\"observations\":[\"ships widgets\"]}],\"relations\":[]}"
+      },
+      "reply": {
+        "isError": false,
+        "text": "{\n  \"entities\": [\n    {\n      \"name\": \"Acme Corp\",\n      \"entityType\": \"company\",\n      \"observations\": [\n        \"ships widgets\"\n      ]\n    }\n  ],\n  \"relations\": []\n}",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @modelcontextprotocol/server-memory@2026.8.31",
+        "integrity sha512-ljj/3S4aGjxdNSQWw6gucKKGnTLdBPWxzapyY/MT2tOVyZwvxChvevXSLPwx59nKJAlVpUVW+cOlnVRXRwiqMQ==",
+        "tarball https://registry.npmjs.org/@modelcontextprotocol/server-memory/-/server-memory-2026.8.31.tgz"
+      ]
+    }
+  ],
+  "held": false,
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "fingerprint": "f9c1fc3b6f57f43ae20ad1804f509e13251d6b15af132d18c5d57d169bb68c8d",
-  "ranAt": "2026-09-27T23:39:10.643Z",
+  "fingerprint": "12faeeb9c3d5393bdcf58ce6a219709dfb4b0ec77c0e90f378c5c09223bd5601",
+  "ranAt": "2026-09-28T00:51:30.551Z",
   "lines": [
     "ok   liar-node: 20 probes, 11 security findings, all as planted",
     "ok   liar-python: 3 probes, 4 security findings, all as planted"
@@ -21,7 +21,7 @@
     },
     {
       "path": "harness/analyze.ts",
-      "sha256": "0d0402283790b1fc5e5242478e55cc9df1bde7de621c5b6eec09dad65a919f4b"
+      "sha256": "98a83afad309676b813eb75912c579226ce21fff27b48122996782b67f740ed7"
     },
     {
       "path": "harness/canaries.ts",
@@ -53,7 +53,7 @@
     },
     {
       "path": "harness/probelog.ts",
-      "sha256": "41a161b37662c00ee2c35f9dd9c32fd1c457892cff8497a54a0847bd27eb9709"
+      "sha256": "085db26a7b34552edee73b8cfcaecdb7a0e860d3fc8153285f111a518126c26a"
     },
     {
       "path": "harness/probes/lo-up.py",
@@ -61,15 +61,15 @@
     },
     {
       "path": "harness/probes/node-probe.cjs",
-      "sha256": "2dcc6c04d39de0edd6f3578cbdc9dc6db63e1f3822a33e9bfbffa6328d9ed869"
+      "sha256": "a7d9f1ae73f1ef4b8849b39afb2a60e011f1943e25aac8c8f3e0bd4e4cff5c75"
     },
     {
       "path": "harness/probes/sitecustomize.py",
-      "sha256": "05f9924af95758b15ead510abad32e1adf94bd5319ee6435c233d8ac083e8137"
+      "sha256": "892602d95168ce92ea9f767249808e5b429aa4590a988f92f637230f6b8733a0"
     },
     {
       "path": "harness/session.ts",
-      "sha256": "755cbb93f795c44f63ffd3e2f7c3a582bc0458189c5bb6f7e952b8701083912c"
+      "sha256": "4295928d0cb45844ab32d519d7bfee33626e34dd9990b051a6d7e28c3f513930"
     },
     {
       "path": "harness/snapshot.ts",
@@ -89,7 +89,7 @@
     },
     {
       "path": "measure.ts",
-      "sha256": "dcb64b211e4d9483b87eabe949879fe8c9bf876280f4000bfd4ff3ae3a4845ea"
+      "sha256": "35d8d54a350afadadc70b3653fc2ed8eeeee219f3644c822c679befa4ad1d227"
     }
   ]
 }

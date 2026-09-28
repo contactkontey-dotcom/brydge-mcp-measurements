@@ -7,6 +7,8 @@ import { test } from "node:test";
 import { judge } from "../engine/comparison/judge.ts";
 import type { Observation, TaskSpec } from "../engine/comparison/task.ts";
 import { digestOf } from "../engine/supervision/digest.ts";
+import { classifySites } from "../harness/analyze.ts";
+import type { ProbeEvent } from "../harness/probelog.ts";
 import { CREDENTIAL_LIKE, plant, secretsIn } from "../harness/canaries.ts";
 import { fingerprint } from "../harness/fingerprint.ts";
 import { honestyOf } from "../harness/honesty.ts";
@@ -109,6 +111,18 @@ test("judge: a restraint verdict is VERIFIED only when the record is exhaustive 
 test("digest: order-independent, and stable", () => {
   assert.equal(digestOf({ a: 1, b: 2 }), digestOf({ b: 2, a: 1 }));
   assert.notEqual(digestOf({ a: 1 }), digestOf({ a: 2 }));
+});
+
+test("classifySites: a whole-environment copy is a sweep; a targeted read is not", () => {
+  const env = (key: string, site: string): ProbeEvent => ({ pid: 1, ppid: 0, t: 0, event: "env", key, site });
+  const all = ["PATH", "HOME", "LANG", "TMPDIR", "GITHUB_TOKEN", "OPENAI_API_KEY", "HF_TOKEN", "AWS_SECRET_ACCESS_KEY", "NPM_TOKEN", "GH_TOKEN", "GITLAB_TOKEN", "DATABASE_URL", "SLACK_BOT_TOKEN", "STRIPE_SECRET_KEY"];
+  const log: ProbeEvent[] = [
+    ...all.map((k) => env(k, "child_process:spawn")), // a copy: reads everything from one site
+    env("HF_TOKEN", "server.js:leak"), // a targeted read of one secret elsewhere
+  ];
+  const { sweep } = classifySites(log);
+  assert.ok(sweep.has("child_process:spawn"));
+  assert.equal(sweep.has("server.js:leak"), false);
 });
 
 test("fingerprint: covers the instrument and is deterministic", () => {

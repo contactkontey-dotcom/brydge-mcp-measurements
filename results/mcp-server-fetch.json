@@ -1,0 +1,172 @@
+{
+  "slug": "mcp-server-fetch",
+  "name": "mcp-server-fetch",
+  "registry": "pypi",
+  "version": "2026.8.18",
+  "readmeCommand": "uvx mcp-server-fetch",
+  "bin": "/srv/brydge-measure/mcp-server-fetch-1790556722451/install/venv/bin/mcp-server-fetch",
+  "args": [],
+  "note": "We judge only that the fetch is really made against the local page (it is, and the request is logged). We do NOT judge the markdown it returns: to convert HTML this server runs Node's Readability, which it fetches with `npm install` at request time — and the sandbox has no network, so that step hangs and the call returns nothing. That a fetch server shells out to `npm install` while answering a request is itself worth knowing; the conversion cannot be measured offline, which is a limit of the method, not a fault found in the server.",
+  "measuredAt": "2026-09-28T00:52:30.166Z",
+  "fingerprint": "12faeeb9c3d5393bdcf58ce6a219709dfb4b0ec77c0e90f378c5c09223bd5601",
+  "serverInfo": {
+    "name": "mcp-fetch",
+    "version": "1.30.0"
+  },
+  "initError": null,
+  "declared": {
+    "credentials": [],
+    "tools": {
+      "names": [
+        "fetch"
+      ],
+      "source": {
+        "url": "https://pypi.org/project/mcp-server-fetch/",
+        "quote": "The README documents a single fetch tool that retrieves a URL and converts it to markdown."
+      }
+    },
+    "destinations": [
+      {
+        "host": "user-supplied URLs",
+        "source": {
+          "url": "https://pypi.org/project/mcp-server-fetch/",
+          "quote": "Fetches the URL it is given."
+        }
+      }
+    ]
+  },
+  "offered": [
+    "fetch"
+  ],
+  "notChecked": [],
+  "results": [
+    {
+      "key": "fetch",
+      "tool": "fetch",
+      "claim": "Fetch a URL and return its contents.",
+      "reading": "the page is actually requested from the local server (not fabricated)",
+      "arguments": {
+        "url": "http://127.0.0.1:38707/page.html"
+      },
+      "oracle": "http",
+      "where": {
+        "path": "/page.html"
+      },
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "requested",
+          "says": "the page was really requested",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "3cacf9268a7bafb8c61da5712bb22c912b79941519c5e1b43e070bc364e588ed",
+      "observed": {
+        "requested": true,
+        "hits": 1,
+        "method": "GET",
+        "userAgent": "ModelContextProtocol/1.0 (Autonomous; +https://github.com/modelcontextprotocol/servers)",
+        "askedRobots": true,
+        "replyText": "No response within 20 seconds"
+      },
+      "reply": {
+        "isError": true,
+        "text": "No response within 20 seconds",
+        "honest": false,
+        "says": "Did it, but reported failure"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "reply:fetch",
+      "kind": "reply",
+      "security": false,
+      "says": "fetch reported \"Did it, but reported failure\".",
+      "evidence": [
+        "reply: No response within 20 seconds"
+      ]
+    },
+    {
+      "id": "credential:config:~/.npmrc",
+      "kind": "credential",
+      "security": false,
+      "says": "Ran npm, which read its own ~/.npmrc while loading configuration. That is the tool reading its config, not the server reaching for a credential.",
+      "evidence": [
+        "npm ran in this session; the read of ~/.npmrc is its config loading"
+      ]
+    },
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 2 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "/usr/lib/python3.11/urllib/request.py:2516 read 22 variables",
+        "/usr/lib/python3.11/urllib/request.py:2526 read 22 variables"
+      ]
+    },
+    {
+      "id": "network:tls",
+      "kind": "network",
+      "security": false,
+      "says": "Opened TLS to registry.npmjs.org. The bytes it would have sent are encrypted and were NOT seen — a limit of the method.",
+      "evidence": [
+        "SNI registry.npmjs.org",
+        "SNI registry.npmjs.org"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "pypi mcp_server_fetch-2026.8.18-py3-none-any.whl sha256:6642df733a1032e7f37d0f13849af8a944d46c02420d2c070cc14e0948f8fcc2",
+        "pypi mcp_server_fetch-2026.8.18.tar.gz sha256:da12533c8218c7a4ee2eb9d789170a317cf758c07cb2cc0211a91bdb0d4b7254"
+      ]
+    }
+  ],
+  "held": false,
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ]
+}

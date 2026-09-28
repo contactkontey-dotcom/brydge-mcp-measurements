@@ -1,0 +1,276 @@
+{
+  "slug": "mcp-server-git",
+  "name": "mcp-server-git",
+  "registry": "pypi",
+  "version": "2026.8.18",
+  "readmeCommand": "uvx mcp-server-git --repository /path/to/repo",
+  "bin": "/srv/brydge-measure/mcp-server-git-1790556717625/install/venv/bin/mcp-server-git",
+  "args": [],
+  "note": "Given a repository built commit by commit before the run, so the log has a known answer.",
+  "measuredAt": "2026-09-28T00:52:02.447Z",
+  "fingerprint": "12faeeb9c3d5393bdcf58ce6a219709dfb4b0ec77c0e90f378c5c09223bd5601",
+  "serverInfo": {
+    "name": "mcp-git",
+    "version": "1.30.0"
+  },
+  "initError": null,
+  "declared": {
+    "credentials": [],
+    "tools": {
+      "names": [
+        "git_status",
+        "git_diff_unstaged",
+        "git_diff_staged",
+        "git_diff",
+        "git_commit",
+        "git_add",
+        "git_reset",
+        "git_log",
+        "git_create_branch",
+        "git_checkout",
+        "git_show",
+        "git_init"
+      ],
+      "source": {
+        "url": "https://pypi.org/project/mcp-server-git/",
+        "quote": "The README documents these git operations, each taking a repo_path."
+      }
+    },
+    "destinations": []
+  },
+  "offered": [
+    "git_add",
+    "git_branch",
+    "git_checkout",
+    "git_commit",
+    "git_create_branch",
+    "git_diff",
+    "git_diff_staged",
+    "git_diff_unstaged",
+    "git_log",
+    "git_reset",
+    "git_show",
+    "git_status"
+  ],
+  "notChecked": [
+    {
+      "tool": "git_commit",
+      "reason": "Committing needs a staged change the harness does not make through this server; git_commit is exercised on the calibration liar instead."
+    },
+    {
+      "tool": "git_add",
+      "reason": "Staging precedes a commit, which is not probed here."
+    },
+    {
+      "tool": "git_reset",
+      "reason": "Unstaging precedes a commit, which is not probed here."
+    },
+    {
+      "tool": "git_diff_unstaged",
+      "reason": "No unstaged change is created in the fixture."
+    },
+    {
+      "tool": "git_diff_staged",
+      "reason": "No staged change is created in the fixture."
+    },
+    {
+      "tool": "git_diff",
+      "reason": "No two revisions to diff in a single-commit fixture."
+    },
+    {
+      "tool": "git_create_branch",
+      "reason": "Branch creation is not read back by an independent oracle here."
+    },
+    {
+      "tool": "git_checkout",
+      "reason": "Depends on a second branch, not created."
+    },
+    {
+      "tool": "git_init",
+      "reason": "Would create a repository; the fixture already provides one."
+    }
+  ],
+  "results": [
+    {
+      "key": "git_log",
+      "tool": "git_log",
+      "claim": "Show the commit logs.",
+      "reading": "the log names the commit that is really in the repository",
+      "arguments": {
+        "repo_path": "/srv/brydge-measure/mcp-server-git-1790556717625/work/repo"
+      },
+      "oracle": "reply",
+      "where": {},
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "commit",
+          "says": "the log includes the initial commit",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "842ae2b04d39055b8a7758e870bc34046ffeaebd42eee2231167e16da117429c",
+      "observed": {
+        "replyText": "Commit history:\nCommit: 'f4e7d4ade391fe278bc33b31b5cc1a6563653622'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: 2026-09-28 00:52:00+00:00\nMessage: 'initial commit\\n'\n",
+        "isError": false,
+        "structured": ""
+      },
+      "reply": {
+        "isError": false,
+        "text": "Commit history:\nCommit: 'f4e7d4ade391fe278bc33b31b5cc1a6563653622'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: 2026-09-28 00:52:00+00:00\nMessage: 'initial commit\\n'\n",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "git_status",
+      "tool": "git_status",
+      "claim": "Show the working tree status.",
+      "reading": "a freshly built repository is reported as clean",
+      "arguments": {
+        "repo_path": "/srv/brydge-measure/mcp-server-git-1790556717625/work/repo"
+      },
+      "oracle": "reply",
+      "where": {},
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "clean",
+          "says": "nothing is reported to commit",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "c32535f75dfcd314d8f6bfc0d5bef7858d489171ded244ae62f7fe360b857fed",
+      "observed": {
+        "replyText": "Repository status:\nOn branch main\nnothing to commit, working tree clean",
+        "isError": false,
+        "structured": ""
+      },
+      "reply": {
+        "isError": false,
+        "text": "Repository status:\nOn branch main\nnothing to commit, working tree clean",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "git_show",
+      "tool": "git_show",
+      "claim": "Show the contents of a commit.",
+      "reading": "the commit it shows contains the file that was committed",
+      "arguments": {
+        "repo_path": "/srv/brydge-measure/mcp-server-git-1790556717625/work/repo",
+        "revision": "HEAD"
+      },
+      "oracle": "reply",
+      "where": {},
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "file",
+          "says": "the commit shows the committed file",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "186f691aed05e8031fde7ff91aa1bc180260bcb2e05862ed3d8b77dd1647cb19",
+      "observed": {
+        "replyText": "Commit: 'f4e7d4ade391fe278bc33b31b5cc1a6563653622'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: datetime.datetime(2026, 9, 28, 0, 52, tzinfo=<git.objects.util.tzoffset object at 0x7f405b118a90>)\nMessage: 'initial commit\\n'\n\n--- None\n+++ README.md\n@@ -0,0 +1 @@\n+# project\n\n--- None\n+++ main.py\n@@ -0,0 +1 @@\n+print('hi')\n",
+        "isError": false,
+        "structured": ""
+      },
+      "reply": {
+        "isError": false,
+        "text": "Commit: 'f4e7d4ade391fe278bc33b31b5cc1a6563653622'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: datetime.datetime(2026, 9, 28, 0, 52, tzinfo=<git.objects.util.tzoffset object at 0x7f405b118a90>)\nMessage: 'initial commit\\n'\n\n--- None\n+++ README.md\n@@ -0,0 +1 @@\n+# project\n\n--- None\n+++ main.py\n@@ -0,0 +1 @@\n+print('hi')\n",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "/srv/brydge-measure/mcp-server-git-1790556717625/install/venv/lib/python3.11/site-packages/git/cmd.py:1393 read 22 variables"
+      ]
+    },
+    {
+      "id": "tool-list:missing",
+      "kind": "tool-list",
+      "security": false,
+      "says": "Documents 1 tool(s) it did not offer: git_init.",
+      "evidence": [
+        "from https://pypi.org/project/mcp-server-git/"
+      ]
+    },
+    {
+      "id": "tool-list:extra",
+      "kind": "tool-list",
+      "security": false,
+      "says": "Offered 1 tool(s) its documentation does not list: git_branch.",
+      "evidence": [
+        "offered in tools/list, absent from https://pypi.org/project/mcp-server-git/"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "pypi mcp_server_git-2026.8.18-py3-none-any.whl sha256:6c32a8e771564122a9bafac373cf871fb3ab540ddc1ba0ee8e9c8c6e9878aef7",
+        "pypi mcp_server_git-2026.8.18.tar.gz sha256:96894ca661cfda45174a8882d4ca97d1f5261301c72ccad006ff04f4108f173f"
+      ]
+    }
+  ],
+  "held": false,
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ]
+}
