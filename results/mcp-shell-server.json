@@ -1,16 +1,16 @@
 {
-  "slug": "mcp-server-time",
-  "name": "mcp-server-time",
+  "slug": "mcp-shell-server",
+  "name": "mcp-shell-server",
   "registry": "pypi",
-  "version": "2026.8.18",
-  "readmeCommand": "uvx mcp-server-time",
-  "bin": "/srv/brydge-measure/mcp-server-time-1790557794098/install/venv/bin/mcp-server-time",
+  "version": "1.1.12",
+  "readmeCommand": "ALLOW_COMMANDS=\"echo,ls\" uvx mcp-shell-server",
+  "bin": "/srv/brydge-measure/mcp-shell-server-1790557844864/install/venv/bin/mcp-shell-server",
   "args": [],
-  "note": "Tokyo is UTC+9 year round, so the conversion has one right answer.",
-  "measuredAt": "2026-09-28T01:09:59.178Z",
+  "note": "Given an allowlist of echo, ls and cat. The boundary probe asks it to run id, which is not on the list.",
+  "measuredAt": "2026-09-28T01:10:48.998Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
-    "name": "mcp-time",
+    "name": "mcp-shell-server",
     "version": "1.30.0"
   },
   "initError": null,
@@ -18,96 +18,85 @@
     "credentials": [],
     "tools": {
       "names": [
-        "get_current_time",
-        "convert_time"
+        "shell_execute"
       ],
       "source": {
-        "url": "https://pypi.org/project/mcp-server-time/",
-        "quote": "The README documents get_current_time and convert_time over IANA time zones."
+        "url": "https://pypi.org/project/mcp-shell-server/",
+        "quote": "The README documents shell_execute, which runs only commands named in ALLOW_COMMANDS."
       }
     },
     "destinations": []
   },
   "offered": [
-    "convert_time",
-    "get_current_time"
+    "shell_execute"
   ],
   "notChecked": [],
   "results": [
     {
-      "key": "get_current_time",
-      "tool": "get_current_time",
-      "claim": "Get the current time in a given time zone.",
-      "reading": "the time returned is the real current time in that zone, to the hour",
+      "key": "shell_execute_allowed",
+      "tool": "shell_execute",
+      "claim": "Run a command from the allowlist.",
+      "reading": "an allowlisted command actually runs",
       "arguments": {
-        "timezone": "Asia/Tokyo"
+        "command": [
+          "echo",
+          "hi"
+        ]
       },
-      "oracle": "compute",
+      "oracle": "exec",
       "where": {
-        "mode": "now",
-        "timezone": "Asia/Tokyo"
+        "program": "echo"
       },
       "mustNotExist": false,
       "boundary": false,
       "state": "VERIFIED",
       "reason": null,
-      "conditions": [
-        {
-          "id": "now",
-          "says": "the time is right for the zone",
-          "held": true
-        }
-      ],
-      "evidenceDigest": "1b01ffcd787f3ef7472006521c2b9edd6774f5e68975a591d8b27a85a120aad3",
+      "conditions": [],
+      "evidenceDigest": "5676a25bc3bbe0d1ee7e5540bd374578d4525d0c86c4e7062522eb4d4283dd54",
       "observed": {
-        "expected": "2026-09-28T10",
-        "replyText": "{\n  \"timezone\": \"Asia/Tokyo\",\n  \"datetime\": \"2026-09-28T10:09:59+09:00\",\n  \"day_of_week\": \"Monday\",\n  \"is_dst\": false\n}",
-        "matches": true
+        "ran": true,
+        "programs": "echo",
+        "count": 1,
+        "argv": "echo hi"
       },
       "reply": {
         "isError": false,
-        "text": "{\n  \"timezone\": \"Asia/Tokyo\",\n  \"datetime\": \"2026-09-28T10:09:59+09:00\",\n  \"day_of_week\": \"Monday\",\n  \"is_dst\": false\n}",
+        "text": "hi",
         "honest": true,
         "says": "Did what it says"
       }
     },
     {
-      "key": "convert_time",
-      "tool": "convert_time",
-      "claim": "Convert a time between two time zones.",
-      "reading": "12:00 UTC converts to 21:00 in Tokyo",
+      "key": "shell_execute_denied",
+      "tool": "shell_execute",
+      "claim": "Run only commands named in ALLOW_COMMANDS.",
+      "reading": "a command that is not on the allowlist never runs",
       "arguments": {
-        "source_timezone": "UTC",
-        "time": "12:00",
-        "target_timezone": "Asia/Tokyo"
+        "command": [
+          "id"
+        ]
       },
-      "oracle": "compute",
+      "oracle": "exec",
       "where": {
-        "expected": "21:00"
+        "program": "id"
       },
-      "mustNotExist": false,
-      "boundary": false,
+      "mustNotExist": true,
+      "boundary": true,
       "state": "VERIFIED",
-      "reason": null,
-      "conditions": [
-        {
-          "id": "converted",
-          "says": "the converted time is 21:00",
-          "held": true
-        }
-      ],
-      "evidenceDigest": "fc934466d6b56f25f494648506aaf9729c5c30e69a3a978c549f3b146e7228e1",
+      "reason": "NOT_EXECUTED",
+      "conditions": [],
+      "evidenceDigest": "5676a25bc3bbe0d1ee7e5540bd374578d4525d0c86c4e7062522eb4d4283dd54",
       "observed": {
-        "expected": "21:00",
-        "replyText": "{\n  \"source\": {\n    \"timezone\": \"UTC\",\n    \"datetime\": \"2026-09-28T12:00:00+00:00\",\n    \"day_of_week\": \"Monday\",\n    \"is_dst\": false\n  },\n  \"target\": {\n    \"timezone\": \"Asia/Tokyo\",\n    \"datetime\": \"2026-09-28T21:00:00+09:00\",\n    \"day_of_week\": \"Monday\",\n    \"is_dst\": false\n  },\n  \"time_difference\": \"+9.0h\"\n}",
-        "structured": "",
-        "matches": true
+        "ran": false,
+        "programs": "echo",
+        "count": 1,
+        "argv": "echo hi"
       },
       "reply": {
-        "isError": false,
-        "text": "{\n  \"source\": {\n    \"timezone\": \"UTC\",\n    \"datetime\": \"2026-09-28T12:00:00+00:00\",\n    \"day_of_week\": \"Monday\",\n    \"is_dst\": false\n  },\n  \"target\": {\n    \"timezone\": \"Asia/Tokyo\",\n    \"datetime\": \"2026-09-28T21:00:00+09:00\",\n    \"day_of_week\": \"Monday\",\n    \"is_dst\": false\n  },\n  \"time_difference\": \"+9.0h\"\n}",
+        "isError": true,
+        "text": "Error executing command: Command not allowed: id",
         "honest": true,
-        "says": "Did what it says"
+        "says": "Refused, and said so"
       }
     }
   ],
@@ -118,8 +107,8 @@
       "security": false,
       "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
       "evidence": [
-        "pypi mcp_server_time-2026.8.18-py3-none-any.whl sha256:1407583af42dc0163909d855c9ef20114a12b4981c3975033721a7906cdd212a",
-        "pypi mcp_server_time-2026.8.18.tar.gz sha256:ec1313feb558a848838217d922bd218e9f7ca217cb0f7b890ee75ab94bf962e0"
+        "pypi mcp_shell_server-1.1.12-py3-none-any.whl sha256:e860e0232b8090a2a2db2f2391a72819ca00132a70dc2a8bf8552627524c5a59",
+        "pypi mcp_shell_server-1.1.12.tar.gz sha256:f3ac012d905fe24230f724981ad80afea17006e364d31767cf6603f658a3f331"
       ]
     }
   ],

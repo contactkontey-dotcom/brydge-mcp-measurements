@@ -98,8 +98,17 @@ function buildWorld(cfg: SessionConfig): { canaries: Canaries; paths: OracleCont
   const pages = layFixtures(cfg.spec.fixtures, paths);
 
   /* The server runs unprivileged, so it must own what it is meant to touch —
-   * the sandbox is not the thing enforcing a boundary; the server is. */
-  for (const dir of [work, outside, HOME]) sh("chown", ["-R", `${MEASURE_UID}:${MEASURE_GID}`, dir]);
+   * the sandbox is not the thing enforcing a boundary; the server is. The
+   * install directory is included because some servers write beside their own
+   * code (a log file, a cache) and would crash on a read-only install. */
+  const install = join(runDir, "install");
+  for (const dir of [work, outside, HOME, install]) {
+    try {
+      sh("chown", ["-R", `${MEASURE_UID}:${MEASURE_GID}`, dir]);
+    } catch {
+      /* the install directory may not exist for a server with none */
+    }
+  }
 
   return { canaries, paths, pages };
 }

@@ -1,0 +1,356 @@
+{
+  "slug": "chrome-devtools-mcp",
+  "name": "chrome-devtools-mcp",
+  "registry": "npm",
+  "version": "1.10.1",
+  "readmeCommand": "npx -y chrome-devtools-mcp@latest",
+  "bin": "/srv/brydge-measure/chrome-devtools-mcp-1790557909544/install/node_modules/.bin/chrome-devtools-mcp",
+  "args": [
+    "--executablePath",
+    "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+    "--headless",
+    "--isolated"
+  ],
+  "note": "Given a headless Chromium and a local page; we check that opening the page actually requests it, which the local server logs.",
+  "measuredAt": "2026-09-28T01:11:55.462Z",
+  "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "serverInfo": {
+    "name": "chrome_devtools",
+    "title": "Chrome DevTools MCP server",
+    "version": "1.10.1"
+  },
+  "initError": null,
+  "declared": {
+    "credentials": [],
+    "tools": {
+      "names": [
+        "click",
+        "close_page",
+        "drag",
+        "emulate",
+        "evaluate_script",
+        "fill",
+        "fill_form",
+        "get_console_message",
+        "get_css_styles",
+        "get_network_request",
+        "handle_dialog",
+        "hover",
+        "lighthouse_audit",
+        "list_console_messages",
+        "list_network_requests",
+        "navigate_page",
+        "new_page",
+        "performance_analyze_insight",
+        "performance_start_trace",
+        "performance_stop_trace",
+        "press_key",
+        "resize_page",
+        "select_page",
+        "take_heapsnapshot",
+        "take_screenshot",
+        "take_snapshot",
+        "type_text",
+        "upload_file",
+        "wait_for"
+      ],
+      "source": {
+        "url": "https://www.npmjs.com/package/chrome-devtools-mcp",
+        "quote": "The tool set the server advertises over tools/list for driving Chrome over DevTools."
+      }
+    },
+    "destinations": [
+      {
+        "host": "user-supplied URLs",
+        "source": {
+          "url": "https://www.npmjs.com/package/chrome-devtools-mcp",
+          "quote": "Navigates the browser to the URL it is given."
+        }
+      }
+    ]
+  },
+  "offered": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "notChecked": [
+    {
+      "tool": "navigate_page",
+      "reason": "Navigates an existing page by id; new_page (create + load a URL) exercises the same fetch without needing a page id."
+    },
+    {
+      "tool": "take_snapshot",
+      "reason": "Returns the page's accessibility tree; judged indirectly by whether opening the page fetched it."
+    },
+    {
+      "tool": "take_screenshot",
+      "reason": "Returns image bytes; no independent oracle for the pixels here."
+    },
+    {
+      "tool": "evaluate_script",
+      "reason": "Runs arbitrary JS in the page; not scripted here."
+    },
+    {
+      "tool": "list_network_requests",
+      "reason": "Reports the browser's own requests; our web log is the independent record instead."
+    },
+    {
+      "tool": "click",
+      "reason": "Needs a live page state to be meaningful; not scripted in this probe set."
+    },
+    {
+      "tool": "fill",
+      "reason": "As click."
+    },
+    {
+      "tool": "fill_form",
+      "reason": "As click."
+    },
+    {
+      "tool": "type_text",
+      "reason": "As click."
+    },
+    {
+      "tool": "press_key",
+      "reason": "As click."
+    },
+    {
+      "tool": "hover",
+      "reason": "As click."
+    },
+    {
+      "tool": "drag",
+      "reason": "As click."
+    },
+    {
+      "tool": "select_page",
+      "reason": "Switches the active tab; no third-system effect to read."
+    },
+    {
+      "tool": "list_pages",
+      "reason": "Reports open tabs, not an effect on a third system."
+    },
+    {
+      "tool": "close_page",
+      "reason": "Tears down a tab; no third-system effect to read."
+    },
+    {
+      "tool": "resize_page",
+      "reason": "Changes the viewport; no third-system effect to read."
+    },
+    {
+      "tool": "emulate",
+      "reason": "Changes device emulation; no third-system effect to read."
+    },
+    {
+      "tool": "wait_for",
+      "reason": "Waits on page state; not scripted here."
+    },
+    {
+      "tool": "handle_dialog",
+      "reason": "Responds to a dialog; needs a live dialog, not scripted."
+    },
+    {
+      "tool": "upload_file",
+      "reason": "Needs a live file input; not scripted here."
+    },
+    {
+      "tool": "lighthouse_audit",
+      "reason": "Runs an audit needing a fully loaded page and network; out of scope offline."
+    },
+    {
+      "tool": "performance_start_trace",
+      "reason": "Performance tracing is not judged by an independent oracle here."
+    },
+    {
+      "tool": "performance_stop_trace",
+      "reason": "As performance_start_trace."
+    },
+    {
+      "tool": "performance_analyze_insight",
+      "reason": "Analyses a trace not captured here."
+    },
+    {
+      "tool": "take_heapsnapshot",
+      "reason": "Returns a heap snapshot; no independent oracle here."
+    },
+    {
+      "tool": "get_console_message",
+      "reason": "Reads a console message; not a third-system effect."
+    },
+    {
+      "tool": "list_console_messages",
+      "reason": "Reads console messages; not a third-system effect."
+    },
+    {
+      "tool": "get_network_request",
+      "reason": "Reads one browser request; our web log is the independent record."
+    },
+    {
+      "tool": "get_css_styles",
+      "reason": "Reads computed styles; not a third-system effect."
+    }
+  ],
+  "results": [
+    {
+      "key": "new_page",
+      "tool": "new_page",
+      "claim": "Open a page at a URL in the browser.",
+      "reading": "the browser actually requests the page from the server",
+      "arguments": {
+        "url": "http://127.0.0.1:37943/page.html"
+      },
+      "oracle": "http",
+      "where": {
+        "path": "/page.html"
+      },
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "requested",
+          "says": "the page was really requested by the browser",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "42dd3c0271b7262f4cd40cb808003bed699aa0d85534df94b8eb0c0db1e488c7",
+      "observed": {
+        "requested": true,
+        "hits": 1,
+        "method": "GET",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+        "askedRobots": false,
+        "replyText": "## Pages\n1: about:blank\n2: http://127.0.0.1:37943/page.html [selected]"
+      },
+      "reply": {
+        "isError": false,
+        "text": "## Pages\n1: about:blank\n2: http://127.0.0.1:37943/page.html [selected]",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "credential:config:~/.npmrc",
+      "kind": "credential",
+      "security": false,
+      "says": "Ran npm, which read its own ~/.npmrc while loading configuration. That is the tool reading its config, not the server reaching for a credential.",
+      "evidence": [
+        "npm ran in this session; the read of ~/.npmrc is its config loading"
+      ]
+    },
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 3 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at normalizeSpawnArguments (node:child_process:675:43) read 22 variables",
+        "at Object.getEnv (file:///srv/brydge-measure/chrome-devtools-mcp-1790557909544/install/node_modules/chrome-devtools-mcp/build/src/third_party/index.js:26239:23) read 4 variables",
+        "at normalizeSpawnArguments (node:child_process:723:22) read 22 variables"
+      ]
+    },
+    {
+      "id": "network:tls",
+      "kind": "network",
+      "security": false,
+      "says": "Opened TLS to registry.npmjs.org, www.google.com, play.googleapis.com. The bytes it would have sent are encrypted and were NOT seen — a limit of the method.",
+      "evidence": [
+        "SNI registry.npmjs.org",
+        "SNI www.google.com",
+        "SNI www.google.com",
+        "SNI www.google.com"
+      ]
+    },
+    {
+      "id": "tool-list:extra",
+      "kind": "tool-list",
+      "security": false,
+      "says": "Offered 1 tool(s) its documentation does not list: list_pages.",
+      "evidence": [
+        "offered in tools/list, absent from https://www.npmjs.com/package/chrome-devtools-mcp"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm chrome-devtools-mcp@1.10.1",
+        "integrity sha512-Klw6HWDqHC/XS1JwZldd2r49aUhbUJN9m9Mvcx4SEueIPXtzuQX+QelxAViobv8YUkDZ7HWDrmViR6LeYK0wAw==",
+        "tarball https://registry.npmjs.org/chrome-devtools-mcp/-/chrome-devtools-mcp-1.10.1.tgz"
+      ]
+    }
+  ],
+  "held": false,
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ]
+}

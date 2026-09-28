@@ -1,0 +1,354 @@
+{
+  "slug": "wonderwhy-er-desktop-commander",
+  "name": "@wonderwhy-er/desktop-commander",
+  "registry": "npm",
+  "version": "0.2.51",
+  "readmeCommand": "npx -y @wonderwhy-er/desktop-commander",
+  "bin": "/srv/brydge-measure/wonderwhy-er-desktop-commander-1790557855923/install/node_modules/.bin/desktop-commander",
+  "args": [],
+  "note": "Offers full desktop access by design, so there is no sandbox boundary to test; we check that a write lands and a command runs, and watch what it reads and where it connects.",
+  "measuredAt": "2026-09-28T01:11:49.534Z",
+  "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "serverInfo": {
+    "name": "desktop-commander",
+    "version": "0.2.51"
+  },
+  "initError": null,
+  "declared": {
+    "credentials": [],
+    "tools": {
+      "names": [
+        "create_directory",
+        "edit_block",
+        "force_terminate",
+        "get_config",
+        "get_file_info",
+        "get_more_search_results",
+        "get_prompts",
+        "get_recent_tool_calls",
+        "get_usage_stats",
+        "give_feedback_to_desktop_commander",
+        "interact_with_process",
+        "kill_process",
+        "list_directory",
+        "list_processes",
+        "list_searches",
+        "list_sessions",
+        "move_file",
+        "read_file",
+        "read_multiple_files",
+        "read_process_output",
+        "set_config_value",
+        "start_process",
+        "start_search",
+        "stop_search",
+        "write_file",
+        "write_pdf"
+      ],
+      "source": {
+        "url": "https://www.npmjs.com/package/@wonderwhy-er/desktop-commander",
+        "quote": "The tool set the server advertises over tools/list (file operations and a terminal via start_process); it offers full desktop access, not a sandbox."
+      }
+    },
+    "destinations": []
+  },
+  "offered": [
+    "create_directory",
+    "edit_block",
+    "force_terminate",
+    "get_config",
+    "get_file_info",
+    "get_more_search_results",
+    "get_prompts",
+    "get_recent_tool_calls",
+    "get_usage_stats",
+    "give_feedback_to_desktop_commander",
+    "interact_with_process",
+    "kill_process",
+    "list_directory",
+    "list_processes",
+    "list_searches",
+    "list_sessions",
+    "move_file",
+    "read_file",
+    "read_multiple_files",
+    "read_process_output",
+    "set_config_value",
+    "start_process",
+    "start_search",
+    "stop_search",
+    "write_file",
+    "write_pdf"
+  ],
+  "notChecked": [
+    {
+      "tool": "read_file",
+      "reason": "The write path is exercised; reading it back adds no independent check here."
+    },
+    {
+      "tool": "read_multiple_files",
+      "reason": "A batch of read_file, which overlaps the write path exercised here."
+    },
+    {
+      "tool": "create_directory",
+      "reason": "Covered indirectly by write_file's parent creation."
+    },
+    {
+      "tool": "list_directory",
+      "reason": "A read overlapping the filesystem server's, not re-judged here."
+    },
+    {
+      "tool": "get_file_info",
+      "reason": "Returns stat metadata; not independently judged here."
+    },
+    {
+      "tool": "move_file",
+      "reason": "Rename within the sandbox; not probed to keep the fixture set small."
+    },
+    {
+      "tool": "search_files",
+      "reason": "A read not independently judged here."
+    },
+    {
+      "tool": "start_search",
+      "reason": "Asynchronous search; its results are read by get_more_search_results, not judged here."
+    },
+    {
+      "tool": "get_more_search_results",
+      "reason": "Reads results of start_search, which is not probed."
+    },
+    {
+      "tool": "list_searches",
+      "reason": "Reports search sessions, not a third-system effect."
+    },
+    {
+      "tool": "stop_search",
+      "reason": "Tears down a search session."
+    },
+    {
+      "tool": "edit_block",
+      "reason": "A surgical variant of write_file, which is exercised."
+    },
+    {
+      "tool": "write_pdf",
+      "reason": "Produces a PDF; no independent oracle for its bytes here."
+    },
+    {
+      "tool": "interact_with_process",
+      "reason": "Drives a process started by start_process, which is exercised on its own."
+    },
+    {
+      "tool": "read_process_output",
+      "reason": "Reads output of a started process; the start is what is judged."
+    },
+    {
+      "tool": "force_terminate",
+      "reason": "Ends a process; no third-system effect to read."
+    },
+    {
+      "tool": "kill_process",
+      "reason": "Ends a process by PID; no third-system effect to read."
+    },
+    {
+      "tool": "list_processes",
+      "reason": "Reports running processes, not a third-system effect."
+    },
+    {
+      "tool": "list_sessions",
+      "reason": "Reports terminal sessions, not a third-system effect."
+    },
+    {
+      "tool": "get_config",
+      "reason": "Reports configuration, not an effect on a third system."
+    },
+    {
+      "tool": "set_config_value",
+      "reason": "Changes its own configuration; no third-system effect to read."
+    },
+    {
+      "tool": "get_file_info",
+      "reason": "Returns stat metadata; not independently judged."
+    },
+    {
+      "tool": "get_prompts",
+      "reason": "Returns canned prompts, not a third-system effect."
+    },
+    {
+      "tool": "get_recent_tool_calls",
+      "reason": "Reports its own recent calls."
+    },
+    {
+      "tool": "get_usage_stats",
+      "reason": "Reports its own usage counters."
+    },
+    {
+      "tool": "give_feedback_to_desktop_commander",
+      "reason": "Opens a feedback channel; not an effect we judge."
+    }
+  ],
+  "results": [
+    {
+      "key": "write_file",
+      "tool": "write_file",
+      "claim": "Write content to a file.",
+      "reading": "the file exists afterwards with the content",
+      "arguments": {
+        "path": "/srv/brydge-measure/wonderwhy-er-desktop-commander-1790557855923/work/written.txt",
+        "content": "written by desktop commander"
+      },
+      "oracle": "disk",
+      "where": {
+        "path": "/srv/brydge-measure/wonderwhy-er-desktop-commander-1790557855923/work/written.txt"
+      },
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [
+        {
+          "id": "exists",
+          "says": "the file exists",
+          "held": true
+        },
+        {
+          "id": "content",
+          "says": "it holds what we sent",
+          "held": true
+        }
+      ],
+      "evidenceDigest": "6cbc2e98f6a96d6ed3537e0cad5dc23b3ea72f5574e0cfb29890b08f2e8cd9d8",
+      "observed": {
+        "exists": true,
+        "content": "written by desktop commander",
+        "created": "work/written.txt",
+        "modified": "",
+        "removed": "",
+        "changedCount": 1,
+        "escapedWork": false,
+        "escapedTo": ""
+      },
+      "reply": {
+        "isError": false,
+        "text": "Successfully wrote to /srv/brydge-measure/wonderwhy-er-desktop-commander-1790557855923/work/written.txt (1 lines) ",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    },
+    {
+      "key": "start_process",
+      "tool": "start_process",
+      "claim": "Run a terminal command.",
+      "reading": "the command actually runs as a real process",
+      "arguments": {
+        "command": "id",
+        "timeout_ms": 5000
+      },
+      "oracle": "exec",
+      "where": {
+        "program": "id"
+      },
+      "mustNotExist": false,
+      "boundary": false,
+      "state": "VERIFIED",
+      "reason": null,
+      "conditions": [],
+      "evidenceDigest": "2b344ba5a696306532225205cb9bc5597c1222d306ea8e79c07203d0111f09cd",
+      "observed": {
+        "ran": true,
+        "programs": "sh, python3, id",
+        "count": 10,
+        "argv": "/bin/sh -c python3 --version | python3 --version | /bin/sh -c python3 --version | python3 --version | /bin/sh -c id | id | /bin/sh -c python3 --version | python3 --version | /bin/sh -c python3 --version | python3 --version"
+      },
+      "reply": {
+        "isError": false,
+        "text": "Process started with PID 9501 (shell: /bin/sh)\nInitial output:\nuid=996(brydge-measure) gid=995(brydge-measure) groups=995(brydge-measure)\n",
+        "honest": true,
+        "says": "Did what it says"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 3 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at Object.env (/srv/brydge-measure/wonderwhy-er-desktop-commander-1790557855923/install/node_modules/bluebird/js/release/util.js:317:41) read 5 variables",
+        "at normalizeSpawnArguments (node:child_process:675:43) read 23 variables",
+        "at TerminalManager.executeCommand (file:///srv/brydge-measure/wonderwhy-er-desktop-commander-1790557855923/install/node_modules/@wonderwhy-er/desktop-commander/dist/terminal-manager.js:160:32) read 23 variables"
+      ]
+    },
+    {
+      "id": "network:dns",
+      "kind": "network",
+      "security": false,
+      "says": "Looked up 4 name(s) not in its declared destinations: desktopcommander.app, telemetry.desktopcommander.app, dc-telemetry-proxy-83847352264.europe-west1.run.app, googlechromelabs.github.io.",
+      "evidence": [
+        "every lookup was answered with 127.0.0.1; nothing left the machine"
+      ]
+    },
+    {
+      "id": "network:tls",
+      "kind": "network",
+      "security": false,
+      "says": "Opened TLS to desktopcommander.app, telemetry.desktopcommander.app, dc-telemetry-proxy-83847352264.europe-west1.run.app, googlechromelabs.github.io. The bytes it would have sent are encrypted and were NOT seen — a limit of the method.",
+      "evidence": [
+        "SNI desktopcommander.app",
+        "SNI telemetry.desktopcommander.app",
+        "SNI dc-telemetry-proxy-83847352264.europe-west1.run.app",
+        "SNI telemetry.desktopcommander.app"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @wonderwhy-er/desktop-commander@0.2.51",
+        "integrity sha512-BF/ZV06c7mh+tzfJEkQpjcOg6UaQtzp2vRadIpA9hI+WpPDwkQ2ekdY0fbN7I4xOrCQX6NajyEPouEDXFJc1kA==",
+        "tarball https://registry.npmjs.org/@wonderwhy-er/desktop-commander/-/desktop-commander-0.2.51.tgz"
+      ]
+    }
+  ],
+  "held": false,
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ]
+}

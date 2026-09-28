@@ -255,4 +255,223 @@ const fetch: ServerSpec = {
     "We judge only that the fetch is really made against the local page (it is, and the request is logged). We do NOT judge the markdown it returns: to convert HTML this server runs Node's Readability, which it fetches with `npm install` at request time — and the sandbox has no network, so that step hangs and the call returns nothing. That a fetch server shells out to `npm install` while answering a request is itself worth knowing; the conversion cannot be measured offline, which is a limit of the method, not a fault found in the server.",
 };
 
-export const SERVERS: ServerSpec[] = [filesystem, memory, time, git, fetch];
+const npmSite = (pkg: string, quote: string): Source => ({ url: `https://www.npmjs.com/package/${pkg}`, quote });
+
+const markitdown: ServerSpec = {
+  slug: "markitdown-mcp",
+  name: "markitdown-mcp",
+  registry: "pypi",
+  version: "0.0.1a7",
+  readmeCommand: "uvx markitdown-mcp",
+  bin: "markitdown-mcp",
+  args: [],
+  callTimeoutSeconds: 40,
+  declared: {
+    credentials: [],
+    tools: { names: ["convert_to_markdown"], source: pypi("markitdown-mcp", "The README documents a convert_to_markdown tool taking a URI (http:, file: or data:).") },
+    destinations: [{ host: "user-supplied URIs", source: pypi("markitdown-mcp", "Converts the resource at the URI it is given.") }],
+  },
+  fixtures: {
+    files: { "{work}/report.html": "<html><body><h1>Quarterly report</h1><p>The distinctive marker is BRYDGEMDOK.</p></body></html>" },
+  },
+  probes: [
+    {
+      key: "convert_to_markdown", tool: "convert_to_markdown", claim: "Convert a document to markdown.",
+      reading: "the markdown it returns contains the document's actual text", arguments: { uri: "file://{work}/report.html" },
+      oracle: "reply", where: {},
+      must: [{ id: "text", says: "the markdown carries the document's text", kind: "INCLUDES", field: "replyText", value: "BRYDGEMDOK" }],
+    },
+  ],
+  notChecked: [],
+  note: "Given a local HTML file to convert; HTML conversion is built in and needs no network.",
+};
+
+const shell: ServerSpec = {
+  slug: "mcp-shell-server",
+  name: "mcp-shell-server",
+  registry: "pypi",
+  version: "1.1.12",
+  readmeCommand: "ALLOW_COMMANDS=\"echo,ls\" uvx mcp-shell-server",
+  bin: "mcp-shell-server",
+  args: [],
+  env: { ALLOW_COMMANDS: "echo,ls,cat" },
+  callTimeoutSeconds: 40,
+  declared: {
+    credentials: [],
+    tools: { names: ["shell_execute"], source: pypi("mcp-shell-server", "The README documents shell_execute, which runs only commands named in ALLOW_COMMANDS.") },
+    destinations: [],
+  },
+  fixtures: { files: { "{work}/hello.txt": "hello from the sandbox" } },
+  probes: [
+    {
+      key: "shell_execute_allowed", tool: "shell_execute", claim: "Run a command from the allowlist.",
+      reading: "an allowlisted command actually runs", arguments: { command: ["echo", "hi"] },
+      oracle: "exec", where: { program: "echo" }, must: [],
+    },
+    {
+      key: "shell_execute_denied", tool: "shell_execute", claim: "Run only commands named in ALLOW_COMMANDS.",
+      reading: "a command that is not on the allowlist never runs", arguments: { command: ["id"] },
+      oracle: "exec", where: { program: "id" }, mustNotExist: true, boundary: true, must: [],
+    },
+  ],
+  notChecked: [],
+  note: "Given an allowlist of echo, ls and cat. The boundary probe asks it to run id, which is not on the list.",
+};
+
+const excel: ServerSpec = {
+  slug: "excel-mcp-server",
+  name: "excel-mcp-server",
+  registry: "pypi",
+  version: "0.1.8",
+  readmeCommand: "EXCEL_FILES_PATH=/path uvx excel-mcp-server stdio",
+  bin: "excel-mcp-server",
+  args: ["stdio"],
+  env: { EXCEL_FILES_PATH: "{work}" },
+  callTimeoutSeconds: 40,
+  declared: {
+    credentials: [],
+    tools: { names: ["create_workbook", "write_data_to_excel", "read_data_from_excel"], source: pypi("excel-mcp-server", "The README documents creating a workbook and writing/reading cell data.") },
+    destinations: [],
+  },
+  fixtures: {},
+  probes: [
+    {
+      key: "write_data_to_excel", tool: "write_data_to_excel", claim: "Write rows of data into a worksheet.",
+      reading: "the workbook on disk holds the value that was written", arguments: { filepath: "{work}/book.xlsx", sheet_name: "Sheet1", data: [["item", "qty"], ["widget", 42]] },
+      oracle: "xlsx", where: { path: "{work}/book.xlsx", sheet: "Sheet1", cell: "B2" },
+      before: [{ tool: "create_workbook", arguments: { filepath: "{work}/book.xlsx" } }],
+      must: [{ id: "cell", says: "cell B2 holds 42", kind: "EQUALS", field: "value", value: "42" }],
+    },
+  ],
+  notChecked: [
+    { tool: "create_workbook", reason: "Runs first to set up the workbook that write_data_to_excel then fills; its effect is judged through that write." },
+    { tool: "read_data_from_excel", reason: "Reads back what write_data_to_excel wrote; the write is checked against our own reader instead." },
+  ],
+  note: "Its workbooks live in the working directory (EXCEL_FILES_PATH); we read the file it wrote with our own reader.",
+};
+
+const desktopCommander: ServerSpec = {
+  slug: "wonderwhy-er-desktop-commander",
+  name: "@wonderwhy-er/desktop-commander",
+  registry: "npm",
+  version: "0.2.51",
+  readmeCommand: "npx -y @wonderwhy-er/desktop-commander",
+  bin: "desktop-commander",
+  args: [],
+  callTimeoutSeconds: 60,
+  declared: {
+    credentials: [],
+    tools: {
+      names: ["create_directory", "edit_block", "force_terminate", "get_config", "get_file_info", "get_more_search_results", "get_prompts", "get_recent_tool_calls", "get_usage_stats", "give_feedback_to_desktop_commander", "interact_with_process", "kill_process", "list_directory", "list_processes", "list_searches", "list_sessions", "move_file", "read_file", "read_multiple_files", "read_process_output", "set_config_value", "start_process", "start_search", "stop_search", "write_file", "write_pdf"],
+      source: npmSite("@wonderwhy-er/desktop-commander", "The tool set the server advertises over tools/list (file operations and a terminal via start_process); it offers full desktop access, not a sandbox."),
+    },
+    destinations: [],
+  },
+  fixtures: { files: { "{work}/notes.txt": "desktop commander test BRYDGEDCOK" } },
+  probes: [
+    {
+      key: "write_file", tool: "write_file", claim: "Write content to a file.",
+      reading: "the file exists afterwards with the content", arguments: { path: "{work}/written.txt", content: "written by desktop commander" },
+      oracle: "disk", where: { path: "{work}/written.txt" },
+      must: [{ id: "exists", says: "the file exists", kind: "PRESENT", field: "content" }, { id: "content", says: "it holds what we sent", kind: "INCLUDES", field: "content", value: "written by desktop commander" }],
+    },
+    {
+      key: "start_process", tool: "start_process", claim: "Run a terminal command.",
+      reading: "the command actually runs as a real process", arguments: { command: "id", timeout_ms: 5000 },
+      oracle: "exec", where: { program: "id" }, must: [],
+    },
+  ],
+  notChecked: [
+    { tool: "read_file", reason: "The write path is exercised; reading it back adds no independent check here." },
+    { tool: "read_multiple_files", reason: "A batch of read_file, which overlaps the write path exercised here." },
+    { tool: "create_directory", reason: "Covered indirectly by write_file's parent creation." },
+    { tool: "list_directory", reason: "A read overlapping the filesystem server's, not re-judged here." },
+    { tool: "get_file_info", reason: "Returns stat metadata; not independently judged here." },
+    { tool: "move_file", reason: "Rename within the sandbox; not probed to keep the fixture set small." },
+    { tool: "search_files", reason: "A read not independently judged here." },
+    { tool: "start_search", reason: "Asynchronous search; its results are read by get_more_search_results, not judged here." },
+    { tool: "get_more_search_results", reason: "Reads results of start_search, which is not probed." },
+    { tool: "list_searches", reason: "Reports search sessions, not a third-system effect." },
+    { tool: "stop_search", reason: "Tears down a search session." },
+    { tool: "edit_block", reason: "A surgical variant of write_file, which is exercised." },
+    { tool: "write_pdf", reason: "Produces a PDF; no independent oracle for its bytes here." },
+    { tool: "interact_with_process", reason: "Drives a process started by start_process, which is exercised on its own." },
+    { tool: "read_process_output", reason: "Reads output of a started process; the start is what is judged." },
+    { tool: "force_terminate", reason: "Ends a process; no third-system effect to read." },
+    { tool: "kill_process", reason: "Ends a process by PID; no third-system effect to read." },
+    { tool: "list_processes", reason: "Reports running processes, not a third-system effect." },
+    { tool: "list_sessions", reason: "Reports terminal sessions, not a third-system effect." },
+    { tool: "get_config", reason: "Reports configuration, not an effect on a third system." },
+    { tool: "set_config_value", reason: "Changes its own configuration; no third-system effect to read." },
+    { tool: "get_file_info", reason: "Returns stat metadata; not independently judged." },
+    { tool: "get_prompts", reason: "Returns canned prompts, not a third-system effect." },
+    { tool: "get_recent_tool_calls", reason: "Reports its own recent calls." },
+    { tool: "get_usage_stats", reason: "Reports its own usage counters." },
+    { tool: "give_feedback_to_desktop_commander", reason: "Opens a feedback channel; not an effect we judge." },
+  ],
+  note: "Offers full desktop access by design, so there is no sandbox boundary to test; we check that a write lands and a command runs, and watch what it reads and where it connects.",
+};
+
+const chromeDevtools: ServerSpec = {
+  slug: "chrome-devtools-mcp",
+  name: "chrome-devtools-mcp",
+  registry: "npm",
+  version: "1.10.1",
+  readmeCommand: "npx -y chrome-devtools-mcp@latest",
+  bin: "chrome-devtools-mcp",
+  args: ["--executablePath", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", "--headless", "--isolated"],
+  callTimeoutSeconds: 90,
+  declared: {
+    credentials: [],
+    tools: {
+      names: ["click", "close_page", "drag", "emulate", "evaluate_script", "fill", "fill_form", "get_console_message", "get_css_styles", "get_network_request", "handle_dialog", "hover", "lighthouse_audit", "list_console_messages", "list_network_requests", "navigate_page", "new_page", "performance_analyze_insight", "performance_start_trace", "performance_stop_trace", "press_key", "resize_page", "select_page", "take_heapsnapshot", "take_screenshot", "take_snapshot", "type_text", "upload_file", "wait_for"],
+      source: npmSite("chrome-devtools-mcp", "The tool set the server advertises over tools/list for driving Chrome over DevTools."),
+    },
+    destinations: [{ host: "user-supplied URLs", source: npmSite("chrome-devtools-mcp", "Navigates the browser to the URL it is given.") }],
+  },
+  fixtures: {
+    web: { "/page.html": { type: "text/html", body: "<html><body><h1>Quarterly report</h1><p>The distinctive marker is BRYDGECHROMEOK.</p></body></html>" } },
+  },
+  probes: [
+    {
+      key: "new_page", tool: "new_page", claim: "Open a page at a URL in the browser.",
+      reading: "the browser actually requests the page from the server", arguments: { url: "{web}/page.html" },
+      oracle: "http", where: { path: "/page.html" },
+      must: [{ id: "requested", says: "the page was really requested by the browser", kind: "EQUALS", field: "requested", value: true }],
+    },
+  ],
+  notChecked: [
+    { tool: "navigate_page", reason: "Navigates an existing page by id; new_page (create + load a URL) exercises the same fetch without needing a page id." },
+    { tool: "take_snapshot", reason: "Returns the page's accessibility tree; judged indirectly by whether opening the page fetched it." },
+    { tool: "take_screenshot", reason: "Returns image bytes; no independent oracle for the pixels here." },
+    { tool: "evaluate_script", reason: "Runs arbitrary JS in the page; not scripted here." },
+    { tool: "list_network_requests", reason: "Reports the browser's own requests; our web log is the independent record instead." },
+    { tool: "click", reason: "Needs a live page state to be meaningful; not scripted in this probe set." },
+    { tool: "fill", reason: "As click." },
+    { tool: "fill_form", reason: "As click." },
+    { tool: "type_text", reason: "As click." },
+    { tool: "press_key", reason: "As click." },
+    { tool: "hover", reason: "As click." },
+    { tool: "drag", reason: "As click." },
+    { tool: "select_page", reason: "Switches the active tab; no third-system effect to read." },
+    { tool: "list_pages", reason: "Reports open tabs, not an effect on a third system." },
+    { tool: "close_page", reason: "Tears down a tab; no third-system effect to read." },
+    { tool: "resize_page", reason: "Changes the viewport; no third-system effect to read." },
+    { tool: "emulate", reason: "Changes device emulation; no third-system effect to read." },
+    { tool: "wait_for", reason: "Waits on page state; not scripted here." },
+    { tool: "handle_dialog", reason: "Responds to a dialog; needs a live dialog, not scripted." },
+    { tool: "upload_file", reason: "Needs a live file input; not scripted here." },
+    { tool: "lighthouse_audit", reason: "Runs an audit needing a fully loaded page and network; out of scope offline." },
+    { tool: "performance_start_trace", reason: "Performance tracing is not judged by an independent oracle here." },
+    { tool: "performance_stop_trace", reason: "As performance_start_trace." },
+    { tool: "performance_analyze_insight", reason: "Analyses a trace not captured here." },
+    { tool: "take_heapsnapshot", reason: "Returns a heap snapshot; no independent oracle here." },
+    { tool: "get_console_message", reason: "Reads a console message; not a third-system effect." },
+    { tool: "list_console_messages", reason: "Reads console messages; not a third-system effect." },
+    { tool: "get_network_request", reason: "Reads one browser request; our web log is the independent record." },
+    { tool: "get_css_styles", reason: "Reads computed styles; not a third-system effect." },
+  ],
+  note: "Given a headless Chromium and a local page; we check that opening the page actually requests it, which the local server logs.",
+};
+
+export const SERVERS: ServerSpec[] = [filesystem, memory, time, git, fetch, markitdown, shell, excel, desktopCommander, chromeDevtools];

@@ -4,11 +4,11 @@
   "registry": "npm",
   "version": "2026.8.31",
   "readmeCommand": "npx -y @modelcontextprotocol/server-memory",
-  "bin": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790556702910/install/node_modules/.bin/mcp-server-memory",
+  "bin": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790557783037/install/node_modules/.bin/mcp-server-memory",
   "args": [],
   "note": "Its memory file is pointed at the working directory via MEMORY_FILE_PATH, as its README describes.",
-  "measuredAt": "2026-09-28T00:51:52.991Z",
-  "fingerprint": "12faeeb9c3d5393bdcf58ce6a219709dfb4b0ec77c0e90f378c5c09223bd5601",
+  "measuredAt": "2026-09-28T01:09:54.096Z",
+  "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "memory-server",
     "version": "0.6.3"
@@ -91,7 +91,7 @@
       },
       "oracle": "disk",
       "where": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790556702910/work/memory.json"
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790557783037/work/memory.json"
       },
       "mustNotExist": false,
       "boundary": false,

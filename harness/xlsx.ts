@@ -155,16 +155,24 @@ export function readWorkbook(path: string): Record<string, Record<string, string
     }
   }
   /* Map each sheet name to its part path via workbook.xml + its rels. */
+  /* Attributes appear in any order across writers: openpyxl (which real Excel
+   * servers use) writes Target before Id, our own writer the other way. So each
+   * element is matched whole and its attributes pulled out one at a time. */
+  const attr = (el: string, name: string) => new RegExp(`\\b${name}="([^"]+)"`).exec(el)?.[1];
   const rels = new Map<string, string>();
   const relsXml = zip.get("xl/_rels/workbook.xml.rels")?.toString("utf8") ?? "";
-  for (const m of relsXml.matchAll(/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"/g)) {
-    rels.set(m[1], m[2].startsWith("/") ? m[2].slice(1) : `xl/${m[2]}`);
+  for (const el of relsXml.match(/<Relationship\b[^>]*?\/?>/g) ?? []) {
+    const id = attr(el, "Id");
+    const target = attr(el, "Target");
+    if (id && target) rels.set(id, target.startsWith("/") ? target.slice(1) : `xl/${target}`);
   }
   const names: Array<{ name: string; part: string }> = [];
   const wb = zip.get("xl/workbook.xml")?.toString("utf8") ?? "";
-  for (const m of wb.matchAll(/<sheet[^>]*name="([^"]+)"[^>]*r:id="([^"]+)"/g)) {
-    const part = rels.get(m[2]);
-    if (part) names.push({ name: unescape(m[1]), part });
+  for (const el of wb.match(/<sheet\b[^>]*?\/?>/g) ?? []) {
+    const name = attr(el, "name");
+    const rid = attr(el, "r:id");
+    const part = rid ? rels.get(rid) : undefined;
+    if (name && part) names.push({ name: unescape(name), part });
   }
   const out: Record<string, Record<string, string>> = {};
   for (const { name, part } of names) {

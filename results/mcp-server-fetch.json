@@ -4,11 +4,11 @@
   "registry": "pypi",
   "version": "2026.8.18",
   "readmeCommand": "uvx mcp-server-fetch",
-  "bin": "/srv/brydge-measure/mcp-server-fetch-1790556722451/install/venv/bin/mcp-server-fetch",
+  "bin": "/srv/brydge-measure/mcp-server-fetch-1790557804237/install/venv/bin/mcp-server-fetch",
   "args": [],
   "note": "We judge only that the fetch is really made against the local page (it is, and the request is logged). We do NOT judge the markdown it returns: to convert HTML this server runs Node's Readability, which it fetches with `npm install` at request time — and the sandbox has no network, so that step hangs and the call returns nothing. That a fetch server shells out to `npm install` while answering a request is itself worth knowing; the conversion cannot be measured offline, which is a limit of the method, not a fault found in the server.",
-  "measuredAt": "2026-09-28T00:52:30.166Z",
-  "fingerprint": "12faeeb9c3d5393bdcf58ce6a219709dfb4b0ec77c0e90f378c5c09223bd5601",
+  "measuredAt": "2026-09-28T01:10:32.194Z",
+  "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "mcp-fetch",
     "version": "1.30.0"
@@ -46,7 +46,7 @@
       "claim": "Fetch a URL and return its contents.",
       "reading": "the page is actually requested from the local server (not fabricated)",
       "arguments": {
-        "url": "http://127.0.0.1:38707/page.html"
+        "url": "http://127.0.0.1:37669/page.html"
       },
       "oracle": "http",
       "where": {
@@ -63,7 +63,7 @@
           "held": true
         }
       ],
-      "evidenceDigest": "3cacf9268a7bafb8c61da5712bb22c912b79941519c5e1b43e070bc364e588ed",
+      "evidenceDigest": "609a2a86c5d5393198b44070bb23eb9811c18d40d2f923e7b3d3039e1f14972e",
       "observed": {
         "requested": true,
         "hits": 1,
