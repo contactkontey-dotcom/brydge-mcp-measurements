@@ -4,12 +4,12 @@
   "registry": "pypi",
   "version": "0.1.8",
   "readmeCommand": "EXCEL_FILES_PATH=/path uvx excel-mcp-server stdio",
-  "bin": "/srv/brydge-measure/excel-mcp-server-1790557849001/install/venv/bin/excel-mcp-server",
+  "bin": "/srv/brydge-measure/excel-mcp-server-1790558191459/install/venv/bin/excel-mcp-server",
   "args": [
     "stdio"
   ],
   "note": "Its workbooks live in the working directory (EXCEL_FILES_PATH); we read the file it wrote with our own reader.",
-  "measuredAt": "2026-09-28T01:10:55.917Z",
+  "measuredAt": "2026-09-28T01:16:38.441Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "excel-mcp",
@@ -20,13 +20,35 @@
     "credentials": [],
     "tools": {
       "names": [
+        "apply_formula",
+        "copy_range",
+        "copy_worksheet",
+        "create_chart",
+        "create_pivot_table",
+        "create_table",
         "create_workbook",
-        "write_data_to_excel",
-        "read_data_from_excel"
+        "create_worksheet",
+        "delete_range",
+        "delete_sheet_columns",
+        "delete_sheet_rows",
+        "delete_worksheet",
+        "format_range",
+        "get_data_validation_info",
+        "get_merged_cells",
+        "get_workbook_metadata",
+        "insert_columns",
+        "insert_rows",
+        "merge_cells",
+        "read_data_from_excel",
+        "rename_worksheet",
+        "unmerge_cells",
+        "validate_excel_range",
+        "validate_formula_syntax",
+        "write_data_to_excel"
       ],
       "source": {
         "url": "https://pypi.org/project/excel-mcp-server/",
-        "quote": "The README documents creating a workbook and writing/reading cell data."
+        "quote": "The tool set the server advertises over tools/list for creating and editing workbooks."
       }
     },
     "destinations": []
@@ -66,6 +88,94 @@
     {
       "tool": "read_data_from_excel",
       "reason": "Reads back what write_data_to_excel wrote; the write is checked against our own reader instead."
+    },
+    {
+      "tool": "create_worksheet",
+      "reason": "Adds a sheet; the write path already exercises writing to a sheet."
+    },
+    {
+      "tool": "apply_formula",
+      "reason": "Writes a formula; its computed value depends on Excel's engine, which we do not run."
+    },
+    {
+      "tool": "format_range",
+      "reason": "Changes cell formatting; no value change for an independent reader to judge."
+    },
+    {
+      "tool": "create_chart",
+      "reason": "Produces a chart object; no independent oracle for it here."
+    },
+    {
+      "tool": "create_pivot_table",
+      "reason": "Produces a pivot object; no independent oracle for it here."
+    },
+    {
+      "tool": "create_table",
+      "reason": "Marks a range as a table; no value change to judge independently."
+    },
+    {
+      "tool": "copy_range",
+      "reason": "Moves values within a workbook; the write path is the one exercised."
+    },
+    {
+      "tool": "delete_range",
+      "reason": "Removes values; not probed to keep the fixture set small."
+    },
+    {
+      "tool": "merge_cells",
+      "reason": "Merges cells; no value change for the reader to judge."
+    },
+    {
+      "tool": "unmerge_cells",
+      "reason": "Unmerges cells; as merge_cells."
+    },
+    {
+      "tool": "get_merged_cells",
+      "reason": "Reads merge state; not a write to judge."
+    },
+    {
+      "tool": "copy_worksheet",
+      "reason": "Duplicates a sheet; the write path is exercised instead."
+    },
+    {
+      "tool": "delete_worksheet",
+      "reason": "Removes a sheet; not probed to keep the fixture set small."
+    },
+    {
+      "tool": "rename_worksheet",
+      "reason": "Renames a sheet; no cell value to judge."
+    },
+    {
+      "tool": "insert_rows",
+      "reason": "Shifts rows; not probed to keep the fixture set small."
+    },
+    {
+      "tool": "insert_columns",
+      "reason": "Shifts columns; as insert_rows."
+    },
+    {
+      "tool": "delete_sheet_rows",
+      "reason": "Removes rows; as insert_rows."
+    },
+    {
+      "tool": "delete_sheet_columns",
+      "reason": "Removes columns; as insert_rows."
+    },
+    {
+      "tool": "get_workbook_metadata",
+      "reason": "Reports metadata, not a value written to judge."
+    },
+    {
+      "tool": "get_data_validation_info",
+      "reason": "Reports validation rules, not a value written to judge."
+    },
+    {
+      "tool": "validate_excel_range",
+      "reason": "Validates a range string; no third-system effect."
+    },
+    {
+      "tool": "validate_formula_syntax",
+      "reason": "Validates a formula string; no third-system effect."
     }
   ],
   "results": [
@@ -75,7 +185,7 @@
       "claim": "Write rows of data into a worksheet.",
       "reading": "the workbook on disk holds the value that was written",
       "arguments": {
-        "filepath": "/srv/brydge-measure/excel-mcp-server-1790557849001/work/book.xlsx",
+        "filepath": "/srv/brydge-measure/excel-mcp-server-1790558191459/work/book.xlsx",
         "sheet_name": "Sheet1",
         "data": [
           [
@@ -90,7 +200,7 @@
       },
       "oracle": "xlsx",
       "where": {
-        "path": "/srv/brydge-measure/excel-mcp-server-1790557849001/work/book.xlsx",
+        "path": "/srv/brydge-measure/excel-mcp-server-1790558191459/work/book.xlsx",
         "sheet": "Sheet1",
         "cell": "B2"
       },
@@ -126,16 +236,7 @@
       "security": false,
       "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
       "evidence": [
-        "/srv/brydge-measure/excel-mcp-server-1790557849001/install/venv/lib/python3.11/site-packages/pydantic_settings/sources/utils.py:70 read 23 variables"
-      ]
-    },
-    {
-      "id": "tool-list:extra",
-      "kind": "tool-list",
-      "security": false,
-      "says": "Offered 22 tool(s) its documentation does not list: apply_formula, copy_range, copy_worksheet, create_chart, create_pivot_table, create_table, create_worksheet, delete_range, delete_sheet_columns, delete_sheet_rows, delete_worksheet, format_range, get_data_validation_info, get_merged_cells, get_workbook_metadata, insert_columns, insert_rows, merge_cells, rename_worksheet, unmerge_cells, validate_excel_range, validate_formula_syntax.",
-      "evidence": [
-        "offered in tools/list, absent from https://pypi.org/project/excel-mcp-server/"
+        "/srv/brydge-measure/excel-mcp-server-1790558191459/install/venv/lib/python3.11/site-packages/pydantic_settings/sources/utils.py:70 read 23 variables"
       ]
     },
     {

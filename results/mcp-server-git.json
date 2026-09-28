@@ -4,10 +4,10 @@
   "registry": "pypi",
   "version": "2026.8.18",
   "readmeCommand": "uvx mcp-server-git --repository /path/to/repo",
-  "bin": "/srv/brydge-measure/mcp-server-git-1790557799182/install/venv/bin/mcp-server-git",
+  "bin": "/srv/brydge-measure/mcp-server-git-1790558186728/install/venv/bin/mcp-server-git",
   "args": [],
   "note": "Given a repository built commit by commit before the run, so the log has a known answer.",
-  "measuredAt": "2026-09-28T01:10:04.231Z",
+  "measuredAt": "2026-09-28T01:16:31.325Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "mcp-git",
@@ -88,6 +88,10 @@
     {
       "tool": "git_init",
       "reason": "Would create a repository; the fixture already provides one."
+    },
+    {
+      "tool": "git_branch",
+      "reason": "Offered but not in the README's list (a tool-list finding); a branch listing has no third-system effect to judge here."
     }
   ],
   "results": [
@@ -97,7 +101,7 @@
       "claim": "Show the commit logs.",
       "reading": "the log names the commit that is really in the repository",
       "arguments": {
-        "repo_path": "/srv/brydge-measure/mcp-server-git-1790557799182/work/repo"
+        "repo_path": "/srv/brydge-measure/mcp-server-git-1790558186728/work/repo"
       },
       "oracle": "reply",
       "where": {},
@@ -112,15 +116,15 @@
           "held": true
         }
       ],
-      "evidenceDigest": "b051b4d7ac1cea62dba0c60ef63f98943973d716ef56b393b497773d022885dd",
+      "evidenceDigest": "522723791eadf3d21d3ce67b3a4e2be8d984537102031024488cc1431a120660",
       "observed": {
-        "replyText": "Commit history:\nCommit: 'f39dbfe5276ee4bb564cdbbcef2598f611567f88'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: 2026-09-28 01:10:01+00:00\nMessage: 'initial commit\\n'\n",
+        "replyText": "Commit history:\nCommit: '06f8e6ff72ad68f3acb63f7e15f8221ad6002a6c'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: 2026-09-28 01:16:28+00:00\nMessage: 'initial commit\\n'\n",
         "isError": false,
         "structured": ""
       },
       "reply": {
         "isError": false,
-        "text": "Commit history:\nCommit: 'f39dbfe5276ee4bb564cdbbcef2598f611567f88'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: 2026-09-28 01:10:01+00:00\nMessage: 'initial commit\\n'\n",
+        "text": "Commit history:\nCommit: '06f8e6ff72ad68f3acb63f7e15f8221ad6002a6c'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: 2026-09-28 01:16:28+00:00\nMessage: 'initial commit\\n'\n",
         "honest": true,
         "says": "Did what it says"
       }
@@ -131,7 +135,7 @@
       "claim": "Show the working tree status.",
       "reading": "a freshly built repository is reported as clean",
       "arguments": {
-        "repo_path": "/srv/brydge-measure/mcp-server-git-1790557799182/work/repo"
+        "repo_path": "/srv/brydge-measure/mcp-server-git-1790558186728/work/repo"
       },
       "oracle": "reply",
       "where": {},
@@ -165,7 +169,7 @@
       "claim": "Show the contents of a commit.",
       "reading": "the commit it shows contains the file that was committed",
       "arguments": {
-        "repo_path": "/srv/brydge-measure/mcp-server-git-1790557799182/work/repo",
+        "repo_path": "/srv/brydge-measure/mcp-server-git-1790558186728/work/repo",
         "revision": "HEAD"
       },
       "oracle": "reply",
@@ -181,15 +185,15 @@
           "held": true
         }
       ],
-      "evidenceDigest": "9526779f296e29f83b0786ab5aa69525f8987e79996b7ce8ecbce0bd13c1d2e8",
+      "evidenceDigest": "81fa285724440f898e7d94361cabfecc534ed73c5e4a7f9beb0260c8f5f91e98",
       "observed": {
-        "replyText": "Commit: 'f39dbfe5276ee4bb564cdbbcef2598f611567f88'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: datetime.datetime(2026, 9, 28, 1, 10, 1, tzinfo=<git.objects.util.tzoffset object at 0x7f52bd3295d0>)\nMessage: 'initial commit\\n'\n\n--- None\n+++ README.md\n@@ -0,0 +1 @@\n+# project\n\n--- None\n+++ main.py\n@@ -0,0 +1 @@\n+print('hi')\n",
+        "replyText": "Commit: '06f8e6ff72ad68f3acb63f7e15f8221ad6002a6c'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: datetime.datetime(2026, 9, 28, 1, 16, 28, tzinfo=<git.objects.util.tzoffset object at 0x7fef95136090>)\nMessage: 'initial commit\\n'\n\n--- None\n+++ README.md\n@@ -0,0 +1 @@\n+# project\n\n--- None\n+++ main.py\n@@ -0,0 +1 @@\n+print('hi')\n",
         "isError": false,
         "structured": ""
       },
       "reply": {
         "isError": false,
-        "text": "Commit: 'f39dbfe5276ee4bb564cdbbcef2598f611567f88'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: datetime.datetime(2026, 9, 28, 1, 10, 1, tzinfo=<git.objects.util.tzoffset object at 0x7f52bd3295d0>)\nMessage: 'initial commit\\n'\n\n--- None\n+++ README.md\n@@ -0,0 +1 @@\n+# project\n\n--- None\n+++ main.py\n@@ -0,0 +1 @@\n+print('hi')\n",
+        "text": "Commit: '06f8e6ff72ad68f3acb63f7e15f8221ad6002a6c'\nAuthor: <git.Actor \"Fixture <fixture@example.test>\">\nDate: datetime.datetime(2026, 9, 28, 1, 16, 28, tzinfo=<git.objects.util.tzoffset object at 0x7fef95136090>)\nMessage: 'initial commit\\n'\n\n--- None\n+++ README.md\n@@ -0,0 +1 @@\n+# project\n\n--- None\n+++ main.py\n@@ -0,0 +1 @@\n+print('hi')\n",
         "honest": true,
         "says": "Did what it says"
       }
@@ -202,7 +206,7 @@
       "security": false,
       "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
       "evidence": [
-        "/srv/brydge-measure/mcp-server-git-1790557799182/install/venv/lib/python3.11/site-packages/git/cmd.py:1393 read 22 variables"
+        "/srv/brydge-measure/mcp-server-git-1790558186728/install/venv/lib/python3.11/site-packages/git/cmd.py:1393 read 22 variables"
       ]
     },
     {
