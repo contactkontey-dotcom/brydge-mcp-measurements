@@ -142,6 +142,32 @@ test("every declaration links the documentation of the version measured", () => 
   }
 });
 
+/*
+ * Where a finding was raised with the maintainers, the public thread is recorded
+ * in servers/upstream.json and linked from the server's page. Only for published
+ * servers: a held finding is disclosed privately, and a public link to it would
+ * break the embargo.
+ */
+test("every upstream thread belongs to a published server and points at a GitHub issue", () => {
+  const upstream = JSON.parse(readFileSync(join(ROOT, "servers", "upstream.json"), "utf8")) as Record<
+    string,
+    Array<{ how: string; ref: string; url: string; title: string; opened: string; raised: string }>
+  >;
+  const slugs = new Set(published().map((r) => r.slug));
+  for (const [slug, threads] of Object.entries(upstream)) {
+    assert.ok(slugs.has(slug), `${slug} has an upstream thread but no published result`);
+    for (const t of threads) {
+      const m = t.url.match(/^https:\/\/github\.com\/([^/]+\/[^/]+)\/issues\/(\d+)$/);
+      assert.ok(m, `${slug}: ${t.url} is not a GitHub issue URL`);
+      assert.equal(t.ref, `${m![1]}#${m![2]}`, `${slug}: ref does not match its URL`);
+      assert.ok(t.how === "issue" || t.how === "comment", `${slug}: how must be "issue" (we opened it) or "comment" (we added to one)`);
+      assert.ok(t.title.trim().length > 0, `${slug}: thread has no title`);
+      for (const d of [t.opened, t.raised]) assert.match(d, /^\d{4}-\d{2}-\d{2}$/, `${slug}: dates are YYYY-MM-DD`);
+      assert.ok(t.raised >= t.opened, `${slug}: raised before the thread was opened`);
+    }
+  }
+});
+
 test("no held (embargoed) result can be, or is, committed", () => {
   /* held/ may legitimately hold results on the machine that measured them —
    * that is where an embargoed result waits. What must never happen is that one

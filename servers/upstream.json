@@ -1,0 +1,22 @@
+{
+  "wonderwhy-er-desktop-commander": [
+    {
+      "how": "issue",
+      "ref": "wonderwhy-er/DesktopCommanderMCP#797",
+      "url": "https://github.com/wonderwhy-er/DesktopCommanderMCP/issues/797",
+      "title": "Startup network requests in 0.2.51: remote feature flags and a background Chrome download",
+      "opened": "2026-09-28",
+      "raised": "2026-09-28"
+    }
+  ],
+  "mcp-server-fetch": [
+    {
+      "how": "comment",
+      "ref": "modelcontextprotocol/servers#4830",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4830",
+      "title": "Docs: `fetch` installs npm packages during a tool call, which is worth stating for deployments",
+      "opened": "2026-09-19",
+      "raised": "2026-09-28"
+    }
+  ]
+}

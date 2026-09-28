@@ -94,7 +94,7 @@ fingerprint.
 | --- | --- |
 | `engine/` | BRYDGE's comparison engine, byte-for-byte from the private repo: the judge and the five verdicts. |
 | `harness/` | The instrument: MCP client, sandbox, oracles, credential and network analysis, limits. |
-| `servers/` | One data spec per real server — what it declares, what it is given, which calls are made, what must then be true. |
+| `servers/` | One data spec per real server — what it declares, what it is given, which calls are made, what must then be true — and `upstream.json`, the public thread where each finding was raised with the maintainers. |
 | `calibration/` | The two lying servers and the answer key that must be reproduced exactly. |
 | `measure.ts` | Installs, launches the sealed session, folds in the findings, writes the result — and enforces the gate. |
 
@@ -107,6 +107,9 @@ for thirty days before it publishes. Everything else — a server that phones
 home, a tool that is offered but not documented, a reply that overstates what
 happened — publishes the day the page goes up, with an open invitation to the
 maintainer to respond.
+
+Where a finding has been raised with a server's maintainers, the thread is
+recorded in `servers/upstream.json` and linked from that server's page.
 
 **Maintainers:** if a page reads your server wrong, or you want to answer a
 finding, [open an issue](https://github.com/contactkontey-dotcom/brydge-mcp-measurements/issues/new) here. Every server page links to
