@@ -109,7 +109,7 @@ happened — publishes the day the page goes up, with an open invitation to the
 maintainer to respond.
 
 **Maintainers:** if a page reads your server wrong, or you want to answer a
-finding, [open an issue](../../issues/new) here. Every server page links to
+finding, [open an issue](https://github.com/contactkontey-dotcom/brydge-mcp-measurements/issues/new) here. Every server page links to
 one. Responses stay public, next to the code and the raw records the page was
 built from; where we are wrong, the spec is corrected and the server is measured
 again, and the page follows.
