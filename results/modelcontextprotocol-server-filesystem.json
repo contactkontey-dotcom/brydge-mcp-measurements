@@ -4,12 +4,12 @@
   "registry": "npm",
   "version": "2026.8.31",
   "readmeCommand": "npx -y @modelcontextprotocol/server-filesystem /path/to/allowed/dir",
-  "bin": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/install/node_modules/.bin/mcp-server-filesystem",
+  "bin": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/install/node_modules/.bin/mcp-server-filesystem",
   "args": [
     "{work}"
   ],
   "note": "Given one allowed directory (the working directory) as its argument, the way its README shows.",
-  "measuredAt": "2026-09-28T01:09:43.034Z",
+  "measuredAt": "2026-09-28T04:59:05.823Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "secure-filesystem-server",
@@ -93,7 +93,7 @@
     },
     {
       "tool": "get_file_info",
-      "reason": "Returns stat metadata; overlaps get_file_info reporting, not independently judged here."
+      "reason": "Returns stat metadata; not independently judged here."
     },
     {
       "tool": "list_allowed_directories",
@@ -107,12 +107,12 @@
       "claim": "Create a new file or overwrite an existing file.",
       "reading": "the named file exists afterwards with the content we sent",
       "arguments": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work/written.txt",
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work/written.txt",
         "content": "written by the tool"
       },
       "oracle": "disk",
       "where": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work/written.txt"
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work/written.txt"
       },
       "mustNotExist": false,
       "boundary": false,
@@ -143,7 +143,7 @@
       },
       "reply": {
         "isError": false,
-        "text": "Successfully wrote to /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work/written.txt",
+        "text": "Successfully wrote to /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work/written.txt",
         "honest": true,
         "says": "Did what it says"
       }
@@ -154,7 +154,7 @@
       "claim": "Read the complete contents of a text file.",
       "reading": "the reply contains the file's actual contents",
       "arguments": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work/notes.txt"
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work/notes.txt"
       },
       "oracle": "reply",
       "where": {},
@@ -188,7 +188,7 @@
       "claim": "List the contents of a directory.",
       "reading": "the listing names the files that are really there",
       "arguments": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work"
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work"
       },
       "oracle": "reply",
       "where": {},
@@ -227,7 +227,7 @@
       "claim": "Recursively search for files matching a pattern.",
       "reading": "the search finds a file that matches",
       "arguments": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work",
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work",
         "pattern": "todo*"
       },
       "oracle": "reply",
@@ -243,15 +243,15 @@
           "held": true
         }
       ],
-      "evidenceDigest": "5f9749388fc991e6f407903b1a2eb213f5cbe6441b9090e39655d6e7218885f7",
+      "evidenceDigest": "c6140cd1849e54bb7cd004e91bc2b9c42b36b57dcd9297800ac42151e9c85d82",
       "observed": {
-        "replyText": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work/todo.md",
+        "replyText": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work/todo.md",
         "isError": false,
-        "structured": "{\"content\":\"/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work/todo.md\"}"
+        "structured": "{\"content\":\"/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work/todo.md\"}"
       },
       "reply": {
         "isError": false,
-        "text": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work/todo.md",
+        "text": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work/todo.md",
         "honest": true,
         "says": "Did what it says"
       }
@@ -262,12 +262,12 @@
       "claim": "Only operate inside the allowed directory.",
       "reading": "a write aimed outside the allowed directory does not land",
       "arguments": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/outside/escape.txt",
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/outside/escape.txt",
         "content": "escaped"
       },
       "oracle": "disk",
       "where": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/outside/escape.txt"
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/outside/escape.txt"
       },
       "mustNotExist": true,
       "boundary": true,
@@ -287,7 +287,7 @@
       },
       "reply": {
         "isError": true,
-        "text": "Access denied - path outside allowed directories: /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/outside/escape.txt not in /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work",
+        "text": "Access denied - path outside allowed directories: /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/outside/escape.txt not in /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work",
         "honest": true,
         "says": "Refused, and said so"
       }
@@ -298,11 +298,11 @@
       "claim": "Only operate inside the allowed directory.",
       "reading": "a read aimed outside the allowed directory does not open the file",
       "arguments": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/outside/secret.txt"
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/outside/secret.txt"
       },
       "oracle": "opens",
       "where": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/outside/secret.txt"
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/outside/secret.txt"
       },
       "mustNotExist": true,
       "boundary": true,
@@ -317,7 +317,7 @@
       },
       "reply": {
         "isError": true,
-        "text": "Access denied - path outside allowed directories: /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/outside/secret.txt not in /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790557766849/work",
+        "text": "Access denied - path outside allowed directories: /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/outside/secret.txt not in /srv/brydge-measure/modelcontextprotocol-server-filesystem-1790571529754/work",
         "honest": true,
         "says": "Refused, and said so"
       }
