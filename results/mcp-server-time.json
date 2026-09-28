@@ -4,10 +4,10 @@
   "registry": "pypi",
   "version": "2026.8.18",
   "readmeCommand": "uvx mcp-server-time",
-  "bin": "/srv/brydge-measure/mcp-server-time-1790557794098/install/venv/bin/mcp-server-time",
+  "bin": "/srv/brydge-measure/mcp-server-time-1790573009645/install/venv/bin/mcp-server-time",
   "args": [],
   "note": "Tokyo is UTC+9 year round, so the conversion has one right answer.",
-  "measuredAt": "2026-09-28T01:09:59.178Z",
+  "measuredAt": "2026-09-28T05:23:36.590Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "mcp-time",
@@ -22,8 +22,8 @@
         "convert_time"
       ],
       "source": {
-        "url": "https://pypi.org/project/mcp-server-time/",
-        "quote": "The README documents get_current_time and convert_time over IANA time zones."
+        "url": "https://pypi.org/project/mcp-server-time/2026.8.18/",
+        "quote": "### Available Tools"
       }
     },
     "destinations": []
@@ -37,7 +37,7 @@
     {
       "key": "get_current_time",
       "tool": "get_current_time",
-      "claim": "Get the current time in a given time zone.",
+      "claim": "Get current time in a specific timezone",
       "reading": "the time returned is the real current time in that zone, to the hour",
       "arguments": {
         "timezone": "Asia/Tokyo"
@@ -58,15 +58,15 @@
           "held": true
         }
       ],
-      "evidenceDigest": "1b01ffcd787f3ef7472006521c2b9edd6774f5e68975a591d8b27a85a120aad3",
+      "evidenceDigest": "4f52b282212fcff8b95161953b9f6fd9648e298152ea9d6c1fecd70c1a870f66",
       "observed": {
-        "expected": "2026-09-28T10",
-        "replyText": "{\n  \"timezone\": \"Asia/Tokyo\",\n  \"datetime\": \"2026-09-28T10:09:59+09:00\",\n  \"day_of_week\": \"Monday\",\n  \"is_dst\": false\n}",
+        "expected": "2026-09-28T14",
+        "replyText": "{\n  \"timezone\": \"Asia/Tokyo\",\n  \"datetime\": \"2026-09-28T14:23:36+09:00\",\n  \"day_of_week\": \"Monday\",\n  \"is_dst\": false\n}",
         "matches": true
       },
       "reply": {
         "isError": false,
-        "text": "{\n  \"timezone\": \"Asia/Tokyo\",\n  \"datetime\": \"2026-09-28T10:09:59+09:00\",\n  \"day_of_week\": \"Monday\",\n  \"is_dst\": false\n}",
+        "text": "{\n  \"timezone\": \"Asia/Tokyo\",\n  \"datetime\": \"2026-09-28T14:23:36+09:00\",\n  \"day_of_week\": \"Monday\",\n  \"is_dst\": false\n}",
         "honest": true,
         "says": "Did what it says"
       }
@@ -74,7 +74,7 @@
     {
       "key": "convert_time",
       "tool": "convert_time",
-      "claim": "Convert a time between two time zones.",
+      "claim": "Convert time between timezones",
       "reading": "12:00 UTC converts to 21:00 in Tokyo",
       "arguments": {
         "source_timezone": "UTC",

@@ -114,6 +114,11 @@ one. Responses stay public, next to the code and the raw records the page was
 built from; where we are wrong, the spec is corrected and the server is measured
 again, and the page follows.
 
+## Corrections
+
+Every correction to a published page is logged in
+[CORRECTIONS.md](CORRECTIONS.md): what was wrong, and what changed.
+
 ## Licence
 
 MIT. The measurements are BRYDGE's; the method and the code are yours to check.

@@ -3,11 +3,11 @@
   "name": "markitdown-mcp",
   "registry": "pypi",
   "version": "0.0.1a7",
-  "readmeCommand": "uvx markitdown-mcp",
-  "bin": "/srv/brydge-measure/markitdown-mcp-1790557832200/install/venv/bin/markitdown-mcp",
+  "readmeCommand": "markitdown-mcp",
+  "bin": "/srv/brydge-measure/markitdown-mcp-1790573054955/install/venv/bin/markitdown-mcp",
   "args": [],
   "note": "Given a local HTML file to convert; HTML conversion is built in and needs no network.",
-  "measuredAt": "2026-09-28T01:10:44.858Z",
+  "measuredAt": "2026-09-28T05:24:35.595Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "markitdown",
@@ -21,16 +21,16 @@
         "convert_to_markdown"
       ],
       "source": {
-        "url": "https://pypi.org/project/markitdown-mcp/",
-        "quote": "The README documents a convert_to_markdown tool taking a URI (http:, file: or data:)."
+        "url": "https://pypi.org/project/markitdown-mcp/0.0.1a7/",
+        "quote": "It exposes one tool: `convert_to_markdown(uri)`, where uri can be any `http:`, `https:`, `file:`, or `data:` URI."
       }
     },
     "destinations": [
       {
-        "host": "user-supplied URIs",
+        "host": "user-supplied URLs",
         "source": {
-          "url": "https://pypi.org/project/markitdown-mcp/",
-          "quote": "Converts the resource at the URI it is given."
+          "url": "https://pypi.org/project/markitdown-mcp/0.0.1a7/",
+          "quote": "It exposes one tool: `convert_to_markdown(uri)`, where uri can be any `http:`, `https:`, `file:`, or `data:` URI."
         }
       }
     ]
@@ -43,10 +43,10 @@
     {
       "key": "convert_to_markdown",
       "tool": "convert_to_markdown",
-      "claim": "Convert a document to markdown.",
+      "claim": "Convert a resource described by an http:, https:, file: or data: URI to markdown",
       "reading": "the markdown it returns contains the document's actual text",
       "arguments": {
-        "uri": "file:///srv/brydge-measure/markitdown-mcp-1790557832200/work/report.html"
+        "uri": "file:///srv/brydge-measure/markitdown-mcp-1790573054955/work/report.html"
       },
       "oracle": "reply",
       "where": {},

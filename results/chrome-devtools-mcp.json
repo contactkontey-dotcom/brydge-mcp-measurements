@@ -4,15 +4,15 @@
   "registry": "npm",
   "version": "1.10.1",
   "readmeCommand": "npx -y chrome-devtools-mcp@latest",
-  "bin": "/srv/brydge-measure/chrome-devtools-mcp-1790557909544/install/node_modules/.bin/chrome-devtools-mcp",
+  "bin": "/srv/brydge-measure/chrome-devtools-mcp-1790573178450/install/node_modules/.bin/chrome-devtools-mcp",
   "args": [
     "--executablePath",
     "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
     "--headless",
     "--isolated"
   ],
-  "note": "Given a headless Chromium and a local page; we check that opening the page actually requests it, which the local server logs.",
-  "measuredAt": "2026-09-28T01:11:55.462Z",
+  "note": "Given a headless Chromium and a local page; we check that opening the page actually requests it, which the local server logs. Its tool reference documents 58 tools; the 28 marked as requiring a flag were not enabled, and the 30 that need none are exactly the 30 it offered. Its usage statistics (to play.googleapis.com) and its update check (to the npm registry) are documented in its README; the requests to www.google.com and clients2.google.com came from the browser's own processes, not the server's code.",
+  "measuredAt": "2026-09-28T05:26:29.262Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "chrome_devtools",
@@ -39,6 +39,7 @@
         "lighthouse_audit",
         "list_console_messages",
         "list_network_requests",
+        "list_pages",
         "navigate_page",
         "new_page",
         "performance_analyze_insight",
@@ -55,16 +56,30 @@
         "wait_for"
       ],
       "source": {
-        "url": "https://www.npmjs.com/package/chrome-devtools-mcp",
-        "quote": "The tool set the server advertises over tools/list for driving Chrome over DevTools."
+        "url": "https://github.com/ChromeDevTools/chrome-devtools-mcp/blob/chrome-devtools-mcp-v1.10.1/docs/tool-reference.md",
+        "quote": "# Chrome DevTools MCP Tool Reference"
       }
     },
     "destinations": [
       {
         "host": "user-supplied URLs",
         "source": {
-          "url": "https://www.npmjs.com/package/chrome-devtools-mcp",
-          "quote": "Navigates the browser to the URL it is given."
+          "url": "https://github.com/ChromeDevTools/chrome-devtools-mcp/blob/chrome-devtools-mcp-v1.10.1/docs/tool-reference.md",
+          "quote": "**Description:** Open a new tab and load a URL."
+        }
+      },
+      {
+        "host": "play.googleapis.com",
+        "source": {
+          "url": "https://www.npmjs.com/package/chrome-devtools-mcp/v/1.10.1",
+          "quote": "Google collects usage statistics (such as tool invocation success rates, latency, and environment information) to improve the reliability and performance of Chrome DevTools MCP."
+        }
+      },
+      {
+        "host": "registry.npmjs.org",
+        "source": {
+          "url": "https://www.npmjs.com/package/chrome-devtools-mcp/v/1.10.1",
+          "quote": "By default, the server periodically checks the npm registry for updates and logs a notification when a newer version is available."
         }
       }
     ]
@@ -223,10 +238,10 @@
     {
       "key": "new_page",
       "tool": "new_page",
-      "claim": "Open a page at a URL in the browser.",
+      "claim": "Open a new tab and load a URL.",
       "reading": "the browser actually requests the page from the server",
       "arguments": {
-        "url": "http://127.0.0.1:37943/page.html"
+        "url": "http://127.0.0.1:35995/page.html"
       },
       "oracle": "http",
       "where": {
@@ -243,18 +258,18 @@
           "held": true
         }
       ],
-      "evidenceDigest": "42dd3c0271b7262f4cd40cb808003bed699aa0d85534df94b8eb0c0db1e488c7",
+      "evidenceDigest": "354ee20e2bfdfeb552db20ac80db6a7f2fe346bd254f3f658a04a6b8756ddc21",
       "observed": {
         "requested": true,
         "hits": 1,
         "method": "GET",
         "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
         "askedRobots": false,
-        "replyText": "## Pages\n1: about:blank\n2: http://127.0.0.1:37943/page.html [selected]"
+        "replyText": "## Pages\n1: about:blank\n2: http://127.0.0.1:35995/page.html [selected]"
       },
       "reply": {
         "isError": false,
-        "text": "## Pages\n1: about:blank\n2: http://127.0.0.1:37943/page.html [selected]",
+        "text": "## Pages\n1: about:blank\n2: http://127.0.0.1:35995/page.html [selected]",
         "honest": true,
         "says": "Did what it says"
       }
@@ -277,7 +292,7 @@
       "says": "Copied the whole environment at 3 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
       "evidence": [
         "at normalizeSpawnArguments (node:child_process:675:43) read 22 variables",
-        "at Object.getEnv (file:///srv/brydge-measure/chrome-devtools-mcp-1790557909544/install/node_modules/chrome-devtools-mcp/build/src/third_party/index.js:26239:23) read 4 variables",
+        "at Object.getEnv (file:///srv/brydge-measure/chrome-devtools-mcp-1790573178450/install/node_modules/chrome-devtools-mcp/build/src/third_party/index.js:26239:23) read 4 variables",
         "at normalizeSpawnArguments (node:child_process:723:22) read 22 variables"
       ]
     },
@@ -291,15 +306,6 @@
         "SNI www.google.com",
         "SNI www.google.com",
         "SNI www.google.com"
-      ]
-    },
-    {
-      "id": "tool-list:extra",
-      "kind": "tool-list",
-      "security": false,
-      "says": "Offered 1 tool(s) its documentation does not list: list_pages.",
-      "evidence": [
-        "offered in tools/list, absent from https://www.npmjs.com/package/chrome-devtools-mcp"
       ]
     },
     {

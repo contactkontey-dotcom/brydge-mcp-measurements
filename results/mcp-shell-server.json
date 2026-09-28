@@ -3,11 +3,11 @@
   "name": "mcp-shell-server",
   "registry": "pypi",
   "version": "1.1.12",
-  "readmeCommand": "ALLOW_COMMANDS=\"echo,ls\" uvx mcp-shell-server",
-  "bin": "/srv/brydge-measure/mcp-shell-server-1790557844864/install/venv/bin/mcp-shell-server",
+  "readmeCommand": "ALLOW_COMMANDS=\"ls,cat,echo\" uvx mcp-shell-server",
+  "bin": "/srv/brydge-measure/mcp-shell-server-1790573808870/install/venv/bin/mcp-shell-server",
   "args": [],
-  "note": "Given an allowlist of echo, ls and cat. The boundary probe asks it to run id, which is not on the list.",
-  "measuredAt": "2026-09-28T01:10:48.998Z",
+  "note": "Given an allowlist of echo, ls and cat. The boundary probe asks it to run id, which is not on the list. Its README documents the allowlist (\"The `ALLOW_COMMANDS` (or its alias `ALLOWED_COMMANDS` ) environment variable specifies which commands are allowed to be executed.\") but does not name its tool, so its tool list is not compared.",
+  "measuredAt": "2026-09-28T05:36:55.776Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "mcp-shell-server",
@@ -16,15 +16,7 @@
   "initError": null,
   "declared": {
     "credentials": [],
-    "tools": {
-      "names": [
-        "shell_execute"
-      ],
-      "source": {
-        "url": "https://pypi.org/project/mcp-shell-server/",
-        "quote": "The README documents shell_execute, which runs only commands named in ALLOW_COMMANDS."
-      }
-    },
+    "tools": null,
     "destinations": []
   },
   "offered": [
@@ -35,7 +27,7 @@
     {
       "key": "shell_execute_allowed",
       "tool": "shell_execute",
-      "claim": "Run a command from the allowlist.",
+      "claim": "Execute a shell command",
       "reading": "an allowlisted command actually runs",
       "arguments": {
         "command": [
@@ -69,7 +61,7 @@
     {
       "key": "shell_execute_denied",
       "tool": "shell_execute",
-      "claim": "Run only commands named in ALLOW_COMMANDS.",
+      "claim": "Execute a shell command",
       "reading": "a command that is not on the allowlist never runs",
       "arguments": {
         "command": [

@@ -4,10 +4,10 @@
   "registry": "npm",
   "version": "2026.8.31",
   "readmeCommand": "npx -y @modelcontextprotocol/server-memory",
-  "bin": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790557783037/install/node_modules/.bin/mcp-server-memory",
+  "bin": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790572993618/install/node_modules/.bin/mcp-server-memory",
   "args": [],
   "note": "Its memory file is pointed at the working directory via MEMORY_FILE_PATH, as its README describes.",
-  "measuredAt": "2026-09-28T01:09:54.096Z",
+  "measuredAt": "2026-09-28T05:23:29.641Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "memory-server",
@@ -29,8 +29,8 @@
         "open_nodes"
       ],
       "source": {
-        "url": "https://www.npmjs.com/package/@modelcontextprotocol/server-memory",
-        "quote": "The README documents a knowledge-graph memory persisted to a JSON file at MEMORY_FILE_PATH."
+        "url": "https://www.npmjs.com/package/@modelcontextprotocol/server-memory/v/2026.8.31",
+        "quote": "### Tools"
       }
     },
     "destinations": []
@@ -76,7 +76,7 @@
     {
       "key": "create_entities",
       "tool": "create_entities",
-      "claim": "Create entities in the knowledge graph.",
+      "claim": "Create multiple new entities in the knowledge graph",
       "reading": "the entity is written to the memory file on disk",
       "arguments": {
         "entities": [
@@ -91,7 +91,7 @@
       },
       "oracle": "disk",
       "where": {
-        "path": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790557783037/work/memory.json"
+        "path": "/srv/brydge-measure/modelcontextprotocol-server-memory-1790572993618/work/memory.json"
       },
       "mustNotExist": false,
       "boundary": false,
@@ -130,7 +130,7 @@
     {
       "key": "read_graph",
       "tool": "read_graph",
-      "claim": "Read the entire knowledge graph.",
+      "claim": "Read the entire knowledge graph",
       "reading": "the graph it returns contains the entity just created",
       "arguments": {},
       "oracle": "reply",
@@ -162,7 +162,7 @@
     {
       "key": "search_nodes",
       "tool": "search_nodes",
-      "claim": "Search for nodes by query.",
+      "claim": "Search for nodes in the knowledge graph based on a query",
       "reading": "a search for the entity finds it",
       "arguments": {
         "query": "Acme"

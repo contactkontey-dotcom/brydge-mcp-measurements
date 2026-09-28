@@ -12,14 +12,22 @@ import type { ServerSpec, Source } from "../harness/types.ts";
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-const readme = (pkg: string, quote: string): Source => ({ url: `https://www.npmjs.com/package/${pkg}`, quote });
+/*
+ * Every Source links to the documentation OF THE VERSION MEASURED and quotes it
+ * verbatim — never a summary of ours. A probe's `claim` is quoted verbatim from
+ * the description the tool gives of itself over tools/list, which the raw
+ * record keeps, and test/published.test.ts checks it there.
+ */
+const npmDoc = (pkg: string, version: string, quote: string): Source => ({ url: `https://www.npmjs.com/package/${pkg}/v/${version}`, quote });
+const pypiDoc = (pkg: string, version: string, quote: string): Source => ({ url: `https://pypi.org/project/${pkg}/${version}/`, quote });
+const githubDoc = (repo: string, tag: string, path: string, quote: string): Source => ({ url: `https://github.com/${repo}/blob/${tag}/${path}`, quote });
 
 const filesystem: ServerSpec = {
   slug: "modelcontextprotocol-server-filesystem",
   name: "@modelcontextprotocol/server-filesystem",
   registry: "npm",
   version: "2026.8.31",
-  readmeCommand: "npx -y @modelcontextprotocol/server-filesystem /path/to/allowed/dir",
+  readmeCommand: "npx -y @modelcontextprotocol/server-filesystem /Users/username/Desktop /path/to/other/allowed/dir",
   bin: "mcp-server-filesystem",
   args: ["{work}"],
   callTimeoutSeconds: 45,
@@ -27,11 +35,11 @@ const filesystem: ServerSpec = {
     credentials: [],
     tools: {
       names: [
-        "read_file", "read_text_file", "read_media_file", "read_multiple_files", "write_file", "edit_file",
+        "read_text_file", "read_media_file", "read_multiple_files", "write_file", "edit_file",
         "create_directory", "list_directory", "list_directory_with_sizes", "directory_tree", "move_file",
         "search_files", "get_file_info", "list_allowed_directories",
       ],
-      source: readme("@modelcontextprotocol/server-filesystem", "The README documents these tools and states the server will only operate inside directories passed to it."),
+      source: npmDoc("@modelcontextprotocol/server-filesystem", "2026.8.31", "### Tools"),
     },
     destinations: [],
   },
@@ -44,42 +52,42 @@ const filesystem: ServerSpec = {
   },
   probes: [
     {
-      key: "write_file", tool: "write_file", claim: "Create a new file or overwrite an existing file.",
+      key: "write_file", tool: "write_file", claim: "Create a new file or completely overwrite an existing file with new content.",
       reading: "the named file exists afterwards with the content we sent", arguments: { path: "{work}/written.txt", content: "written by the tool" },
       oracle: "disk", where: { path: "{work}/written.txt" },
       must: [{ id: "exists", says: "the file exists", kind: "PRESENT", field: "content" }, { id: "content", says: "it holds what we sent", kind: "INCLUDES", field: "content", value: "written by the tool" }],
     },
     {
-      key: "read_text_file", tool: "read_text_file", claim: "Read the complete contents of a text file.",
+      key: "read_text_file", tool: "read_text_file", claim: "Read the complete contents of a file from the file system as text.",
       reading: "the reply contains the file's actual contents", arguments: { path: "{work}/notes.txt" },
       oracle: "reply", where: {},
       must: [{ id: "content", says: "the reply contains the file's text", kind: "INCLUDES", field: "replyText", value: "quarterly figures" }],
     },
     {
-      key: "list_directory", tool: "list_directory", claim: "List the contents of a directory.",
+      key: "list_directory", tool: "list_directory", claim: "Get a detailed listing of all files and directories in a specified path.",
       reading: "the listing names the files that are really there", arguments: { path: "{work}" },
       oracle: "reply", where: {},
       must: [{ id: "notes", says: "the listing includes notes.txt", kind: "INCLUDES", field: "replyText", value: "notes.txt" }, { id: "todo", says: "the listing includes todo.md", kind: "INCLUDES", field: "replyText", value: "todo.md" }],
     },
     {
-      key: "search_files", tool: "search_files", claim: "Recursively search for files matching a pattern.",
+      key: "search_files", tool: "search_files", claim: "Recursively search for files and directories matching a pattern.",
       reading: "the search finds a file that matches", arguments: { path: "{work}", pattern: "todo*" },
       oracle: "reply", where: {},
       must: [{ id: "found", says: "the match is reported", kind: "INCLUDES", field: "replyText", value: "todo.md" }],
     },
     {
-      key: "write_outside", tool: "write_file", claim: "Only operate inside the allowed directory.",
+      key: "write_outside", tool: "write_file", claim: "Only works within allowed directories.",
       reading: "a write aimed outside the allowed directory does not land", arguments: { path: "{outside}/escape.txt", content: "escaped" },
       oracle: "disk", where: { path: "{outside}/escape.txt" }, mustNotExist: true, boundary: true, must: [],
     },
     {
-      key: "read_outside", tool: "read_text_file", claim: "Only operate inside the allowed directory.",
+      key: "read_outside", tool: "read_text_file", claim: "Only works within allowed directories.",
       reading: "a read aimed outside the allowed directory does not open the file", arguments: { path: "{outside}/secret.txt" },
       oracle: "opens", where: { path: "{outside}/secret.txt" }, mustNotExist: true, boundary: true, must: [],
     },
   ],
   notChecked: [
-    { tool: "read_file", reason: "Alias of read_text_file for text; the text path is exercised by read_text_file." },
+    { tool: "read_file", reason: "Describes itself as deprecated in favour of read_text_file, which is exercised." },
     { tool: "read_media_file", reason: "Returns base64 media; no independent oracle for image bytes in this harness." },
     { tool: "read_multiple_files", reason: "A batch of read_text_file, which is exercised on its own." },
     { tool: "edit_file", reason: "A line-editing variant of write_file, which is exercised." },
@@ -90,10 +98,8 @@ const filesystem: ServerSpec = {
     { tool: "get_file_info", reason: "Returns stat metadata; not independently judged here." },
     { tool: "list_allowed_directories", reason: "Reports configuration, not an effect on any third system." },
   ],
-  note: "Given one allowed directory (the working directory) as its argument, the way its README shows.",
+  note: "Given one allowed directory (the working directory) as its argument, the way its README shows. It also offers read_file, which its README does not list; the tool describes itself as \"DEPRECATED: Use read_text_file instead.\"",
 };
-
-const pypi = (pkg: string, quote: string): Source => ({ url: `https://pypi.org/project/${pkg}/`, quote });
 
 const memory: ServerSpec = {
   slug: "modelcontextprotocol-server-memory",
@@ -109,25 +115,25 @@ const memory: ServerSpec = {
     credentials: [],
     tools: {
       names: ["create_entities", "create_relations", "add_observations", "delete_entities", "delete_observations", "delete_relations", "read_graph", "search_nodes", "open_nodes"],
-      source: readme("@modelcontextprotocol/server-memory", "The README documents a knowledge-graph memory persisted to a JSON file at MEMORY_FILE_PATH."),
+      source: npmDoc("@modelcontextprotocol/server-memory", "2026.8.31", "### Tools"),
     },
     destinations: [],
   },
   fixtures: {},
   probes: [
     {
-      key: "create_entities", tool: "create_entities", claim: "Create entities in the knowledge graph.",
+      key: "create_entities", tool: "create_entities", claim: "Create multiple new entities in the knowledge graph",
       reading: "the entity is written to the memory file on disk", arguments: { entities: [{ name: "Acme Corp", entityType: "company", observations: ["ships widgets"] }] },
       oracle: "disk", where: { path: "{work}/memory.json" },
       must: [{ id: "exists", says: "the memory file exists", kind: "PRESENT", field: "content" }, { id: "entity", says: "it records the entity", kind: "INCLUDES", field: "content", value: "Acme Corp" }],
     },
     {
-      key: "read_graph", tool: "read_graph", claim: "Read the entire knowledge graph.",
+      key: "read_graph", tool: "read_graph", claim: "Read the entire knowledge graph",
       reading: "the graph it returns contains the entity just created", arguments: {},
       oracle: "reply", where: {}, must: [{ id: "entity", says: "the graph includes the entity", kind: "INCLUDES", field: "replyText", value: "Acme Corp" }],
     },
     {
-      key: "search_nodes", tool: "search_nodes", claim: "Search for nodes by query.",
+      key: "search_nodes", tool: "search_nodes", claim: "Search for nodes in the knowledge graph based on a query",
       reading: "a search for the entity finds it", arguments: { query: "Acme" },
       oracle: "reply", where: {}, must: [{ id: "found", says: "the search finds the entity", kind: "INCLUDES", field: "replyText", value: "Acme Corp" }],
     },
@@ -154,18 +160,18 @@ const time: ServerSpec = {
   callTimeoutSeconds: 30,
   declared: {
     credentials: [],
-    tools: { names: ["get_current_time", "convert_time"], source: pypi("mcp-server-time", "The README documents get_current_time and convert_time over IANA time zones.") },
+    tools: { names: ["get_current_time", "convert_time"], source: pypiDoc("mcp-server-time", "2026.8.18", "### Available Tools") },
     destinations: [],
   },
   fixtures: {},
   probes: [
     {
-      key: "get_current_time", tool: "get_current_time", claim: "Get the current time in a given time zone.",
+      key: "get_current_time", tool: "get_current_time", claim: "Get current time in a specific timezone",
       reading: "the time returned is the real current time in that zone, to the hour", arguments: { timezone: "Asia/Tokyo" },
       oracle: "compute", where: { mode: "now", timezone: "Asia/Tokyo" }, must: [{ id: "now", says: "the time is right for the zone", kind: "EQUALS", field: "matches", value: true }],
     },
     {
-      key: "convert_time", tool: "convert_time", claim: "Convert a time between two time zones.",
+      key: "convert_time", tool: "convert_time", claim: "Convert time between timezones",
       reading: "12:00 UTC converts to 21:00 in Tokyo", arguments: { source_timezone: "UTC", time: "12:00", target_timezone: "Asia/Tokyo" },
       oracle: "compute", where: { expected: "21:00" }, must: [{ id: "converted", says: "the converted time is 21:00", kind: "EQUALS", field: "matches", value: true }],
     },
@@ -179,13 +185,13 @@ const git: ServerSpec = {
   name: "mcp-server-git",
   registry: "pypi",
   version: "2026.8.18",
-  readmeCommand: "uvx mcp-server-git --repository /path/to/repo",
+  readmeCommand: "uvx mcp-server-git --repository path/to/git/repo",
   bin: "mcp-server-git",
   args: [],
   callTimeoutSeconds: 40,
   declared: {
     credentials: [],
-    tools: { names: ["git_status", "git_diff_unstaged", "git_diff_staged", "git_diff", "git_commit", "git_add", "git_reset", "git_log", "git_create_branch", "git_checkout", "git_show", "git_init"], source: pypi("mcp-server-git", "The README documents these git operations, each taking a repo_path.") },
+    tools: { names: ["git_status", "git_diff_unstaged", "git_diff_staged", "git_diff", "git_commit", "git_add", "git_reset", "git_log", "git_create_branch", "git_checkout", "git_show", "git_branch"], source: pypiDoc("mcp-server-git", "2026.8.18", "### Tools") },
     destinations: [],
   },
   fixtures: {
@@ -193,17 +199,17 @@ const git: ServerSpec = {
   },
   probes: [
     {
-      key: "git_log", tool: "git_log", claim: "Show the commit logs.",
+      key: "git_log", tool: "git_log", claim: "Shows the commit logs",
       reading: "the log names the commit that is really in the repository", arguments: { repo_path: "{work}/repo" },
       oracle: "reply", where: {}, must: [{ id: "commit", says: "the log includes the initial commit", kind: "INCLUDES", field: "replyText", value: "initial commit" }],
     },
     {
-      key: "git_status", tool: "git_status", claim: "Show the working tree status.",
+      key: "git_status", tool: "git_status", claim: "Shows the working tree status",
       reading: "a freshly built repository is reported as clean", arguments: { repo_path: "{work}/repo" },
       oracle: "reply", where: {}, must: [{ id: "clean", says: "nothing is reported to commit", kind: "INCLUDES", field: "replyText", value: "clean" }],
     },
     {
-      key: "git_show", tool: "git_show", claim: "Show the contents of a commit.",
+      key: "git_show", tool: "git_show", claim: "Shows the contents of a commit",
       reading: "the commit it shows contains the file that was committed", arguments: { repo_path: "{work}/repo", revision: "HEAD" },
       oracle: "reply", where: {}, must: [{ id: "file", says: "the commit shows the committed file", kind: "INCLUDES", field: "replyText", value: "main.py" }],
     },
@@ -217,7 +223,7 @@ const git: ServerSpec = {
     { tool: "git_diff", reason: "No two revisions to diff in a single-commit fixture." },
     { tool: "git_create_branch", reason: "Branch creation is not read back by an independent oracle here." },
     { tool: "git_checkout", reason: "Depends on a second branch, not created." },
-    { tool: "git_branch", reason: "Offered but not in the README's list (a tool-list finding); a branch listing has no third-system effect to judge here." },
+    { tool: "git_branch", reason: "Lists branches; a listing has no third-system effect to judge here." },
   ],
   note: "Given a repository built commit by commit before the run, so the log has a known answer.",
 };
@@ -233,8 +239,8 @@ const fetch: ServerSpec = {
   callTimeoutSeconds: 20,
   declared: {
     credentials: [],
-    tools: { names: ["fetch"], source: pypi("mcp-server-fetch", "The README documents a single fetch tool that retrieves a URL and converts it to markdown.") },
-    destinations: [{ host: "user-supplied URLs", source: pypi("mcp-server-fetch", "Fetches the URL it is given.") }],
+    tools: { names: ["fetch"], source: pypiDoc("mcp-server-fetch", "2026.8.18", "- `fetch` - Fetches a URL from the internet and extracts its contents as markdown.") },
+    destinations: [{ host: "user-supplied URLs", source: pypiDoc("mcp-server-fetch", "2026.8.18", "- `url` (string, required): URL to fetch") }],
   },
   fixtures: {
     web: {
@@ -244,7 +250,7 @@ const fetch: ServerSpec = {
   },
   probes: [
     {
-      key: "fetch", tool: "fetch", claim: "Fetch a URL and return its contents.",
+      key: "fetch", tool: "fetch", claim: "Fetches a URL from the internet and optionally extracts its contents as markdown.",
       reading: "the page is actually requested from the local server (not fabricated)", arguments: { url: "{web}/page.html" },
       oracle: "http", where: { path: "/page.html" },
       must: [{ id: "requested", says: "the page was really requested", kind: "EQUALS", field: "requested", value: true }],
@@ -252,31 +258,29 @@ const fetch: ServerSpec = {
   ],
   notChecked: [],
   note:
-    "We judge only that the fetch is really made against the local page (it is, and the request is logged). We do NOT judge the markdown it returns: to convert HTML this server runs Node's Readability, which it fetches with `npm install` at request time — and the sandbox has no network, so that step hangs and the call returns nothing. That a fetch server shells out to `npm install` while answering a request is itself worth knowing; the conversion cannot be measured offline, which is a limit of the method, not a fault found in the server.",
+    "We judge only that the fetch is really made against the local page (it is, and the request is logged). We do NOT judge the markdown it returns. Its README says \"Optionally: Install node.js, this will cause the fetch server to use a different HTML simplifier that is more robust.\" With Node.js present, the first fetch ran `npm install`: its dependency readabilipy installs its JavaScript dependencies on first use. That install needs the npm registry, which the sandbox cannot reach, so the call waited on it and returned an error — the conversion cannot be measured offline, a limit of the method, not a fault found in the server. That answering a request can start a package install is worth knowing.",
 };
-
-const npmSite = (pkg: string, quote: string): Source => ({ url: `https://www.npmjs.com/package/${pkg}`, quote });
 
 const markitdown: ServerSpec = {
   slug: "markitdown-mcp",
   name: "markitdown-mcp",
   registry: "pypi",
   version: "0.0.1a7",
-  readmeCommand: "uvx markitdown-mcp",
+  readmeCommand: "markitdown-mcp",
   bin: "markitdown-mcp",
   args: [],
   callTimeoutSeconds: 40,
   declared: {
     credentials: [],
-    tools: { names: ["convert_to_markdown"], source: pypi("markitdown-mcp", "The README documents a convert_to_markdown tool taking a URI (http:, file: or data:).") },
-    destinations: [{ host: "user-supplied URIs", source: pypi("markitdown-mcp", "Converts the resource at the URI it is given.") }],
+    tools: { names: ["convert_to_markdown"], source: pypiDoc("markitdown-mcp", "0.0.1a7", "It exposes one tool: `convert_to_markdown(uri)`, where uri can be any `http:`, `https:`, `file:`, or `data:` URI.") },
+    destinations: [{ host: "user-supplied URLs", source: pypiDoc("markitdown-mcp", "0.0.1a7", "It exposes one tool: `convert_to_markdown(uri)`, where uri can be any `http:`, `https:`, `file:`, or `data:` URI.") }],
   },
   fixtures: {
     files: { "{work}/report.html": "<html><body><h1>Quarterly report</h1><p>The distinctive marker is BRYDGEMDOK.</p></body></html>" },
   },
   probes: [
     {
-      key: "convert_to_markdown", tool: "convert_to_markdown", claim: "Convert a document to markdown.",
+      key: "convert_to_markdown", tool: "convert_to_markdown", claim: "Convert a resource described by an http:, https:, file: or data: URI to markdown",
       reading: "the markdown it returns contains the document's actual text", arguments: { uri: "file://{work}/report.html" },
       oracle: "reply", where: {},
       must: [{ id: "text", says: "the markdown carries the document's text", kind: "INCLUDES", field: "replyText", value: "BRYDGEMDOK" }],
@@ -291,31 +295,33 @@ const shell: ServerSpec = {
   name: "mcp-shell-server",
   registry: "pypi",
   version: "1.1.12",
-  readmeCommand: "ALLOW_COMMANDS=\"echo,ls\" uvx mcp-shell-server",
+  readmeCommand: "ALLOW_COMMANDS=\"ls,cat,echo\" uvx mcp-shell-server",
   bin: "mcp-shell-server",
   args: [],
   env: { ALLOW_COMMANDS: "echo,ls,cat" },
   callTimeoutSeconds: 40,
   declared: {
     credentials: [],
-    tools: { names: ["shell_execute"], source: pypi("mcp-shell-server", "The README documents shell_execute, which runs only commands named in ALLOW_COMMANDS.") },
+    /* Its README documents the allowlist but never names its tool, so there is no documented list to compare.
+     * Its description lists the allowed commands in a different order on every run, so only its stable first line is quoted. */
+    tools: null,
     destinations: [],
   },
   fixtures: { files: { "{work}/hello.txt": "hello from the sandbox" } },
   probes: [
     {
-      key: "shell_execute_allowed", tool: "shell_execute", claim: "Run a command from the allowlist.",
+      key: "shell_execute_allowed", tool: "shell_execute", claim: "Execute a shell command",
       reading: "an allowlisted command actually runs", arguments: { command: ["echo", "hi"] },
       oracle: "exec", where: { program: "echo" }, must: [],
     },
     {
-      key: "shell_execute_denied", tool: "shell_execute", claim: "Run only commands named in ALLOW_COMMANDS.",
+      key: "shell_execute_denied", tool: "shell_execute", claim: "Execute a shell command",
       reading: "a command that is not on the allowlist never runs", arguments: { command: ["id"] },
       oracle: "exec", where: { program: "id" }, mustNotExist: true, boundary: true, must: [],
     },
   ],
   notChecked: [],
-  note: "Given an allowlist of echo, ls and cat. The boundary probe asks it to run id, which is not on the list.",
+  note: "Given an allowlist of echo, ls and cat. The boundary probe asks it to run id, which is not on the list. Its README documents the allowlist (\"The `ALLOW_COMMANDS` (or its alias `ALLOWED_COMMANDS` ) environment variable specifies which commands are allowed to be executed.\") but does not name its tool, so its tool list is not compared.",
 };
 
 const excel: ServerSpec = {
@@ -323,23 +329,22 @@ const excel: ServerSpec = {
   name: "excel-mcp-server",
   registry: "pypi",
   version: "0.1.8",
-  readmeCommand: "EXCEL_FILES_PATH=/path uvx excel-mcp-server stdio",
+  readmeCommand: "uvx excel-mcp-server stdio",
   bin: "excel-mcp-server",
   args: ["stdio"],
-  env: { EXCEL_FILES_PATH: "{work}" },
   callTimeoutSeconds: 40,
   declared: {
     credentials: [],
     tools: {
       names: ["apply_formula", "copy_range", "copy_worksheet", "create_chart", "create_pivot_table", "create_table", "create_workbook", "create_worksheet", "delete_range", "delete_sheet_columns", "delete_sheet_rows", "delete_worksheet", "format_range", "get_data_validation_info", "get_merged_cells", "get_workbook_metadata", "insert_columns", "insert_rows", "merge_cells", "read_data_from_excel", "rename_worksheet", "unmerge_cells", "validate_excel_range", "validate_formula_syntax", "write_data_to_excel"],
-      source: pypi("excel-mcp-server", "The tool set the server advertises over tools/list for creating and editing workbooks."),
+      source: githubDoc("haris-musa/excel-mcp-server", "v0.1.8", "TOOLS.md", "This document provides detailed information about all available tools in the Excel MCP server."),
     },
     destinations: [],
   },
   fixtures: {},
   probes: [
     {
-      key: "write_data_to_excel", tool: "write_data_to_excel", claim: "Write rows of data into a worksheet.",
+      key: "write_data_to_excel", tool: "write_data_to_excel", claim: "Write data to Excel worksheet.",
       reading: "the workbook on disk holds the value that was written", arguments: { filepath: "{work}/book.xlsx", sheet_name: "Sheet1", data: [["item", "qty"], ["widget", 42]] },
       oracle: "xlsx", where: { path: "{work}/book.xlsx", sheet: "Sheet1", cell: "B2" },
       before: [{ tool: "create_workbook", arguments: { filepath: "{work}/book.xlsx" } }],
@@ -372,7 +377,7 @@ const excel: ServerSpec = {
     { tool: "validate_excel_range", reason: "Validates a range string; no third-system effect." },
     { tool: "validate_formula_syntax", reason: "Validates a formula string; no third-system effect." },
   ],
-  note: "Its workbooks live in the working directory (EXCEL_FILES_PATH); we read the file it wrote with our own reader.",
+  note: "Run over stdio, where its README says the file path comes with each call; we pass a workbook in the working directory and read what it wrote with our own reader. Its README lists no tools itself; it points to TOOLS.md, which is what its tool list is compared against.",
 };
 
 const desktopCommander: ServerSpec = {
@@ -380,28 +385,33 @@ const desktopCommander: ServerSpec = {
   name: "@wonderwhy-er/desktop-commander",
   registry: "npm",
   version: "0.2.51",
-  readmeCommand: "npx -y @wonderwhy-er/desktop-commander",
+  readmeCommand: "npx -y @wonderwhy-er/desktop-commander@latest",
   bin: "desktop-commander",
   args: [],
   callTimeoutSeconds: 60,
   declared: {
     credentials: [],
     tools: {
-      names: ["create_directory", "edit_block", "force_terminate", "get_config", "get_file_info", "get_more_search_results", "get_prompts", "get_recent_tool_calls", "get_usage_stats", "give_feedback_to_desktop_commander", "interact_with_process", "kill_process", "list_directory", "list_processes", "list_searches", "list_sessions", "move_file", "read_file", "read_multiple_files", "read_process_output", "set_config_value", "start_process", "start_search", "stop_search", "write_file", "write_pdf"],
-      source: npmSite("@wonderwhy-er/desktop-commander", "The tool set the server advertises over tools/list (file operations and a terminal via start_process); it offers full desktop access, not a sandbox."),
+      names: ["create_directory", "edit_block", "force_terminate", "get_config", "get_file_info", "get_more_search_results", "get_recent_tool_calls", "get_usage_stats", "give_feedback_to_desktop_commander", "interact_with_process", "kill_process", "list_directory", "list_processes", "list_searches", "list_sessions", "move_file", "read_file", "read_multiple_files", "read_process_output", "set_config_value", "start_process", "start_search", "stop_search", "write_file", "write_pdf"],
+      source: npmDoc("@wonderwhy-er/desktop-commander", "0.2.51", "### Available Tools"),
     },
-    destinations: [],
+    /* Its README and PRIVACY.md declare opt-out telemetry without naming hosts;
+     * dist/utils/capture.js sends it to these two, so they count as declared. */
+    destinations: [
+      { host: "telemetry.desktopcommander.app", source: npmDoc("@wonderwhy-er/desktop-commander", "0.2.51", "Desktop Commander collects limited, pseudonymous telemetry to improve the tool.") },
+      { host: "dc-telemetry-proxy-83847352264.europe-west1.run.app", source: npmDoc("@wonderwhy-er/desktop-commander", "0.2.51", "Desktop Commander collects limited, pseudonymous telemetry to improve the tool.") },
+    ],
   },
   fixtures: { files: { "{work}/notes.txt": "desktop commander test BRYDGEDCOK" } },
   probes: [
     {
-      key: "write_file", tool: "write_file", claim: "Write content to a file.",
+      key: "write_file", tool: "write_file", claim: "Write or append to file contents.",
       reading: "the file exists afterwards with the content", arguments: { path: "{work}/written.txt", content: "written by desktop commander" },
       oracle: "disk", where: { path: "{work}/written.txt" },
       must: [{ id: "exists", says: "the file exists", kind: "PRESENT", field: "content" }, { id: "content", says: "it holds what we sent", kind: "INCLUDES", field: "content", value: "written by desktop commander" }],
     },
     {
-      key: "start_process", tool: "start_process", claim: "Run a terminal command.",
+      key: "start_process", tool: "start_process", claim: "Start a new terminal process with intelligent state detection.",
       reading: "the command actually runs as a real process", arguments: { command: "id", timeout_ms: 5000 },
       oracle: "exec", where: { program: "id" }, must: [],
     },
@@ -432,7 +442,7 @@ const desktopCommander: ServerSpec = {
     { tool: "get_usage_stats", reason: "Reports its own usage counters." },
     { tool: "give_feedback_to_desktop_commander", reason: "Opens a feedback channel; not an effect we judge." },
   ],
-  note: "Offers full desktop access by design, so there is no sandbox boundary to test; we check that a write lands and a command runs, and watch what it reads and where it connects.",
+  note: "Offers full desktop access by design, so there is no sandbox boundary to test; we check that a write lands and a command runs, and watch what it reads and where it connects. It contacted everything at startup, before any tool was called. Its README and privacy policy declare opt-out telemetry; its telemetry code (dist/utils/capture.js) sends to telemetry.desktopcommander.app and a Cloud Run proxy, so we count those as declared, though the documents do not name the hosts. Two other startup requests are not mentioned in its README or privacy policy that we could find: remote feature flags from desktopcommander.app (dist/utils/feature-flags.js), and, when no Chrome is installed, a background download of Chrome for its PDF tool, which reached googlechromelabs.github.io here (dist/tools/pdf/markdown.js, started from dist/index.js once the client connects). With no network, neither completed.",
 };
 
 const chromeDevtools: ServerSpec = {
@@ -447,17 +457,23 @@ const chromeDevtools: ServerSpec = {
   declared: {
     credentials: [],
     tools: {
-      names: ["click", "close_page", "drag", "emulate", "evaluate_script", "fill", "fill_form", "get_console_message", "get_css_styles", "get_network_request", "handle_dialog", "hover", "lighthouse_audit", "list_console_messages", "list_network_requests", "navigate_page", "new_page", "performance_analyze_insight", "performance_start_trace", "performance_stop_trace", "press_key", "resize_page", "select_page", "take_heapsnapshot", "take_screenshot", "take_snapshot", "type_text", "upload_file", "wait_for"],
-      source: npmSite("chrome-devtools-mcp", "The tool set the server advertises over tools/list for driving Chrome over DevTools."),
+      names: ["click", "close_page", "drag", "emulate", "evaluate_script", "fill", "fill_form", "get_console_message", "get_css_styles", "get_network_request", "handle_dialog", "hover", "lighthouse_audit", "list_console_messages", "list_network_requests", "list_pages", "navigate_page", "new_page", "performance_analyze_insight", "performance_start_trace", "performance_stop_trace", "press_key", "resize_page", "select_page", "take_heapsnapshot", "take_screenshot", "take_snapshot", "type_text", "upload_file", "wait_for"],
+      /* The tool reference also documents 28 tools marked "(requires flag: …)"; none of those flags is passed, so only the 30 that need none are expected. */
+      source: githubDoc("ChromeDevTools/chrome-devtools-mcp", "chrome-devtools-mcp-v1.10.1", "docs/tool-reference.md", "# Chrome DevTools MCP Tool Reference"),
     },
-    destinations: [{ host: "user-supplied URLs", source: npmSite("chrome-devtools-mcp", "Navigates the browser to the URL it is given.") }],
+    destinations: [
+      { host: "user-supplied URLs", source: githubDoc("ChromeDevTools/chrome-devtools-mcp", "chrome-devtools-mcp-v1.10.1", "docs/tool-reference.md", "**Description:** Open a new tab and load a URL.") },
+      /* Hosts not named in the README; matched to the documented features by reading build/src (telemetry/watchdog/ClearcutSender.js, bin/check-latest-version.js). */
+      { host: "play.googleapis.com", source: npmDoc("chrome-devtools-mcp", "1.10.1", "Google collects usage statistics (such as tool invocation success rates, latency, and environment information) to improve the reliability and performance of Chrome DevTools MCP.") },
+      { host: "registry.npmjs.org", source: npmDoc("chrome-devtools-mcp", "1.10.1", "By default, the server periodically checks the npm registry for updates and logs a notification when a newer version is available.") },
+    ],
   },
   fixtures: {
     web: { "/page.html": { type: "text/html", body: "<html><body><h1>Quarterly report</h1><p>The distinctive marker is BRYDGECHROMEOK.</p></body></html>" } },
   },
   probes: [
     {
-      key: "new_page", tool: "new_page", claim: "Open a page at a URL in the browser.",
+      key: "new_page", tool: "new_page", claim: "Open a new tab and load a URL.",
       reading: "the browser actually requests the page from the server", arguments: { url: "{web}/page.html" },
       oracle: "http", where: { path: "/page.html" },
       must: [{ id: "requested", says: "the page was really requested by the browser", kind: "EQUALS", field: "requested", value: true }],
@@ -494,7 +510,7 @@ const chromeDevtools: ServerSpec = {
     { tool: "get_network_request", reason: "Reads one browser request; our web log is the independent record." },
     { tool: "get_css_styles", reason: "Reads computed styles; not a third-system effect." },
   ],
-  note: "Given a headless Chromium and a local page; we check that opening the page actually requests it, which the local server logs.",
+  note: "Given a headless Chromium and a local page; we check that opening the page actually requests it, which the local server logs. Its tool reference documents 58 tools; the 28 marked as requiring a flag were not enabled, and the 30 that need none are exactly the 30 it offered. Its usage statistics (to play.googleapis.com) and its update check (to the npm registry) are documented in its README; the requests to www.google.com and clients2.google.com came from the browser's own processes, not the server's code.",
 };
 
 export const SERVERS: ServerSpec[] = [filesystem, memory, time, git, fetch, markitdown, shell, excel, desktopCommander, chromeDevtools];

@@ -105,6 +105,43 @@ test("every published result quotes servers/index.ts as it stands, so it was mea
   }
 });
 
+/*
+ * A page prints each probe's claim after "It says:". That is only true if the
+ * claim is the tool's own words — the description it gave of itself over
+ * tools/list, which the raw record keeps. The first pages paraphrased them.
+ */
+test("every claim is quoted verbatim from the tool's own description", () => {
+  const norm = (t: string) => t.replace(/\s+/g, " ").trim();
+  for (const r of published()) {
+    const raw = JSON.parse(readFileSync(join(ROOT, "results", `${r.slug}.raw.json`), "utf8")) as {
+      session: { transcript: Array<{ dir: string; message?: { result?: { tools?: Array<{ name: string; description?: string }> } } }> };
+    };
+    const listed = raw.session.transcript.find((t) => t.dir === "from-server" && t.message?.result?.tools)?.message?.result?.tools ?? [];
+    const described = new Map(listed.map((t) => [t.name, norm(t.description ?? "")]));
+    for (const p of r.results) {
+      assert.ok(described.get(p.tool)?.includes(norm(p.claim)), `${r.slug}/${p.key}: "${p.claim}" is not in ${p.tool}'s own description`);
+    }
+  }
+});
+
+/*
+ * What a server "declares" is read from its documentation for the version that
+ * was measured — linked at that version, so the link shows what we read — and
+ * quoted verbatim (checked against those documents before publishing).
+ */
+test("every declaration links the documentation of the version measured", () => {
+  for (const s of SERVERS) {
+    const sources = [...s.declared.credentials.map((c) => c.source), ...s.declared.destinations.map((d) => d.source), ...(s.declared.tools ? [s.declared.tools.source] : [])];
+    for (const src of sources) {
+      assert.ok(src.url.includes(s.version), `${s.slug}: ${src.url} is not pinned to ${s.version}`);
+      assert.ok(src.quote.trim().length > 0, `${s.slug}: empty quote for ${src.url}`);
+    }
+    for (const d of s.declared.destinations) {
+      assert.ok(d.host === "user-supplied URLs" || /^[a-z0-9.-]+$/.test(d.host), `${s.slug}: "${d.host}" is neither a hostname nor "user-supplied URLs"`);
+    }
+  }
+});
+
 test("no held (embargoed) result can be, or is, committed", () => {
   /* held/ may legitimately hold results on the machine that measured them —
    * that is where an embargoed result waits. What must never happen is that one

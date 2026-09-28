@@ -3,13 +3,13 @@
   "name": "excel-mcp-server",
   "registry": "pypi",
   "version": "0.1.8",
-  "readmeCommand": "EXCEL_FILES_PATH=/path uvx excel-mcp-server stdio",
-  "bin": "/srv/brydge-measure/excel-mcp-server-1790558191459/install/venv/bin/excel-mcp-server",
+  "readmeCommand": "uvx excel-mcp-server stdio",
+  "bin": "/srv/brydge-measure/excel-mcp-server-1790573082006/install/venv/bin/excel-mcp-server",
   "args": [
     "stdio"
   ],
-  "note": "Its workbooks live in the working directory (EXCEL_FILES_PATH); we read the file it wrote with our own reader.",
-  "measuredAt": "2026-09-28T01:16:38.441Z",
+  "note": "Run over stdio, where its README says the file path comes with each call; we pass a workbook in the working directory and read what it wrote with our own reader. Its README lists no tools itself; it points to TOOLS.md, which is what its tool list is compared against.",
+  "measuredAt": "2026-09-28T05:24:54.428Z",
   "fingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "serverInfo": {
     "name": "excel-mcp",
@@ -47,8 +47,8 @@
         "write_data_to_excel"
       ],
       "source": {
-        "url": "https://pypi.org/project/excel-mcp-server/",
-        "quote": "The tool set the server advertises over tools/list for creating and editing workbooks."
+        "url": "https://github.com/haris-musa/excel-mcp-server/blob/v0.1.8/TOOLS.md",
+        "quote": "This document provides detailed information about all available tools in the Excel MCP server."
       }
     },
     "destinations": []
@@ -182,10 +182,10 @@
     {
       "key": "write_data_to_excel",
       "tool": "write_data_to_excel",
-      "claim": "Write rows of data into a worksheet.",
+      "claim": "Write data to Excel worksheet.",
       "reading": "the workbook on disk holds the value that was written",
       "arguments": {
-        "filepath": "/srv/brydge-measure/excel-mcp-server-1790558191459/work/book.xlsx",
+        "filepath": "/srv/brydge-measure/excel-mcp-server-1790573082006/work/book.xlsx",
         "sheet_name": "Sheet1",
         "data": [
           [
@@ -200,7 +200,7 @@
       },
       "oracle": "xlsx",
       "where": {
-        "path": "/srv/brydge-measure/excel-mcp-server-1790558191459/work/book.xlsx",
+        "path": "/srv/brydge-measure/excel-mcp-server-1790573082006/work/book.xlsx",
         "sheet": "Sheet1",
         "cell": "B2"
       },
@@ -236,7 +236,7 @@
       "security": false,
       "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
       "evidence": [
-        "/srv/brydge-measure/excel-mcp-server-1790558191459/install/venv/lib/python3.11/site-packages/pydantic_settings/sources/utils.py:70 read 23 variables"
+        "/srv/brydge-measure/excel-mcp-server-1790573082006/install/venv/lib/python3.11/site-packages/pydantic_settings/sources/utils.py:70 read 22 variables"
       ]
     },
     {
