@@ -1,0 +1,58 @@
+name: CI
+
+# ══════════════════════════════════════════════════════════════════════════
+# TWO QUESTIONS, ASKED ON EVERY PUSH.
+#
+#   checks       Does the code compile, do the pure parts behave, and was
+#                every published result produced by the code in this commit?
+#                (A harness change committed without re-running calibration
+#                and the measurements fails here.)
+#
+#   calibration  On a machine that has never seen this repository, does the
+#                harness still catch every lie planted in the two lying
+#                servers, and accuse nothing honest? This is the full sandbox:
+#                network namespace, kernel trace, unprivileged server.
+#
+# Real servers are deliberately NOT measured here. A run can turn up a security
+# finding that is held for disclosure, and a public CI log is not a place a
+# held result can go. Real measurements are run by hand and published once the
+# rules in the README allow.
+# ══════════════════════════════════════════════════════════════════════════
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --no-audit --no-fund typescript@5 @types/node@22
+      - run: npx tsc -p tsconfig.json
+      - run: node --test test/*.test.ts
+
+  calibration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The servers' interpreters must live outside /home: the sandbox hides
+      # /home behind an empty tmpfs, and a venv whose python is under it would
+      # have no interpreter inside the sandbox.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+      - run: sudo apt-get update && sudo apt-get install -y strace
+      - run: sudo mkdir -p /srv/brydge-measure && sudo chmod 755 /srv/brydge-measure
+      # only-system: use the setup-python interpreter in /opt, never a uv-managed
+      # download under root's home, which the unprivileged server user cannot read.
+      - name: Calibrate against the two lying servers
+        run: sudo env "PATH=$PATH" UV_PYTHON_PREFERENCE=only-system node measure.ts calibrate
