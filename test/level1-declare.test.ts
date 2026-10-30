@@ -152,3 +152,18 @@ test("a noted word is found once per line, quoted where it appears", () => {
 test("a README using neither word notes nothing", () => {
   assert.deepEqual(notedWords("# Thing\nIt reads files.\n"), []);
 });
+
+test("a shouted name is a variable, not a tool", () => {
+  /* Playwright's README documents forty-odd 'PLAYWRIGHT_MCP_*' environment
+   * variables. Lower-casing before the shape test made every one of them a
+   * name the README listed and the server did not offer, which buried the one
+   * list on the page that is a real signal. */
+  const d = readDeclaration(
+    ["| --cdp-endpoint | CDP endpoint.<br>*env* `PLAYWRIGHT_MCP_CDP_ENDPOINT` |", "- `browser_navigate` — go to a URL"].join("\n"),
+  );
+  assert.deepEqual(d.identifiers.map((i) => i.name), ["browser_navigate"]);
+
+  /* And the tool comparison is unaffected: it asks case-insensitively, so a
+   * README that lists a tool in capitals still documents it. */
+  assert.ok(whereNamed("| BROWSER_NAVIGATE | go to a URL |", "browser_navigate"));
+});

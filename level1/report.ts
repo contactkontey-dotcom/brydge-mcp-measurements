@@ -61,6 +61,22 @@ export function renderReport(e: Level1Evidence): string {
   );
   p();
 
+  /*
+   * ── THE PARAGRAPH FOR SOMEBODY WHO WILL NEVER READ THE REST. ────────────
+   *
+   * Three sentences: what was run, what was found, what was not checked. Every
+   * number in it is a count taken straight off the evidence, and it introduces
+   * no word the sections below do not support — it is the same page, shorter,
+   * not a summary with an opinion in it. The third sentence is not a
+   * disclaimer bolted on: a reader who stops after this paragraph has to leave
+   * knowing what the measurement did not look at, or the paragraph has
+   * misinformed them.
+   */
+  p(`## In plain words`);
+  p();
+  p(plainWords(e));
+  p();
+
   /* ── The standard, in plain words. ────────────────────────────────────── */
   p(`## The standard this report uses`);
   p();
@@ -239,6 +255,34 @@ export function renderReport(e: Level1Evidence): string {
 
   p(renderLimits(e));
   return out.join("\n");
+}
+
+/** Three sentences, each number a count off the evidence. */
+function plainWords(e: Level1Evidence): string {
+  const who = `${code(`${e.package.name}${e.package.version ? ` ${e.package.version}` : ""}`)}`;
+  const room = `in a room with no route to the internet, where every website name answers to this machine and every credential is fake`;
+
+  if (e.couldNotStart) {
+    return [
+      `We installed ${who} from the npm registry and tried to start it ${room}.`,
+      `It did not start: it failed at the ${code(e.couldNotStart.stage)} stage, so there is nothing measured on this page.`,
+      `We called none of its tools and we have not worked out what it would have done, because it did not run.`,
+    ].join(" ");
+  }
+
+  const o = e.observed!;
+  const c = e.comparison!;
+  const sites = [...new Set([...o.dnsNames, ...o.tlsHosts])].length;
+  const theirs = o.programsStarted.filter((x) => !HARNESS_PROGRAMS.has(x)).length;
+
+  return [
+    `We installed ${who} from the npm registry, started it ${room}, and asked it to list its tools without calling any of them.`,
+    `Before any tool was used it offered ${plural(o.offered.length, "tool")}, looked up ${plural(sites, "website")}, ` +
+      `started ${plural(theirs, "program")} and wrote ${plural(o.filesWritten.length, "file")}; ` +
+      `of those, ${plural(c.tools.undocumented.length, "tool")} and ${plural(c.hosts.undeclared.length, "website")} ` +
+      `${c.tools.undocumented.length + c.hosts.undeclared.length === 1 ? "is" : "are"} not named in its own README.`,
+    `We called no tool and read the contents of no encrypted connection, so this page says nothing about whether any of its tools does what it says.`,
+  ].join(" ");
 }
 
 function renderLimits(e: Level1Evidence): string {

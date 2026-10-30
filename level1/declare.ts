@@ -150,10 +150,21 @@ export function readDeclaration(readme: string): Declaration {
       if (h && !hosts.has(h)) hosts.set(h, at(m.index));
     }
     for (const m of text.matchAll(BACKTICKED)) {
-      /* A backticked run can hold several tokens: `read_file, write_file`. */
+      /*
+       * A backticked run can hold several tokens: `read_file, write_file`.
+       *
+       * Matched as written, NOT lower-cased first. Lower-casing turned every
+       * backticked environment variable into a tool name: Playwright's README
+       * documents `PLAYWRIGHT_MCP_CDP_ENDPOINT` and forty of its siblings, and
+       * the page then listed them all as names the README lists but the server
+       * did not offer. An MCP tool name is lower-case by convention, a shouted
+       * name is a variable, and telling them apart costs nothing but a case
+       * test. This narrows the weakest of the three lists only — the tool
+       * comparison asks `whereNamed`, which is case-insensitive — so it cannot
+       * hide a tool the README fails to document.
+       */
       for (const token of m[1].split(/[^A-Za-z0-9_]+/)) {
-        const t = token.toLowerCase();
-        if (TOOL_SHAPED.test(t) && !identifiers.has(t)) identifiers.set(t, at(m.index));
+        if (TOOL_SHAPED.test(token) && !identifiers.has(token)) identifiers.set(token, at(m.index));
       }
     }
   });

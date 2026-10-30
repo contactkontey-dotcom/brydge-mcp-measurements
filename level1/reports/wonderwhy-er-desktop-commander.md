@@ -4,6 +4,10 @@ Measured 2026-10-30. Asked for `@wonderwhy-er/desktop-commander@0.2.51`. Instrum
 
 **Level 1, and not calibration-backed.** No tool was called, so this report makes no claim about any tool doing what it says. The calibration that backs the ten curated measurements proves the instrument catches planted claims about what a tool *did*; Level 1 runs no such checks, and reads the package's own documentation by a stated rule rather than by a person, so nothing in that calibration speaks to this page.
 
+## In plain words
+
+We installed `@wonderwhy-er/desktop-commander 0.2.51` from the npm registry, started it in a room with no route to the internet, where every website name answers to this machine and every credential is fake, and asked it to list its tools without calling any of them. Before any tool was used it offered 26 tools, looked up 4 websites, started 4 programs and wrote 0 files; of those, 1 tool and 3 websites are not named in its own README. We called no tool and read the contents of no encrypted connection, so this page says nothing about whether any of its tools does what it says.
+
 ## The standard this report uses
 
 **A website counts as declared only if the README names it.**

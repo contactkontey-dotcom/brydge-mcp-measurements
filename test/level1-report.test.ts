@@ -133,3 +133,37 @@ test("the same evidence renders the same bytes", () => {
 test("the page says it is not calibration-backed", () => {
   assert.match(renderReport(evidence()), /not calibration-backed/i);
 });
+
+test("the plain-words paragraph is three sentences of counts off the evidence", () => {
+  const md = renderReport(evidence());
+  const para = md.split("## In plain words")[1].split("##")[0].trim();
+
+  /* Three sentences, because a fourth is where an opinion goes. */
+  assert.equal(para.match(/\.(?:\s|$)/g)?.length, 3, `expected three sentences, got:\n${para}`);
+
+  /* Every number in it is the evidence's own count. The fixture offers two
+   * tools, reaches two websites, starts three programs of which one is the
+   * harness's, writes nothing, and has one undocumented tool and one
+   * undeclared website. */
+  assert.ok(para.includes("offered 2 tools"), para);
+  assert.ok(para.includes("looked up 2 websites"), para);
+  assert.ok(para.includes("started 2 programs"), "the harness's own launcher is not counted as the package's");
+  assert.ok(para.includes("wrote 0 files"), para);
+  assert.ok(para.includes("1 tool and 1 website are not named in its own README"), para);
+
+  /* And it must say what was not checked, or a reader who stops here has been
+   * misinformed about what the measurement covers. */
+  assert.ok(para.includes("called no tool"), para);
+  assert.ok(para.includes("no encrypted connection"), para);
+  assert.doesNotMatch(para, FORBIDDEN);
+});
+
+test("plain words for a server that did not start concludes nothing", () => {
+  const md = renderReport(evidence({ couldNotStart: { stage: "initialize", because: "FIGMA_TOKEN is required" } }));
+  const para = md.split("## In plain words")[1].split("##")[0].trim();
+  assert.equal(para.match(/\.(?:\s|$)/g)?.length, 3, para);
+  assert.ok(para.includes("It did not start"), para);
+  assert.ok(para.includes("because it did not run"), para);
+  /* No counts, because there is nothing to count. */
+  assert.ok(!para.includes("offered"), para);
+});
