@@ -2,14 +2,15 @@
   "level": 1,
   "notCalibrationBacked": true,
   "asked": "@wonderwhy-er/desktop-commander@0.2.51",
-  "measuredAt": "2026-10-30T09:33:33.116Z",
+  "measuredAt": "2026-10-30T09:53:15.519Z",
   "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "standard": {
     "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
     "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
     "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
     "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
-    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report."
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
   },
   "limits": [
     {
@@ -62,6 +63,50 @@
     "lines": 1163,
     "bytes": 52785
   },
+  "readmeNotes": [
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 586,
+        "text": "…`fileReadLineLimit`: Maximum lines to read at once (default: 1000)<br>• `fileWriteLineLimit`: Maximum lines to write at once (default: 50)<br>• `telemetryEnabled`: Enable/disable telemetry (boolean) |"
+      }
+    },
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 797,
+        "text": "Desktop Commander keeps tool-call records **locally on the machine running the MCP server**. These local files are separate from optional telemetry and are not a server-side historical audit log."
+      }
+    },
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 828,
+        "text": "These local history files are also separate from Desktop Commander's optional telemetry. The files themselves are not uploaded as telemetry. See [Data Collection & Privacy](#data-collection--privacy) …"
+      }
+    },
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 1149,
+        "text": "Desktop Commander collects limited, pseudonymous telemetry to improve the tool. We do not collect file contents, file paths, or command arguments as telemetry."
+      }
+    },
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 1153,
+        "text": "**Opt-out:** Ask Claude to \"disable Desktop Commander telemetry\" or set `\"telemetryEnabled\": false` in your config."
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 607,
+        "text": "| **Analytics** | `get_usage_stats` | Get usage statistics for your own insight |"
+      }
+    }
+  ],
   "declaration": {
     "hosts": [
       {
@@ -82,7 +127,7 @@
         "host": "32-10.log",
         "at": {
           "line": 803,
-          "text": "The active file rotates when it reaches 10 MB. The previous file is renamed using a timestamp, for example `claude_tool_call_2026-09-07_14-32-10.log`, and a new `claude_tool_call.log` is created. Rotated files are not automatically deleted "
+          "text": "… 10 MB. The previous file is renamed using a timestamp, for example `claude_tool_call_2026-09-07_14-32-10.log`, and a new `claude_tool_call.log` is created. Rotated files are not automatically deleted…"
         }
       },
       {
@@ -152,7 +197,7 @@
         "host": "configure-an-mcp-server.html",
         "at": {
           "line": 426,
-          "text": "In JetBrains IDEs, go to **Settings → Tools → AI Assistant → Model Context Protocol (MCP)**, click `+` Add, select **As JSON**, and paste the JSON configuration above. See [JetBrains MCP docs](https://www.jetbrains.com/help/ai-assistant/con"
+          "text": "…ol (MCP)**, click `+` Add, select **As JSON**, and paste the JSON configuration above. See [JetBrains MCP docs](https://www.jetbrains.com/help/ai-assistant/configure-an-mcp-server.html) for more info."
         }
       },
       {
@@ -166,7 +211,7 @@
         "host": "cursor.com",
         "at": {
           "line": 337,
-          "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=desktop-commander&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB3b25kZXJ3aHktZXIvZGVza3RvcC1jb21tYW5kZXJAbGF0ZXN0Il19)"
+          "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=desktop-commander&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB3b25kZXJ3aHktZXI…"
         }
       },
       {
@@ -236,14 +281,14 @@
         "host": "docs.augmentcode.com",
         "at": {
           "line": 453,
-          "text": "Press `Cmd/Ctrl+Shift+P`, open the Augment panel, and add a new MCP server named `desktop-commander` with the JSON configuration above. See [Augment Code MCP docs](https://docs.augmentcode.com/setup-augment/mcp) for more info."
+          "text": "…open the Augment panel, and add a new MCP server named `desktop-commander` with the JSON configuration above. See [Augment Code MCP docs](https://docs.augmentcode.com/setup-augment/mcp) for more info."
         }
       },
       {
         "host": "docs.cline.bot",
         "at": {
           "line": 366,
-          "text": "Configure through the Cline extension settings in VS Code. Open the Cline sidebar, click the MCP Servers icon, and add the JSON configuration above. See [Cline MCP docs](https://docs.cline.bot/mcp/configuring-mcp-servers) for more info."
+          "text": "…n settings in VS Code. Open the Cline sidebar, click the MCP Servers icon, and add the JSON configuration above. See [Cline MCP docs](https://docs.cline.bot/mcp/configuring-mcp-servers) for more info."
         }
       },
       {
@@ -299,7 +344,7 @@
         "host": "github.com",
         "at": {
           "line": 51,
-          "text": "Execute long-running terminal commands on your computer and manage processes through Model Context Protocol (MCP). Built on top of [MCP Filesystem Server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) to provide "
+          "text": "… and manage processes through Model Context Protocol (MCP). Built on top of [MCP Filesystem Server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) to provide additional sear…"
         }
       },
       {
@@ -320,7 +365,7 @@
         "host": "img.png",
         "at": {
           "line": 1084,
-          "text": "[![It's a life saver! I paid Claude + Cursor currently which I always feel it's kind of duplicated. This solves the problem ultimately. I am so happy. Thanks so much. Plus today Claude has added the web search support. With this MCP + Inter"
+          "text": "…the fast requests are used.](https://raw.githubusercontent.com/wonderwhy-er/ClaudeComputerCommander/main/testemonials/img.png) https://www.youtube.com/watch?v=ly3bed99Dy8&lc=UgyyBt6_ShdDX_rIOad4AaABAg"
         }
       },
       {
@@ -376,7 +421,7 @@
         "host": "mcp-install-dark.svg",
         "at": {
           "line": 337,
-          "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=desktop-commander&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB3b25kZXJ3aHktZXIvZGVza3RvcC1jb21tYW5kZXJAbGF0ZXN0Il19)"
+          "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=desktop-commander&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB3b25kZXJ3aHktZXI…"
         }
       },
       {
@@ -418,7 +463,7 @@
         "host": "privacy.md",
         "at": {
           "line": 828,
-          "text": "These local history files are also separate from Desktop Commander's optional telemetry. The files themselves are not uploaded as telemetry. See [Data Collection & Privacy](#data-collection--privacy) and [PRIVACY.md](PRIVACY.md) for telemet"
+          "text": "…sktop Commander's optional telemetry. The files themselves are not uploaded as telemetry. See [Data Collection & Privacy](#data-collection--privacy) and [PRIVACY.md](PRIVACY.md) for telemetry details."
         }
       },
       {
@@ -495,7 +540,7 @@
         "host": "wonderwhy-er.medium.com",
         "at": {
           "line": 1070,
-          "text": "[Claude with MCPs replaced Cursor & Windsurf. How did that happen?](https://wonderwhy-er.medium.com/claude-with-mcps-replaced-cursor-windsurf-how-did-that-happen-c1d1e2795e96) - A detailed exploration of how Claude with Model Context Protoc"
+          "text": "[Claude with MCPs replaced Cursor & Windsurf. How did that happen?](https://wonderwhy-er.medium.com/claude-with-mcps-replaced-cursor-windsurf-how-did-that-happen-c1d1e2795e96) - A detailed exploration…"
         }
       },
       {
@@ -516,7 +561,7 @@
         "host": "www.jetbrains.com",
         "at": {
           "line": 426,
-          "text": "In JetBrains IDEs, go to **Settings → Tools → AI Assistant → Model Context Protocol (MCP)**, click `+` Add, select **As JSON**, and paste the JSON configuration above. See [JetBrains MCP docs](https://www.jetbrains.com/help/ai-assistant/con"
+          "text": "…ol (MCP)**, click `+` Add, select **As JSON**, and paste the JSON configuration above. See [JetBrains MCP docs](https://www.jetbrains.com/help/ai-assistant/configure-an-mcp-server.html) for more info."
         }
       },
       {
@@ -567,7 +612,7 @@
         "name": "claude_tool_call_2026",
         "at": {
           "line": 803,
-          "text": "The active file rotates when it reaches 10 MB. The previous file is renamed using a timestamp, for example `claude_tool_call_2026-09-07_14-32-10.log`, and a new `claude_tool_call.log` is created. Rotated files are not automatically deleted "
+          "text": "…ive file rotates when it reaches 10 MB. The previous file is renamed using a timestamp, for example `claude_tool_call_2026-09-07_14-32-10.log`, and a new `claude_tool_call.log` is created. Rotated fil…"
         }
       },
       {
@@ -609,7 +654,7 @@
         "name": "get_config",
         "at": {
           "line": 585,
-          "text": "| **Configuration** | `get_config` | Get the complete server configuration as JSON (includes blockedCommands, defaultShell, allowedDirectories, fileReadLineLimit, fileWriteLineLimit, telemetryEnabled) |"
+          "text": "| **Configuration** | `get_config` | Get the complete server configuration as JSON (includes blockedCommands, defaultShell, allowedDirectories, fileReadLineLimit, fileWriteLineLimit, telemetryEnabled)…"
         }
       },
       {
@@ -735,7 +780,7 @@
         "name": "set_config_value",
         "at": {
           "line": 586,
-          "text": "| | `set_config_value` | Set a specific configuration value by key. Available settings: <br>• `blockedCommands`: Array of shell commands that cannot be executed<br>• `defaultShell`: Shell to use for commands (e.g., bash, zsh, powershell)<br"
+          "text": "| | `set_config_value` | Set a specific configuration value by key. Available settings: <br>• `blockedCommands`: Array of shell commands that cannot be executed<br>• `defaultShell`: Shell to use for c…"
         }
       },
       {
@@ -868,7 +913,7 @@
           "name": "get_config",
           "at": {
             "line": 585,
-            "text": "| **Configuration** | `get_config` | Get the complete server configuration as JSON (includes blockedCommands, defaultShell, allowedDirectories, fileReadLineLimit, fileWriteLineLimit, telemetryEnabled) |"
+            "text": "| **Configuration** | `get_config` | Get the complete server configuration as JSON (includes blockedCommands, defaultShell, allowedDirectories, fileReadLineLimit, fileWriteLineLimit, telemetryEnabled)…"
           }
         },
         {
@@ -980,7 +1025,7 @@
           "name": "set_config_value",
           "at": {
             "line": 586,
-            "text": "| | `set_config_value` | Set a specific configuration value by key. Available settings: <br>• `blockedCommands`: Array of shell commands that cannot be executed<br>• `defaultShell`: Shell to use for commands (e.g., bash, zsh, powershell)<br"
+            "text": "| | `set_config_value` | Set a specific configuration value by key. Available settings: <br>• `blockedCommands`: Array of shell commands that cannot be executed<br>• `defaultShell`: Shell to use for c…"
           }
         },
         {
@@ -1050,7 +1095,7 @@
           "host": "32-10.log",
           "at": {
             "line": 803,
-            "text": "The active file rotates when it reaches 10 MB. The previous file is renamed using a timestamp, for example `claude_tool_call_2026-09-07_14-32-10.log`, and a new `claude_tool_call.log` is created. Rotated files are not automatically deleted "
+            "text": "… 10 MB. The previous file is renamed using a timestamp, for example `claude_tool_call_2026-09-07_14-32-10.log`, and a new `claude_tool_call.log` is created. Rotated files are not automatically deleted…"
           }
         },
         {
@@ -1120,7 +1165,7 @@
           "host": "configure-an-mcp-server.html",
           "at": {
             "line": 426,
-            "text": "In JetBrains IDEs, go to **Settings → Tools → AI Assistant → Model Context Protocol (MCP)**, click `+` Add, select **As JSON**, and paste the JSON configuration above. See [JetBrains MCP docs](https://www.jetbrains.com/help/ai-assistant/con"
+            "text": "…ol (MCP)**, click `+` Add, select **As JSON**, and paste the JSON configuration above. See [JetBrains MCP docs](https://www.jetbrains.com/help/ai-assistant/configure-an-mcp-server.html) for more info."
           }
         },
         {
@@ -1134,7 +1179,7 @@
           "host": "cursor.com",
           "at": {
             "line": 337,
-            "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=desktop-commander&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB3b25kZXJ3aHktZXIvZGVza3RvcC1jb21tYW5kZXJAbGF0ZXN0Il19)"
+            "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=desktop-commander&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB3b25kZXJ3aHktZXI…"
           }
         },
         {
@@ -1204,14 +1249,14 @@
           "host": "docs.augmentcode.com",
           "at": {
             "line": 453,
-            "text": "Press `Cmd/Ctrl+Shift+P`, open the Augment panel, and add a new MCP server named `desktop-commander` with the JSON configuration above. See [Augment Code MCP docs](https://docs.augmentcode.com/setup-augment/mcp) for more info."
+            "text": "…open the Augment panel, and add a new MCP server named `desktop-commander` with the JSON configuration above. See [Augment Code MCP docs](https://docs.augmentcode.com/setup-augment/mcp) for more info."
           }
         },
         {
           "host": "docs.cline.bot",
           "at": {
             "line": 366,
-            "text": "Configure through the Cline extension settings in VS Code. Open the Cline sidebar, click the MCP Servers icon, and add the JSON configuration above. See [Cline MCP docs](https://docs.cline.bot/mcp/configuring-mcp-servers) for more info."
+            "text": "…n settings in VS Code. Open the Cline sidebar, click the MCP Servers icon, and add the JSON configuration above. See [Cline MCP docs](https://docs.cline.bot/mcp/configuring-mcp-servers) for more info."
           }
         },
         {
@@ -1267,7 +1312,7 @@
           "host": "github.com",
           "at": {
             "line": 51,
-            "text": "Execute long-running terminal commands on your computer and manage processes through Model Context Protocol (MCP). Built on top of [MCP Filesystem Server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) to provide "
+            "text": "… and manage processes through Model Context Protocol (MCP). Built on top of [MCP Filesystem Server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) to provide additional sear…"
           }
         },
         {
@@ -1288,7 +1333,7 @@
           "host": "img.png",
           "at": {
             "line": 1084,
-            "text": "[![It's a life saver! I paid Claude + Cursor currently which I always feel it's kind of duplicated. This solves the problem ultimately. I am so happy. Thanks so much. Plus today Claude has added the web search support. With this MCP + Inter"
+            "text": "…the fast requests are used.](https://raw.githubusercontent.com/wonderwhy-er/ClaudeComputerCommander/main/testemonials/img.png) https://www.youtube.com/watch?v=ly3bed99Dy8&lc=UgyyBt6_ShdDX_rIOad4AaABAg"
           }
         },
         {
@@ -1344,7 +1389,7 @@
           "host": "mcp-install-dark.svg",
           "at": {
             "line": 337,
-            "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=desktop-commander&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB3b25kZXJ3aHktZXIvZGVza3RvcC1jb21tYW5kZXJAbGF0ZXN0Il19)"
+            "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=desktop-commander&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB3b25kZXJ3aHktZXI…"
           }
         },
         {
@@ -1386,7 +1431,7 @@
           "host": "privacy.md",
           "at": {
             "line": 828,
-            "text": "These local history files are also separate from Desktop Commander's optional telemetry. The files themselves are not uploaded as telemetry. See [Data Collection & Privacy](#data-collection--privacy) and [PRIVACY.md](PRIVACY.md) for telemet"
+            "text": "…sktop Commander's optional telemetry. The files themselves are not uploaded as telemetry. See [Data Collection & Privacy](#data-collection--privacy) and [PRIVACY.md](PRIVACY.md) for telemetry details."
           }
         },
         {
@@ -1463,7 +1508,7 @@
           "host": "wonderwhy-er.medium.com",
           "at": {
             "line": 1070,
-            "text": "[Claude with MCPs replaced Cursor & Windsurf. How did that happen?](https://wonderwhy-er.medium.com/claude-with-mcps-replaced-cursor-windsurf-how-did-that-happen-c1d1e2795e96) - A detailed exploration of how Claude with Model Context Protoc"
+            "text": "[Claude with MCPs replaced Cursor & Windsurf. How did that happen?](https://wonderwhy-er.medium.com/claude-with-mcps-replaced-cursor-windsurf-how-did-that-happen-c1d1e2795e96) - A detailed exploration…"
           }
         },
         {
@@ -1484,7 +1529,7 @@
           "host": "www.jetbrains.com",
           "at": {
             "line": 426,
-            "text": "In JetBrains IDEs, go to **Settings → Tools → AI Assistant → Model Context Protocol (MCP)**, click `+` Add, select **As JSON**, and paste the JSON configuration above. See [JetBrains MCP docs](https://www.jetbrains.com/help/ai-assistant/con"
+            "text": "…ol (MCP)**, click `+` Add, select **As JSON**, and paste the JSON configuration above. See [JetBrains MCP docs](https://www.jetbrains.com/help/ai-assistant/configure-an-mcp-server.html) for more info."
           }
         },
         {
@@ -1551,7 +1596,7 @@
       "security": false,
       "says": "Copied the whole environment at 2 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
       "evidence": [
-        "at Object.env (/srv/brydge-measure/wonderwhy-er-desktop-commander-1793352814406/install/node_modules/bluebird/js/release/util.js:317:41) read 5 variables",
+        "at Object.env (/srv/brydge-measure/wonderwhy-er-desktop-commander-1793353996826/install/node_modules/bluebird/js/release/util.js:317:41) read 5 variables",
         "at normalizeSpawnArguments (node:child_process:675:43) read 23 variables"
       ]
     },

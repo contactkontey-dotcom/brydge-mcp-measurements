@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readDeclaration, whereNamed } from "../level1/declare.ts";
+import { notedWords, readDeclaration, whereNamed } from "../level1/declare.ts";
 import { slugOf } from "../level1/run.ts";
 
 /*
@@ -111,4 +111,44 @@ test("slugs match the shape the curated results already use", () => {
   assert.equal(slugOf("@wonderwhy-er/desktop-commander"), "wonderwhy-er-desktop-commander");
   assert.equal(slugOf("@modelcontextprotocol/server-filesystem"), "modelcontextprotocol-server-filesystem");
   assert.equal(slugOf("mcp-server-fetch"), "mcp-server-fetch");
+});
+
+test("a citation on a very long line quotes the match, not the start of the line", () => {
+  /* A Markdown table row in a real README runs past a thousand characters.
+   * Quoting its first 240 put a sentence about shells under a finding about a
+   * word 400 characters further along — a citation a reader checks once and
+   * then stops trusting. */
+  const filler = "x".repeat(600);
+  const readme = `| ${filler} | see https://late.example.com/ for details |`;
+
+  const at = readDeclaration(readme).hosts.find((h) => h.host === "late.example.com")?.at;
+  assert.ok(at);
+  assert.equal(at.line, 1);
+  assert.ok(at.text.includes("late.example.com"), `quote must contain the host, got: ${at.text}`);
+  assert.ok(at.text.startsWith("…"), "and must say it was cut");
+});
+
+test("a noted word is found once per line, quoted where it appears", () => {
+  const readme = [
+    "# Thing",
+    `| ${"y".repeat(400)} | 'telemetryEnabled' and 'telemetry': boolean |`,
+    "We collect limited, pseudonymous telemetry.",
+    "| **Analytics** | 'get_usage_stats' |",
+  ].join("\n");
+
+  const notes = notedWords(readme);
+  assert.deepEqual(
+    notes.map((n) => [n.word, n.at.line]),
+    [["telemetry", 2], ["telemetry", 3], ["analytics", 4]],
+  );
+  /* Line 2's quote has to show the word it was cited for. `telemetryEnabled`
+   * is not a whole-word match; the bare `telemetry` beside it is. */
+  assert.ok(notes[0].at.text.includes("telemetry"), notes[0].at.text);
+  /* Case-insensitive, and the word is reported as the word searched for. */
+  assert.equal(notes[2].word, "analytics");
+  assert.ok(notes[2].at.text.includes("Analytics"));
+});
+
+test("a README using neither word notes nothing", () => {
+  assert.deepEqual(notedWords("# Thing\nIt reads files.\n"), []);
 });

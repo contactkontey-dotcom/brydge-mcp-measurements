@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["harness/**/*.ts", "engine/**/*.ts", "measure.ts", "servers/**/*.ts", "calibration/**/*.ts", "test/**/*.ts"]
+  "include": ["harness/**/*.ts", "engine/**/*.ts", "measure.ts", "servers/**/*.ts", "calibration/**/*.ts", "test/**/*.ts", "level1/**/*.ts"]
 }

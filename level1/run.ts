@@ -38,7 +38,7 @@
  * No claim about any tool doing what it says. Level 1 never calls a tool.
  * ═══════════════════════════════════════════════════════════════════════════
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { measureServer } from "../measure.ts";
@@ -46,11 +46,13 @@ import { fingerprint } from "../harness/fingerprint.ts";
 import { LIMITS } from "../harness/limits.ts";
 import { programsSince } from "../harness/trace.ts";
 import type { ServerSpec, TraceEvent } from "../harness/types.ts";
-import { readDeclaration, whereNamed, type Declaration, type Mention } from "./declare.ts";
-import { CouldNotResolve, executableOf, resolvePackage, type Resolved } from "./resolve.ts";
+import { notedWords, readDeclaration, whereNamed, type Declaration, type Mention } from "./declare.ts";
+import { renderReport } from "./report.ts";
+import { executableOf, resolvePackage, type Resolved } from "./resolve.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "level1", "evidence");
+const REPORTS = join(ROOT, "level1", "reports");
 
 /** `@scope/name` → `scope-name`, the same shape the curated slugs use. */
 export function slugOf(name: string): string {
@@ -104,6 +106,15 @@ export interface Level1Evidence {
   /** The rules this run applied, in its own words, as data. */
   standard: Record<string, string>;
   readme: { file: string | null; digest: string | null; lines: number | null; bytes: number | null };
+  /*
+   * Words the README uses on the subject of the hosts, with the line each is
+   * on. Recorded and printed; never weighed. A README that says "pseudonymous
+   * telemetry" without a hostname still declares no host under the rule above,
+   * and this field exists so a reader is told the sentence is there and where
+   * to find it rather than left to discover it. Nothing downstream reads it as
+   * a declaration, and `report.ts` states plainly that it decides nothing.
+   */
+  readmeNotes: Array<{ word: string; at: Mention }>;
   declaration: { hosts: Array<{ host: string; at: Mention }>; identifiers: Array<{ name: string; at: Mention }> } | null;
   couldNotStart: { stage: string; because: string } | null;
   serverInfo: unknown;
@@ -142,6 +153,8 @@ const STANDARD = {
     "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
   probes: "No tool is called. Level 1 makes no claim about any tool doing what it says.",
   determinism: "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+  notedWords:
+    "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one.",
 } as const;
 
 /**
@@ -221,6 +234,7 @@ export async function runLevel1(ref: string): Promise<Level1Evidence> {
       slug: slugOf(ref),
       package: { name: ref, version: "", tarball: "", integrity: "" },
       readme: { file: null, digest: null, lines: null, bytes: null },
+      readmeNotes: [],
       declaration: null,
       couldNotStart: { stage: "resolve", because: e instanceof Error ? e.message : String(e) },
       serverInfo: null,
@@ -242,6 +256,7 @@ export async function runLevel1(ref: string): Promise<Level1Evidence> {
     slug: slugOf(resolved.name),
     package: { name: resolved.name, version: resolved.version, tarball: resolved.tarball, integrity: resolved.integrity },
     readme,
+    readmeNotes: resolved.readme ? notedWords(resolved.readme) : [],
     declaration: declaration ? { hosts: declaration.hosts, identifiers: declaration.identifiers } : null,
   };
 
@@ -345,6 +360,13 @@ async function main(): Promise<void> {
   mkdirSync(OUT, { recursive: true });
   const path = join(OUT, `${evidence.slug}.json`);
   writeFileSync(path, JSON.stringify(evidence, null, 2));
+
+  /* The page is a pure function of the file beside it, so it is written from
+   * the evidence rather than from anything still in memory here. */
+  mkdirSync(REPORTS, { recursive: true });
+  const reportPath = join(REPORTS, `${evidence.slug}.md`);
+  writeFileSync(reportPath, renderReport(JSON.parse(readFileSync(path, "utf8")) as Level1Evidence) + "\n");
+
   console.error(
     evidence.couldNotStart
       ? `level 1 — ${evidence.slug}: COULD NOT START at ${evidence.couldNotStart.stage}`
@@ -353,6 +375,7 @@ async function main(): Promise<void> {
           `${evidence.comparison?.hosts.undeclared.length ?? 0} undeclared host(s)`,
   );
   console.error(`written: ${path}`);
+  console.error(`written: ${reportPath}`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

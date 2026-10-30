@@ -87,6 +87,31 @@ const BARE_HOST = /\b((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,})\b/gi;
 /* Tokens inside single or triple backticks. */
 const BACKTICKED = /`{1,3}([^`\n]+)`{1,3}/g;
 
+/*
+ * A CITATION HAS TO SHOW THE THING IT CITES.
+ *
+ * One line of a Markdown table in a real README runs past a thousand
+ * characters. Quoting its first 240 put a sentence about shell configuration
+ * under a finding about the word "telemetry", which was on the same line, 400
+ * characters along: a citation that reads as simply wrong, even though the
+ * match was real and the line number right. A reader who cannot check a
+ * citation by reading it has no reason to trust the next one.
+ *
+ * So the quote is a window around the match, cut on both sides with an ellipsis
+ * where it was cut. Short lines are unaffected and still quoted whole.
+ */
+const SPAN = 200;
+
+function excerpt(line: string, index: number): string {
+  const text = line.trim();
+  if (text.length <= SPAN) return text;
+  const i = Math.max(0, index - (line.length - line.trimStart().length));
+  let end = Math.min(text.length, Math.max(i + Math.ceil(SPAN / 2), SPAN));
+  const start = Math.max(0, end - SPAN);
+  end = Math.min(text.length, start + SPAN);
+  return `${start > 0 ? "…" : ""}${text.slice(start, end)}${end < text.length ? "…" : ""}`;
+}
+
 /** Strip a port, credentials and a trailing dot; lower-case. */
 function hostOf(raw: string): string | null {
   let h = raw.trim().toLowerCase();
@@ -112,21 +137,23 @@ export function readDeclaration(readme: string): Declaration {
   const identifiers = new Map<string, Mention>();
 
   lines.forEach((text, i) => {
-    const at: Mention = { line: i + 1, text: text.trim().slice(0, 240) };
+    /* Per match, not per line, so the quote shows the match and not whatever
+     * happened to be at the start of a very long line. */
+    const at = (index: number): Mention => ({ line: i + 1, text: excerpt(text, index) });
 
     for (const m of text.matchAll(URL_HOST)) {
       const h = hostOf(m[1]);
-      if (h && !hosts.has(h)) hosts.set(h, at);
+      if (h && !hosts.has(h)) hosts.set(h, at(m.index));
     }
     for (const m of text.matchAll(BARE_HOST)) {
       const h = hostOf(m[1]);
-      if (h && !hosts.has(h)) hosts.set(h, at);
+      if (h && !hosts.has(h)) hosts.set(h, at(m.index));
     }
     for (const m of text.matchAll(BACKTICKED)) {
       /* A backticked run can hold several tokens: `read_file, write_file`. */
       for (const token of m[1].split(/[^A-Za-z0-9_]+/)) {
         const t = token.toLowerCase();
-        if (TOOL_SHAPED.test(t) && !identifiers.has(t)) identifiers.set(t, at);
+        if (TOOL_SHAPED.test(t) && !identifiers.has(t)) identifiers.set(t, at(m.index));
       }
     }
   });
@@ -138,6 +165,38 @@ export function readDeclaration(readme: string): Declaration {
     hosts: [...hosts.entries()].map(([host, at]) => ({ host, at })).sort((a, b) => a.host.localeCompare(b.host)),
     identifiers: [...identifiers.entries()].map(([name, at]) => ({ name, at })).sort((a, b) => a.name.localeCompare(b.name)),
   };
+}
+
+/**
+ * WORDS THE README USES THAT A READER WILL WANT TO KNOW ARE THERE.
+ *
+ * A README that names no host still often discusses the subject — "we collect
+ * limited, pseudonymous telemetry". The curated Desktop Commander spec treated
+ * that sentence as a declaration, after a person traced the source to the
+ * hosts. Level 1 cannot do the tracing, so it cannot treat prose as a
+ * declaration; see the header.
+ *
+ * What it can do is say, without deciding anything, that the word is in the
+ * document and where. A reader who wants to weigh that sentence against the
+ * hosts can then go and read it. This function finds the word; it does not
+ * interpret it, and nothing downstream is allowed to either.
+ *
+ * Whole-word and case-insensitive, so "Telemetry" in a heading counts and
+ * "telemetryEnabled" in a code sample does not.
+ */
+export const NOTED_WORDS = ["telemetry", "analytics"] as const;
+
+export function notedWords(readme: string): Array<{ word: string; at: Mention }> {
+  const found: Array<{ word: string; at: Mention }> = [];
+  const lines = readme.split(/\r?\n/);
+  for (const word of NOTED_WORDS) {
+    const re = new RegExp(`\\b${word}\\b`, "i");
+    lines.forEach((text, i) => {
+      const m = re.exec(text);
+      if (m) found.push({ word, at: { line: i + 1, text: excerpt(text, m.index) } });
+    });
+  }
+  return found;
 }
 
 /**
@@ -158,7 +217,7 @@ export function whereNamed(readme: string, token: string): Mention | null {
   for (let i = 0; i < lines.length; i++) {
     for (const m of lines[i].matchAll(/[A-Za-z0-9_.-]+/g)) {
       if (m[0].toLowerCase() === needle) {
-        return { line: i + 1, text: lines[i].trim().slice(0, 240) };
+        return { line: i + 1, text: excerpt(lines[i], m.index) };
       }
     }
   }
