@@ -27,7 +27,7 @@ It started and identified itself as `desktop-commander 0.2.51`.
 | Other addresses it tried | none |
 | Programs it started | `desktop-commander`, `node`, `python3`, `setpriv`, `sh` |
 | Files it wrote | none |
-| Packages it installed while running | none |
+| Package-manager commands it ran | none |
 | Tools it offered | 26 |
 
 `setpriv` in that list is the harness's own launcher, not the package's doing.
@@ -82,7 +82,7 @@ The README uses the words "telemetry" — README.md lines 586, 797, 828, 1149 an
 - **It is one run, once.** A program that behaves one way while being watched and another way otherwise would produce this same page.
 - **It ran with no route off the machine**, so anything that only happens after a connection succeeds did not happen.
 - **Encrypted traffic was not read.** The name it asked for is recorded; the contents are not, and would not be even with a route.
-- **"Declared" means named in the README**, nothing more. A package may document a website elsewhere — a privacy policy, a wiki, its source — and this report has not read those.
+- **"Declared" means named in the README**, nothing more. Only the README file that shipped in the package was read. A package that documents its tools or its destinations somewhere else — a reference file beside the README, a privacy policy, a wiki, its source — will show every one of them above as not named, which is a fact about this rule and not about the package.
 - **It is not calibration-backed**, for the reason at the top.
 - **The harness is BRYDGE's own**, and BRYDGE has an interest in the question of whether tools do what they say.
 

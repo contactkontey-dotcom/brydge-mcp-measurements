@@ -370,7 +370,7 @@ async function main(): Promise<void> {
   console.error(
     evidence.couldNotStart
       ? `level 1 — ${evidence.slug}: COULD NOT START at ${evidence.couldNotStart.stage}`
-      : `level 1 — ${evidence.slug}: ${evidence.observed?.offered.length ?? 0} tools offered, ` +
+      : `level 1 — ${evidence.slug}: ${evidence.observed?.offered.length ?? 0} tool(s) offered, ` +
           `${evidence.comparison?.tools.undocumented.length ?? 0} undocumented, ` +
           `${evidence.comparison?.hosts.undeclared.length ?? 0} undeclared host(s)`,
   );

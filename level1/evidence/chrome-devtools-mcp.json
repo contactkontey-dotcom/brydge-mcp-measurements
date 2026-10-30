@@ -1,0 +1,777 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "chrome-devtools-mcp@1.12.0",
+  "measuredAt": "2026-10-30T10:13:12.692Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "chrome-devtools-mcp",
+  "package": {
+    "name": "chrome-devtools-mcp",
+    "version": "1.12.0",
+    "tarball": "https://registry.npmjs.org/chrome-devtools-mcp/-/chrome-devtools-mcp-1.12.0.tgz",
+    "integrity": "sha512-lAGpH0zXT1ZdaPefP1KK/MvxwihOlu7VGQ7p4wbhD9OhN17vUC4KWk/ImUYR9DE4s+7r4r0ySV4xr2OkTa7ZMA=="
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "4a22b624199834be81356782ef36f99258f4aa1b3ff6e85dd615a1e669e6c3e5",
+    "lines": 199,
+    "bytes": 9517
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "advanced-usage.md",
+        "at": {
+          "line": 188,
+          "text": "[advanced-usage-guide]: ./docs/advanced-usage.md"
+        }
+      },
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 189,
+          "text": "[changelog]: ./CHANGELOG.md"
+        }
+      },
+      {
+        "host": "chrome-devtools-mcp.svg",
+        "at": {
+          "line": 3,
+          "text": "[![npm chrome-devtools-mcp package](https://img.shields.io/npm/v/chrome-devtools-mcp.svg)](https://npmjs.org/package/chrome-devtools-mcp)"
+        }
+      },
+      {
+        "host": "chromiumdash.appspot.com",
+        "at": {
+          "line": 33,
+          "text": "We are committed to providing fixes and support for the latest version of [Extended Stable Chrome](https://chromiumdash.appspot.com/schedule)."
+        }
+      },
+      {
+        "host": "cli.md",
+        "at": {
+          "line": 190,
+          "text": "[cli]: ./docs/cli.md"
+        }
+      },
+      {
+        "host": "client-configurations.md",
+        "at": {
+          "line": 191,
+          "text": "[client-configurations-guide]: ./docs/client-configurations.md"
+        }
+      },
+      {
+        "host": "configuration.md",
+        "at": {
+          "line": 192,
+          "text": "[configuration-guide]: ./docs/configuration.md"
+        }
+      },
+      {
+        "host": "contributing.md",
+        "at": {
+          "line": 193,
+          "text": "[contributing]: ./CONTRIBUTING.md"
+        }
+      },
+      {
+        "host": "design-principles.md",
+        "at": {
+          "line": 194,
+          "text": "[design-principles]: ./docs/design-principles.md"
+        }
+      },
+      {
+        "host": "developer.chrome.com",
+        "at": {
+          "line": 31,
+          "text": "`chrome-devtools-mcp` officially supports Google Chrome and [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/) only."
+        }
+      },
+      {
+        "host": "developers.chrome.com",
+        "at": {
+          "line": 95,
+          "text": "Check the performance of https://developers.chrome.com"
+        }
+      },
+      {
+        "host": "geminicli.com",
+        "at": {
+          "line": 186,
+          "text": "For a reference implementation, see the [Gemini CLI browser agent documentation](https://geminicli.com/docs/core/subagents/#browser-agent)."
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 16,
+          "text": "DevTools](https://github.com/ChromeDevTools/devtools-frontend) to record"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 3,
+          "text": "[![npm chrome-devtools-mcp package](https://img.shields.io/npm/v/chrome-devtools-mcp.svg)](https://npmjs.org/package/chrome-devtools-mcp)"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 64,
+          "text": "- [Node.js](https://nodejs.org/) [LTS](https://github.com/nodejs/Release#release-schedule) version."
+        }
+      },
+      {
+        "host": "nodejs.org",
+        "at": {
+          "line": 64,
+          "text": "- [Node.js](https://nodejs.org/) [LTS](https://github.com/nodejs/Release#release-schedule) version."
+        }
+      },
+      {
+        "host": "npmjs.org",
+        "at": {
+          "line": 3,
+          "text": "[![npm chrome-devtools-mcp package](https://img.shields.io/npm/v/chrome-devtools-mcp.svg)](https://npmjs.org/package/chrome-devtools-mcp)"
+        }
+      },
+      {
+        "host": "policies.google.com",
+        "at": {
+          "line": 51,
+          "text": "Google handles this data in accordance with the [Google Privacy Policy](https://policies.google.com/privacy)."
+        }
+      },
+      {
+        "host": "screenshot.png",
+        "at": {
+          "line": 110,
+          "text": "chrome-devtools take_screenshot 1 --filePath screenshot.png"
+        }
+      },
+      {
+        "host": "slim-tool-reference.md",
+        "at": {
+          "line": 196,
+          "text": "[slim-tool-reference]: ./docs/slim-tool-reference.md"
+        }
+      },
+      {
+        "host": "tool-reference.md",
+        "at": {
+          "line": 197,
+          "text": "[tool-reference]: ./docs/tool-reference.md"
+        }
+      },
+      {
+        "host": "troubleshooting.md",
+        "at": {
+          "line": 198,
+          "text": "[troubleshooting]: ./docs/troubleshooting.md"
+        }
+      },
+      {
+        "host": "www.google.com",
+        "at": {
+          "line": 65,
+          "text": "- [Chrome](https://www.google.com/chrome/) current stable version or newer."
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 66,
+          "text": "- [npm](https://www.npmjs.com/)"
+        }
+      }
+    ],
+    "identifiers": []
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "chrome_devtools",
+    "title": "Chrome DevTools MCP server",
+    "version": "1.12.0"
+  },
+  "observed": {
+    "offered": [
+      "click",
+      "close_page",
+      "drag",
+      "emulate",
+      "evaluate_script",
+      "fill",
+      "fill_form",
+      "get_console_message",
+      "get_css_styles",
+      "get_network_request",
+      "handle_dialog",
+      "hover",
+      "lighthouse_audit",
+      "list_console_messages",
+      "list_network_requests",
+      "list_pages",
+      "navigate_page",
+      "new_page",
+      "performance_analyze_insight",
+      "performance_start_trace",
+      "performance_stop_trace",
+      "press_key",
+      "resize_page",
+      "screencast_start",
+      "screencast_stop",
+      "select_page",
+      "take_heapsnapshot",
+      "take_screenshot",
+      "take_snapshot",
+      "type_text",
+      "upload_file",
+      "wait_for"
+    ],
+    "dnsNames": [
+      "play.googleapis.com",
+      "registry.npmjs.org"
+    ],
+    "tlsHosts": [
+      "play.googleapis.com",
+      "registry.npmjs.org"
+    ],
+    "connectAttempts": [],
+    "programsStarted": [
+      "chrome-devtools-mcp",
+      "node",
+      "npm",
+      "setpriv",
+      "sh"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": [
+      "npm config get registry"
+    ]
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "navigate_page",
+          "at": {
+            "line": 109,
+            "text": "chrome-devtools navigate_page 1 --url \"https://developers.chrome.com\""
+          }
+        },
+        {
+          "name": "take_screenshot",
+          "at": {
+            "line": 110,
+            "text": "chrome-devtools take_screenshot 1 --filePath screenshot.png"
+          }
+        }
+      ],
+      "undocumented": [
+        {
+          "name": "click",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"click\""
+          ]
+        },
+        {
+          "name": "close_page",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"close_page\""
+          ]
+        },
+        {
+          "name": "drag",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"drag\""
+          ]
+        },
+        {
+          "name": "emulate",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"emulate\""
+          ]
+        },
+        {
+          "name": "evaluate_script",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"evaluate_script\""
+          ]
+        },
+        {
+          "name": "fill",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"fill\""
+          ]
+        },
+        {
+          "name": "fill_form",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"fill_form\""
+          ]
+        },
+        {
+          "name": "get_console_message",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"get_console_message\""
+          ]
+        },
+        {
+          "name": "get_css_styles",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"get_css_styles\""
+          ]
+        },
+        {
+          "name": "get_network_request",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"get_network_request\""
+          ]
+        },
+        {
+          "name": "handle_dialog",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"handle_dialog\""
+          ]
+        },
+        {
+          "name": "hover",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"hover\""
+          ]
+        },
+        {
+          "name": "lighthouse_audit",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"lighthouse_audit\""
+          ]
+        },
+        {
+          "name": "list_console_messages",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"list_console_messages\""
+          ]
+        },
+        {
+          "name": "list_network_requests",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"list_network_requests\""
+          ]
+        },
+        {
+          "name": "list_pages",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"list_pages\""
+          ]
+        },
+        {
+          "name": "new_page",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"new_page\""
+          ]
+        },
+        {
+          "name": "performance_analyze_insight",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"performance_analyze_insight\""
+          ]
+        },
+        {
+          "name": "performance_start_trace",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"performance_start_trace\""
+          ]
+        },
+        {
+          "name": "performance_stop_trace",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"performance_stop_trace\""
+          ]
+        },
+        {
+          "name": "press_key",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"press_key\""
+          ]
+        },
+        {
+          "name": "resize_page",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"resize_page\""
+          ]
+        },
+        {
+          "name": "screencast_start",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"screencast_start\""
+          ]
+        },
+        {
+          "name": "screencast_stop",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"screencast_stop\""
+          ]
+        },
+        {
+          "name": "select_page",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"select_page\""
+          ]
+        },
+        {
+          "name": "take_heapsnapshot",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"take_heapsnapshot\""
+          ]
+        },
+        {
+          "name": "take_snapshot",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"take_snapshot\""
+          ]
+        },
+        {
+          "name": "type_text",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"type_text\""
+          ]
+        },
+        {
+          "name": "upload_file",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"upload_file\""
+          ]
+        },
+        {
+          "name": "wait_for",
+          "evidence": [
+            "offered in tools/list by chrome-devtools-mcp@1.12.0",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): no whole-word match for \"wait_for\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "advanced-usage.md",
+          "at": {
+            "line": 188,
+            "text": "[advanced-usage-guide]: ./docs/advanced-usage.md"
+          }
+        },
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 189,
+            "text": "[changelog]: ./CHANGELOG.md"
+          }
+        },
+        {
+          "host": "chrome-devtools-mcp.svg",
+          "at": {
+            "line": 3,
+            "text": "[![npm chrome-devtools-mcp package](https://img.shields.io/npm/v/chrome-devtools-mcp.svg)](https://npmjs.org/package/chrome-devtools-mcp)"
+          }
+        },
+        {
+          "host": "chromiumdash.appspot.com",
+          "at": {
+            "line": 33,
+            "text": "We are committed to providing fixes and support for the latest version of [Extended Stable Chrome](https://chromiumdash.appspot.com/schedule)."
+          }
+        },
+        {
+          "host": "cli.md",
+          "at": {
+            "line": 190,
+            "text": "[cli]: ./docs/cli.md"
+          }
+        },
+        {
+          "host": "client-configurations.md",
+          "at": {
+            "line": 191,
+            "text": "[client-configurations-guide]: ./docs/client-configurations.md"
+          }
+        },
+        {
+          "host": "configuration.md",
+          "at": {
+            "line": 192,
+            "text": "[configuration-guide]: ./docs/configuration.md"
+          }
+        },
+        {
+          "host": "contributing.md",
+          "at": {
+            "line": 193,
+            "text": "[contributing]: ./CONTRIBUTING.md"
+          }
+        },
+        {
+          "host": "design-principles.md",
+          "at": {
+            "line": 194,
+            "text": "[design-principles]: ./docs/design-principles.md"
+          }
+        },
+        {
+          "host": "developer.chrome.com",
+          "at": {
+            "line": 31,
+            "text": "`chrome-devtools-mcp` officially supports Google Chrome and [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/) only."
+          }
+        },
+        {
+          "host": "developers.chrome.com",
+          "at": {
+            "line": 95,
+            "text": "Check the performance of https://developers.chrome.com"
+          }
+        },
+        {
+          "host": "geminicli.com",
+          "at": {
+            "line": 186,
+            "text": "For a reference implementation, see the [Gemini CLI browser agent documentation](https://geminicli.com/docs/core/subagents/#browser-agent)."
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 16,
+            "text": "DevTools](https://github.com/ChromeDevTools/devtools-frontend) to record"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 3,
+            "text": "[![npm chrome-devtools-mcp package](https://img.shields.io/npm/v/chrome-devtools-mcp.svg)](https://npmjs.org/package/chrome-devtools-mcp)"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 64,
+            "text": "- [Node.js](https://nodejs.org/) [LTS](https://github.com/nodejs/Release#release-schedule) version."
+          }
+        },
+        {
+          "host": "nodejs.org",
+          "at": {
+            "line": 64,
+            "text": "- [Node.js](https://nodejs.org/) [LTS](https://github.com/nodejs/Release#release-schedule) version."
+          }
+        },
+        {
+          "host": "npmjs.org",
+          "at": {
+            "line": 3,
+            "text": "[![npm chrome-devtools-mcp package](https://img.shields.io/npm/v/chrome-devtools-mcp.svg)](https://npmjs.org/package/chrome-devtools-mcp)"
+          }
+        },
+        {
+          "host": "policies.google.com",
+          "at": {
+            "line": 51,
+            "text": "Google handles this data in accordance with the [Google Privacy Policy](https://policies.google.com/privacy)."
+          }
+        },
+        {
+          "host": "screenshot.png",
+          "at": {
+            "line": 110,
+            "text": "chrome-devtools take_screenshot 1 --filePath screenshot.png"
+          }
+        },
+        {
+          "host": "slim-tool-reference.md",
+          "at": {
+            "line": 196,
+            "text": "[slim-tool-reference]: ./docs/slim-tool-reference.md"
+          }
+        },
+        {
+          "host": "tool-reference.md",
+          "at": {
+            "line": 197,
+            "text": "[tool-reference]: ./docs/tool-reference.md"
+          }
+        },
+        {
+          "host": "troubleshooting.md",
+          "at": {
+            "line": 198,
+            "text": "[troubleshooting]: ./docs/troubleshooting.md"
+          }
+        },
+        {
+          "host": "www.google.com",
+          "at": {
+            "line": 65,
+            "text": "- [Chrome](https://www.google.com/chrome/) current stable version or newer."
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 66,
+            "text": "- [npm](https://www.npmjs.com/)"
+          }
+        }
+      ],
+      "undeclared": [
+        {
+          "host": "play.googleapis.com",
+          "evidence": [
+            "looked up \"play.googleapis.com\" during the run; answered 127.0.0.1, so nothing left the machine",
+            "opened TLS with SNI \"play.googleapis.com\"; the bytes are encrypted and were not seen",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): the README does not contain this hostname"
+          ]
+        },
+        {
+          "host": "registry.npmjs.org",
+          "evidence": [
+            "looked up \"registry.npmjs.org\" during the run; answered 127.0.0.1, so nothing left the machine",
+            "opened TLS with SNI \"registry.npmjs.org\"; the bytes are encrypted and were not seen",
+            "absent from README.md (199 lines, sha256 4a22b6241998…): the README does not contain this hostname"
+          ]
+        }
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:config:~/.npmrc",
+      "kind": "credential",
+      "security": false,
+      "says": "Ran npm, which read its own ~/.npmrc while loading configuration. That is the tool reading its config, not the server reaching for a credential.",
+      "evidence": [
+        "npm ran in this session; the read of ~/.npmrc is its config loading"
+      ]
+    },
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 2 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at normalizeSpawnArguments (node:child_process:675:43) read 22 variables",
+        "at Object.getEnv (file:///srv/brydge-measure/chrome-devtools-mcp-1793355194081/install/node_modules/chrome-devtools-mcp/build/src/third_party/cli.js:3132:23) read 4 variables"
+      ]
+    },
+    {
+      "id": "network:dns",
+      "kind": "network",
+      "security": false,
+      "says": "Looked up 2 name(s) not in its declared destinations: play.googleapis.com, registry.npmjs.org.",
+      "evidence": [
+        "every lookup was answered with 127.0.0.1; nothing left the machine"
+      ]
+    },
+    {
+      "id": "network:tls",
+      "kind": "network",
+      "security": false,
+      "says": "Opened TLS to play.googleapis.com, registry.npmjs.org. The bytes it would have sent are encrypted and were NOT seen — a limit of the method.",
+      "evidence": [
+        "SNI play.googleapis.com",
+        "SNI registry.npmjs.org"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm chrome-devtools-mcp@1.12.0",
+        "integrity sha512-lAGpH0zXT1ZdaPefP1KK/MvxwihOlu7VGQ7p4wbhD9OhN17vUC4KWk/ImUYR9DE4s+7r4r0ySV4xr2OkTa7ZMA==",
+        "tarball https://registry.npmjs.org/chrome-devtools-mcp/-/chrome-devtools-mcp-1.12.0.tgz"
+      ]
+    }
+  ]
+}

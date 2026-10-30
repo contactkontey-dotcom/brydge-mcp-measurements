@@ -142,7 +142,10 @@ export function renderReport(e: Level1Evidence): string {
   p(`| Other addresses it tried | ${o.connectAttempts.length ? list(o.connectAttempts) : "none"} |`);
   p(`| Programs it started | ${o.programsStarted.length ? list(o.programsStarted) : "none"} |`);
   p(`| Files it wrote | ${o.filesWritten.length ? list(o.filesWritten) : "none"} |`);
-  p(`| Packages it installed while running | ${o.installedDuringRun.length ? list(o.installedDuringRun) : "none"} |`);
+  /* The row says what was recorded: a package manager was run, with its
+   * arguments. Labelling it "packages it installed" put `npm config get
+   * registry` under the word "installed", which it is not. */
+  p(`| Package-manager commands it ran | ${o.installedDuringRun.length ? list(o.installedDuringRun) : "none"} |`);
   p(`| Tools it offered | ${o.offered.length} |`);
   p();
 
@@ -279,8 +282,10 @@ function plainWords(e: Level1Evidence): string {
     `We installed ${who} from the npm registry, started it ${room}, and asked it to list its tools without calling any of them.`,
     `Before any tool was used it offered ${plural(o.offered.length, "tool")}, looked up ${plural(sites, "website")}, ` +
       `started ${plural(theirs, "program")} and wrote ${plural(o.filesWritten.length, "file")}; ` +
+      /* A compound subject takes a plural verb whichever way the counts fall:
+       * "1 tool and 0 websites is not named" was a grammar bug, not a count. */
       `of those, ${plural(c.tools.undocumented.length, "tool")} and ${plural(c.hosts.undeclared.length, "website")} ` +
-      `${c.tools.undocumented.length + c.hosts.undeclared.length === 1 ? "is" : "are"} not named in its own README.`,
+      `are not named in its own README.`,
     `We called no tool and read the contents of no encrypted connection, so this page says nothing about whether any of its tools does what it says.`,
   ].join(" ");
 }
@@ -305,8 +310,10 @@ function renderLimits(e: Level1Evidence): string {
       `and would not be even with a route.`,
   );
   p(
-    `- **"Declared" means named in the README**, nothing more. A package may document a website ` +
-      `elsewhere — a privacy policy, a wiki, its source — and this report has not read those.`,
+    `- **"Declared" means named in the README**, nothing more. Only the README file that shipped in the package was ` +
+      `read. A package that documents its tools or its destinations somewhere else — a reference file beside the ` +
+      `README, a privacy policy, a wiki, its source — will show every one of them above as not named, which is a ` +
+      `fact about this rule and not about the package.`,
   );
   p(`- **It is not calibration-backed**, for the reason at the top.`);
   p(
