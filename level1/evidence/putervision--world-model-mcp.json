@@ -1,0 +1,802 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@putervision/world-model-mcp@0.6.1",
+  "measuredAt": "2026-10-31T14:05:30.666Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "putervision--world-model-mcp",
+  "package": {
+    "name": "@putervision/world-model-mcp",
+    "version": "0.6.1",
+    "tarball": "https://registry.npmjs.org/@putervision/world-model-mcp/-/world-model-mcp-0.6.1.tgz",
+    "integrity": "sha512-il4BxMo4URrhj3anl8eVaR4rjLPctG57N/jzdvylm5GQPyHy9Rb6quG727ELGUXmqANf4j8Mcd5958cYz3Mr9A==",
+    "repository": "git+https://github.com/putervision/world-model-mcp.git",
+    "homepage": "https://worldmodelmcp.com"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "cad25db33c29bdbd36631d81a3215dd2ee847318c9f173f2b5e25726ca085ddc",
+    "lines": 175,
+    "bytes": 12554
+  },
+  "readmeNotes": [
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 173,
+        "text": "- **Local Storage Guarantee**: All spatial coordinates, bounding volumes, and entity history remain 100% local in your workspace. No telemetry or project data is ever transmitted."
+      }
+    }
+  ],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "3d18.18.0-339933.svg",
+        "at": {
+          "line": 7,
+          "text": "[![Node](https://img.shields.io/badge/node-%3E%3D18.18.0-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)"
+        }
+      },
+      {
+        "host": "api-reference.md",
+        "at": {
+          "line": 75,
+          "text": "👉 For complete parameter specifications, return schemas, and example payloads, see the **[API Reference Guide](docs/api-reference.md)** and **[Database Schema](docs/database-schema.md)**."
+        }
+      },
+      {
+        "host": "badge.svg",
+        "at": {
+          "line": 6,
+          "text": "[![CI](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 4,
+          "text": "[![version](https://img.shields.io/badge/version-0.6.1-blue.svg)](./CHANGELOG.md)"
+        }
+      },
+      {
+        "host": "ci.yml",
+        "at": {
+          "line": 6,
+          "text": "[![CI](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "cli-usage.md",
+        "at": {
+          "line": 132,
+          "text": "| 🛠️ **[CLI Command Reference](docs/cli-usage.md)** | CLI flags (`init`, `run`, `view`, `stats`, `inspect`, `map`, `export`, `import`, `doctor`, `snapshot`, `spec`, `blackboard`). |"
+        }
+      },
+      {
+        "host": "codebase-distillation.md",
+        "at": {
+          "line": 128,
+          "text": "| 🏗️ **[Architecture & Codebase Distillation](docs/codebase-distillation.md)** | High-signal architectural overview, module inventory, data flows, and design decisions. |"
+        }
+      },
+      {
+        "host": "concepts.md",
+        "at": {
+          "line": 130,
+          "text": "| 📋 **[Spatial World Model Concepts](docs/concepts.md)** | Object Permanence ($C = C_0 \\cdot e^{-\\lambda t}$), Confidence Decay, Frustum Projection, and Spatial SDD. |"
+        }
+      },
+      {
+        "host": "configuration.md",
+        "at": {
+          "line": 131,
+          "text": "| ⚙️ **[Configuration & IDE Setup](docs/configuration.md)** | Auto-Initialization details, Environment Variables, and Editor Configs (Cursor, VS Code, Claude, Windsurf). |"
+        }
+      },
+      {
+        "host": "database-schema.md",
+        "at": {
+          "line": 75,
+          "text": "👉 For complete parameter specifications, return schemas, and example payloads, see the **[API Reference Guide](docs/api-reference.md)** and **[Database Schema](docs/database-schema.md)**."
+        }
+      },
+      {
+        "host": "features.md",
+        "at": {
+          "line": 129,
+          "text": "| 💡 **[Features & Triad Overview](docs/features.md)** | PuterVision Autonomous Triad interaction, 3D WebGL scene visualizer, and evidence packs. |"
+        }
+      },
+      {
+        "host": "game-demo.html",
+        "at": {
+          "line": 135,
+          "text": "| 🎮 **[Interactive 3D Game Arena Demo](docs/game-demo.html)** | Autonomous 3D browser arena with Three.js bridge diagnostics (`window.__WORLD_MODEL_BRIDGE`). |"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 6,
+          "text": "[![CI](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/@putervision/world-model-mcp.svg)](https://www.npmjs.com/package/@putervision/world-model-mcp)"
+        }
+      },
+      {
+        "host": "license-mit-yellow.svg",
+        "at": {
+          "line": 10,
+          "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/putervision/world-model-mcp/blob/main/LICENSE)"
+        }
+      },
+      {
+        "host": "multi-agent-blackboard.md",
+        "at": {
+          "line": 136,
+          "text": "…tial Navigation](docs/examples/spatial-navigation.md), [Perception Reconciliation](docs/examples/perception-reconciliation.md), and [Multi-Agent Blackboard](docs/examples/multi-agent-blackboard.md). |"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 7,
+          "text": "[![Node](https://img.shields.io/badge/node-%3E%3D18.18.0-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)"
+        }
+      },
+      {
+        "host": "nodejs.org",
+        "at": {
+          "line": 7,
+          "text": "[![Node](https://img.shields.io/badge/node-%3E%3D18.18.0-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)"
+        }
+      },
+      {
+        "host": "perception-reconciliation.md",
+        "at": {
+          "line": 136,
+          "text": "…Spatial Navigation](docs/examples/spatial-navigation.md), [Perception Reconciliation](docs/examples/perception-reconciliation.md), and [Multi-Agent Blackboard](docs/examples/multi-agent-blackboard.md)…"
+        }
+      },
+      {
+        "host": "putervision.com",
+        "at": {
+          "line": 9,
+          "text": "[![Website](https://img.shields.io/badge/Website-putervision.com-6366f1.svg)](https://putervision.com)"
+        }
+      },
+      {
+        "host": "spatial-navigation.md",
+        "at": {
+          "line": 136,
+          "text": "…**[Examples & Tutorials](docs/examples/)** | Deep-dive examples: [Spatial Navigation](docs/examples/spatial-navigation.md), [Perception Reconciliation](docs/examples/perception-reconciliation.md), and…"
+        }
+      },
+      {
+        "host": "three.js",
+        "at": {
+          "line": 60,
+          "text": "- **🎨 Interactive 3D WebGL Visualizer**: Browser-based Three.js 3D viewport rendering active entities, orientation axes, frustum cones, and topological links (`world-model-mcp view`)."
+        }
+      },
+      {
+        "host": "typescript-5.5-3178c6.svg",
+        "at": {
+          "line": 8,
+          "text": "[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)"
+        }
+      },
+      {
+        "host": "version-0.6.1-blue.svg",
+        "at": {
+          "line": 4,
+          "text": "[![version](https://img.shields.io/badge/version-0.6.1-blue.svg)](./CHANGELOG.md)"
+        }
+      },
+      {
+        "host": "website-putervision.com-6366f1.svg",
+        "at": {
+          "line": 9,
+          "text": "[![Website](https://img.shields.io/badge/Website-putervision.com-6366f1.svg)](https://putervision.com)"
+        }
+      },
+      {
+        "host": "world-model-mcp.svg",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/@putervision/world-model-mcp.svg)](https://www.npmjs.com/package/@putervision/world-model-mcp)"
+        }
+      },
+      {
+        "host": "world.db",
+        "at": {
+          "line": 115,
+          "text": "│  Persistent SQLite Engine       │ ──▶ .world-model-mcp/world.db (WAL mode)"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/@putervision/world-model-mcp.svg)](https://www.npmjs.com/package/@putervision/world-model-mcp)"
+        }
+      },
+      {
+        "host": "www.typescriptlang.org",
+        "at": {
+          "line": 8,
+          "text": "[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "blackboard_items",
+        "at": {
+          "line": 134,
+          "text": "| 🗄️ **[Database Schema](docs/database-schema.md)** | SQLite tables (`entities`, `spatial_relations`, `entity_history`, `spatial_specs`, `blackboard_items`, `evidence_packs`). |"
+        }
+      },
+      {
+        "name": "compact_slice",
+        "at": {
+          "line": 69,
+          "text": "…us/tags filter, history lookup), `set_relation` (topological graph links: `on`, `inside`, `near`, `contains`), `get_spatial_map` (JSON, GeoJSON, glTF 2.0, OBJ, summary, and `format: \"compact_slice\"`)."
+        }
+      },
+      {
+        "name": "create_evidence_pack",
+        "at": {
+          "line": 72,
+          "text": "…anage_spatial_spec` (register physical clearance/containment contracts, live verification scoring), `create_evidence_pack` (cryptographic SHA-256 evidence bundles linking spatial proofs to task nodes)…"
+        }
+      },
+      {
+        "name": "entity_history",
+        "at": {
+          "line": 134,
+          "text": "| 🗄️ **[Database Schema](docs/database-schema.md)** | SQLite tables (`entities`, `spatial_relations`, `entity_history`, `spatial_specs`, `blackboard_items`, `evidence_packs`). |"
+        }
+      },
+      {
+        "name": "evidence_packs",
+        "at": {
+          "line": 134,
+          "text": "| 🗄️ **[Database Schema](docs/database-schema.md)** | SQLite tables (`entities`, `spatial_relations`, `entity_history`, `spatial_specs`, `blackboard_items`, `evidence_packs`). |"
+        }
+      },
+      {
+        "name": "generate_game_inputs",
+        "at": {
+          "line": 73,
+          "text": "…kpoints, snapshot diffing, time-travel undo), `wait_for_spatial_state` (async polling for target spatial condition), `generate_game_inputs` (Playwright WASD hold timings, 3D↔2D screen ray projection)."
+        }
+      },
+      {
+        "name": "get_expected_view",
+        "at": {
+          "line": 70,
+          "text": "…waypoint routing), `ingest_observation` (vision detection ingestion, Euclidean re-identification, frustum reconciliation), `get_expected_view` (observer pose, horizontal FOV cone, ray-AABB occlusion)."
+        }
+      },
+      {
+        "name": "get_spatial_map",
+        "at": {
+          "line": 69,
+          "text": "…us/tags filter, history lookup), `set_relation` (topological graph links: `on`, `inside`, `near`, `contains`), `get_spatial_map` (JSON, GeoJSON, glTF 2.0, OBJ, summary, and `format: \"compact_slice\"`)."
+        }
+      },
+      {
+        "name": "ingest_observation",
+        "at": {
+          "line": 70,
+          "text": "…egration**: `simulate_movement` (displacement prediction, AABB collision checks, waypoint routing), `ingest_observation` (vision detection ingestion, Euclidean re-identification, frustum reconciliatio…"
+        }
+      },
+      {
+        "name": "link_to_goal",
+        "at": {
+          "line": 71,
+          "text": "- **Goal & State Integration**: `link_to_goal` (associate entities/regions with State Memory tasks, extract spatial context slices), `record_outcome` (record execution results, position shifts, proper…"
+        }
+      },
+      {
+        "name": "manage_snapshot",
+        "at": {
+          "line": 73,
+          "text": "…play & Automation**: `use_spatial_blackboard` (topic board, mutex claim/release, intent conflicts), `manage_snapshot` (checkpoints, snapshot diffing, time-travel undo), `wait_for_spatial_state` (async…"
+        }
+      },
+      {
+        "name": "manage_spatial_spec",
+        "at": {
+          "line": 72,
+          "text": "- **Spatial SDD & Proofs**: `manage_spatial_spec` (register physical clearance/containment contracts, live verification scoring), `create_evidence_pack` (cryptographic SHA-256 evidence bundles linking…"
+        }
+      },
+      {
+        "name": "query_entities",
+        "at": {
+          "line": 69,
+          "text": "- **Spatial Memory & Search**: `update_entity` (entity CRUD, 3D bounds, properties, confidence), `query_entities` (FTS5 search, proximity radius, status/tags filter, history lookup), `set_relation` (t…"
+        }
+      },
+      {
+        "name": "record_outcome",
+        "at": {
+          "line": 71,
+          "text": "…ion**: `link_to_goal` (associate entities/regions with State Memory tasks, extract spatial context slices), `record_outcome` (record execution results, position shifts, property changes, destruction)."
+        }
+      },
+      {
+        "name": "set_relation",
+        "at": {
+          "line": 69,
+          "text": "… confidence), `query_entities` (FTS5 search, proximity radius, status/tags filter, history lookup), `set_relation` (topological graph links: `on`, `inside`, `near`, `contains`), `get_spatial_map` (JSO…"
+        }
+      },
+      {
+        "name": "simulate_movement",
+        "at": {
+          "line": 70,
+          "text": "- **Simulation & Vision Integration**: `simulate_movement` (displacement prediction, AABB collision checks, waypoint routing), `ingest_observation` (vision detection ingestion, Euclidean re-identifica…"
+        }
+      },
+      {
+        "name": "spatial_relations",
+        "at": {
+          "line": 134,
+          "text": "| 🗄️ **[Database Schema](docs/database-schema.md)** | SQLite tables (`entities`, `spatial_relations`, `entity_history`, `spatial_specs`, `blackboard_items`, `evidence_packs`). |"
+        }
+      },
+      {
+        "name": "spatial_specs",
+        "at": {
+          "line": 134,
+          "text": "| 🗄️ **[Database Schema](docs/database-schema.md)** | SQLite tables (`entities`, `spatial_relations`, `entity_history`, `spatial_specs`, `blackboard_items`, `evidence_packs`). |"
+        }
+      },
+      {
+        "name": "update_entity",
+        "at": {
+          "line": 69,
+          "text": "- **Spatial Memory & Search**: `update_entity` (entity CRUD, 3D bounds, properties, confidence), `query_entities` (FTS5 search, proximity radius, status/tags filter, history lookup), `set_relation` (t…"
+        }
+      },
+      {
+        "name": "use_spatial_blackboard",
+        "at": {
+          "line": 73,
+          "text": "- **Multi-Agent, Replay & Automation**: `use_spatial_blackboard` (topic board, mutex claim/release, intent conflicts), `manage_snapshot` (checkpoints, snapshot diffing, time-travel undo), `wait_for_sp…"
+        }
+      },
+      {
+        "name": "wait_for_spatial_state",
+        "at": {
+          "line": 73,
+          "text": "…im/release, intent conflicts), `manage_snapshot` (checkpoints, snapshot diffing, time-travel undo), `wait_for_spatial_state` (async polling for target spatial condition), `generate_game_inputs` (Playw…"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "io.github.putervision/world-model-mcp",
+    "version": "0.6.1"
+  },
+  "observed": {
+    "offered": [
+      "create_evidence_pack",
+      "generate_game_inputs",
+      "get_expected_view",
+      "get_spatial_map",
+      "ingest_observation",
+      "link_to_goal",
+      "manage_snapshot",
+      "manage_spatial_spec",
+      "query_entities",
+      "record_outcome",
+      "set_relation",
+      "simulate_movement",
+      "update_entity",
+      "use_spatial_blackboard",
+      "wait_for_spatial_state"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "setpriv",
+      "world-model-mcp"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "create_evidence_pack",
+          "at": {
+            "line": 72,
+            "text": "…nage_spatial_spec` (register physical clearance/containment contracts, live verification scoring), `create_evidence_pack` (cryptographic SHA-256 evidence bundles linking spatial proofs to task nodes)."
+          }
+        },
+        {
+          "name": "generate_game_inputs",
+          "at": {
+            "line": 73,
+            "text": "…kpoints, snapshot diffing, time-travel undo), `wait_for_spatial_state` (async polling for target spatial condition), `generate_game_inputs` (Playwright WASD hold timings, 3D↔2D screen ray projection)."
+          }
+        },
+        {
+          "name": "get_expected_view",
+          "at": {
+            "line": 70,
+            "text": "…waypoint routing), `ingest_observation` (vision detection ingestion, Euclidean re-identification, frustum reconciliation), `get_expected_view` (observer pose, horizontal FOV cone, ray-AABB occlusion)."
+          }
+        },
+        {
+          "name": "get_spatial_map",
+          "at": {
+            "line": 69,
+            "text": "…us/tags filter, history lookup), `set_relation` (topological graph links: `on`, `inside`, `near`, `contains`), `get_spatial_map` (JSON, GeoJSON, glTF 2.0, OBJ, summary, and `format: \"compact_slice\"`)."
+          }
+        },
+        {
+          "name": "ingest_observation",
+          "at": {
+            "line": 70,
+            "text": "…gration**: `simulate_movement` (displacement prediction, AABB collision checks, waypoint routing), `ingest_observation` (vision detection ingestion, Euclidean re-identification, frustum reconciliation…"
+          }
+        },
+        {
+          "name": "link_to_goal",
+          "at": {
+            "line": 71,
+            "text": "- **Goal & State Integration**: `link_to_goal` (associate entities/regions with State Memory tasks, extract spatial context slices), `record_outcome` (record execution results, position shifts, proper…"
+          }
+        },
+        {
+          "name": "manage_snapshot",
+          "at": {
+            "line": 73,
+            "text": "…lay & Automation**: `use_spatial_blackboard` (topic board, mutex claim/release, intent conflicts), `manage_snapshot` (checkpoints, snapshot diffing, time-travel undo), `wait_for_spatial_state` (async …"
+          }
+        },
+        {
+          "name": "manage_spatial_spec",
+          "at": {
+            "line": 72,
+            "text": "- **Spatial SDD & Proofs**: `manage_spatial_spec` (register physical clearance/containment contracts, live verification scoring), `create_evidence_pack` (cryptographic SHA-256 evidence bundles linking…"
+          }
+        },
+        {
+          "name": "query_entities",
+          "at": {
+            "line": 69,
+            "text": "- **Spatial Memory & Search**: `update_entity` (entity CRUD, 3D bounds, properties, confidence), `query_entities` (FTS5 search, proximity radius, status/tags filter, history lookup), `set_relation` (t…"
+          }
+        },
+        {
+          "name": "record_outcome",
+          "at": {
+            "line": 71,
+            "text": "…ion**: `link_to_goal` (associate entities/regions with State Memory tasks, extract spatial context slices), `record_outcome` (record execution results, position shifts, property changes, destruction)."
+          }
+        },
+        {
+          "name": "set_relation",
+          "at": {
+            "line": 69,
+            "text": "…confidence), `query_entities` (FTS5 search, proximity radius, status/tags filter, history lookup), `set_relation` (topological graph links: `on`, `inside`, `near`, `contains`), `get_spatial_map` (JSON…"
+          }
+        },
+        {
+          "name": "simulate_movement",
+          "at": {
+            "line": 70,
+            "text": "- **Simulation & Vision Integration**: `simulate_movement` (displacement prediction, AABB collision checks, waypoint routing), `ingest_observation` (vision detection ingestion, Euclidean re-identifica…"
+          }
+        },
+        {
+          "name": "update_entity",
+          "at": {
+            "line": 69,
+            "text": "- **Spatial Memory & Search**: `update_entity` (entity CRUD, 3D bounds, properties, confidence), `query_entities` (FTS5 search, proximity radius, status/tags filter, history lookup), `set_relation` (t…"
+          }
+        },
+        {
+          "name": "use_spatial_blackboard",
+          "at": {
+            "line": 73,
+            "text": "- **Multi-Agent, Replay & Automation**: `use_spatial_blackboard` (topic board, mutex claim/release, intent conflicts), `manage_snapshot` (checkpoints, snapshot diffing, time-travel undo), `wait_for_sp…"
+          }
+        },
+        {
+          "name": "wait_for_spatial_state",
+          "at": {
+            "line": 73,
+            "text": "…m/release, intent conflicts), `manage_snapshot` (checkpoints, snapshot diffing, time-travel undo), `wait_for_spatial_state` (async polling for target spatial condition), `generate_game_inputs` (Playwr…"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "3d18.18.0-339933.svg",
+          "at": {
+            "line": 7,
+            "text": "[![Node](https://img.shields.io/badge/node-%3E%3D18.18.0-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)"
+          }
+        },
+        {
+          "host": "api-reference.md",
+          "at": {
+            "line": 75,
+            "text": "👉 For complete parameter specifications, return schemas, and example payloads, see the **[API Reference Guide](docs/api-reference.md)** and **[Database Schema](docs/database-schema.md)**."
+          }
+        },
+        {
+          "host": "badge.svg",
+          "at": {
+            "line": 6,
+            "text": "[![CI](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 4,
+            "text": "[![version](https://img.shields.io/badge/version-0.6.1-blue.svg)](./CHANGELOG.md)"
+          }
+        },
+        {
+          "host": "ci.yml",
+          "at": {
+            "line": 6,
+            "text": "[![CI](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "cli-usage.md",
+          "at": {
+            "line": 132,
+            "text": "| 🛠️ **[CLI Command Reference](docs/cli-usage.md)** | CLI flags (`init`, `run`, `view`, `stats`, `inspect`, `map`, `export`, `import`, `doctor`, `snapshot`, `spec`, `blackboard`). |"
+          }
+        },
+        {
+          "host": "codebase-distillation.md",
+          "at": {
+            "line": 128,
+            "text": "| 🏗️ **[Architecture & Codebase Distillation](docs/codebase-distillation.md)** | High-signal architectural overview, module inventory, data flows, and design decisions. |"
+          }
+        },
+        {
+          "host": "concepts.md",
+          "at": {
+            "line": 130,
+            "text": "| 📋 **[Spatial World Model Concepts](docs/concepts.md)** | Object Permanence ($C = C_0 \\cdot e^{-\\lambda t}$), Confidence Decay, Frustum Projection, and Spatial SDD. |"
+          }
+        },
+        {
+          "host": "configuration.md",
+          "at": {
+            "line": 131,
+            "text": "| ⚙️ **[Configuration & IDE Setup](docs/configuration.md)** | Auto-Initialization details, Environment Variables, and Editor Configs (Cursor, VS Code, Claude, Windsurf). |"
+          }
+        },
+        {
+          "host": "database-schema.md",
+          "at": {
+            "line": 75,
+            "text": "👉 For complete parameter specifications, return schemas, and example payloads, see the **[API Reference Guide](docs/api-reference.md)** and **[Database Schema](docs/database-schema.md)**."
+          }
+        },
+        {
+          "host": "features.md",
+          "at": {
+            "line": 129,
+            "text": "| 💡 **[Features & Triad Overview](docs/features.md)** | PuterVision Autonomous Triad interaction, 3D WebGL scene visualizer, and evidence packs. |"
+          }
+        },
+        {
+          "host": "game-demo.html",
+          "at": {
+            "line": 135,
+            "text": "| 🎮 **[Interactive 3D Game Arena Demo](docs/game-demo.html)** | Autonomous 3D browser arena with Three.js bridge diagnostics (`window.__WORLD_MODEL_BRIDGE`). |"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 6,
+            "text": "[![CI](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/world-model-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/@putervision/world-model-mcp.svg)](https://www.npmjs.com/package/@putervision/world-model-mcp)"
+          }
+        },
+        {
+          "host": "license-mit-yellow.svg",
+          "at": {
+            "line": 10,
+            "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/putervision/world-model-mcp/blob/main/LICENSE)"
+          }
+        },
+        {
+          "host": "multi-agent-blackboard.md",
+          "at": {
+            "line": 136,
+            "text": "…tial Navigation](docs/examples/spatial-navigation.md), [Perception Reconciliation](docs/examples/perception-reconciliation.md), and [Multi-Agent Blackboard](docs/examples/multi-agent-blackboard.md). |"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 7,
+            "text": "[![Node](https://img.shields.io/badge/node-%3E%3D18.18.0-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)"
+          }
+        },
+        {
+          "host": "nodejs.org",
+          "at": {
+            "line": 7,
+            "text": "[![Node](https://img.shields.io/badge/node-%3E%3D18.18.0-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org)"
+          }
+        },
+        {
+          "host": "perception-reconciliation.md",
+          "at": {
+            "line": 136,
+            "text": "…Spatial Navigation](docs/examples/spatial-navigation.md), [Perception Reconciliation](docs/examples/perception-reconciliation.md), and [Multi-Agent Blackboard](docs/examples/multi-agent-blackboard.md)…"
+          }
+        },
+        {
+          "host": "putervision.com",
+          "at": {
+            "line": 9,
+            "text": "[![Website](https://img.shields.io/badge/Website-putervision.com-6366f1.svg)](https://putervision.com)"
+          }
+        },
+        {
+          "host": "spatial-navigation.md",
+          "at": {
+            "line": 136,
+            "text": "…**[Examples & Tutorials](docs/examples/)** | Deep-dive examples: [Spatial Navigation](docs/examples/spatial-navigation.md), [Perception Reconciliation](docs/examples/perception-reconciliation.md), and…"
+          }
+        },
+        {
+          "host": "three.js",
+          "at": {
+            "line": 60,
+            "text": "- **🎨 Interactive 3D WebGL Visualizer**: Browser-based Three.js 3D viewport rendering active entities, orientation axes, frustum cones, and topological links (`world-model-mcp view`)."
+          }
+        },
+        {
+          "host": "typescript-5.5-3178c6.svg",
+          "at": {
+            "line": 8,
+            "text": "[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)"
+          }
+        },
+        {
+          "host": "version-0.6.1-blue.svg",
+          "at": {
+            "line": 4,
+            "text": "[![version](https://img.shields.io/badge/version-0.6.1-blue.svg)](./CHANGELOG.md)"
+          }
+        },
+        {
+          "host": "website-putervision.com-6366f1.svg",
+          "at": {
+            "line": 9,
+            "text": "[![Website](https://img.shields.io/badge/Website-putervision.com-6366f1.svg)](https://putervision.com)"
+          }
+        },
+        {
+          "host": "world-model-mcp.svg",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/@putervision/world-model-mcp.svg)](https://www.npmjs.com/package/@putervision/world-model-mcp)"
+          }
+        },
+        {
+          "host": "world.db",
+          "at": {
+            "line": 115,
+            "text": "│  Persistent SQLite Engine       │ ──▶ .world-model-mcp/world.db (WAL mode)"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/@putervision/world-model-mcp.svg)](https://www.npmjs.com/package/@putervision/world-model-mcp)"
+          }
+        },
+        {
+          "host": "www.typescriptlang.org",
+          "at": {
+            "line": 8,
+            "text": "[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @putervision/world-model-mcp@0.6.1",
+        "integrity sha512-il4BxMo4URrhj3anl8eVaR4rjLPctG57N/jzdvylm5GQPyHy9Rb6quG727ELGUXmqANf4j8Mcd5958cYz3Mr9A==",
+        "tarball https://registry.npmjs.org/@putervision/world-model-mcp/-/world-model-mcp-0.6.1.tgz"
+      ]
+    }
+  ]
+}

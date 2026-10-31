@@ -1,0 +1,414 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@superdoc/mcp@1.12.0",
+  "measuredAt": "2026-10-31T14:06:05.610Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "superdoc--mcp",
+  "package": {
+    "name": "@superdoc/mcp",
+    "version": "1.12.0",
+    "tarball": "https://registry.npmjs.org/@superdoc/mcp/-/mcp-1.12.0.tgz",
+    "integrity": "sha512-A7UOrn+8UInOeJu3zvS5qSN3t8jBOpTRYgkifeW67RqttHYf1wIKse7gBrF5b9M0qLsECExKJaia0zpC6NDCnw==",
+    "repository": "git+https://github.com/superdoc/docx-editor.git",
+    "homepage": "https://github.com/superdoc/docx-editor/tree/main/apps/mcp#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "acb699d313a3ba7592b297fc48e016ad7f8e12bad84f319329c820a00bbcffcf",
+    "lines": 168,
+    "bytes": 5622
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "index.ts",
+        "at": {
+          "line": 156,
+          "text": "bun run src/index.ts"
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 40,
+          "text": "Add to `~/.cursor/mcp.json`:"
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 3,
+          "text": "MCP server for SuperDoc. Lets AI agents open, read, edit, and save `.docx` files through the [Model Context Protocol](https://modelcontextprotocol.io)."
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "accept_tracked_changes",
+        "at": {
+          "line": 132,
+          "text": "…g them differs by preset. Under `legacy`, call `superdoc_track_changes`. Under `core` that tool does not exist: use `superdoc_perform_action` with `accept_tracked_changes` or `reject_tracked_changes`."
+        }
+      },
+      {
+        "name": "claude_desktop_config",
+        "at": {
+          "line": 25,
+          "text": "Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:"
+        }
+      },
+      {
+        "name": "mcp_config",
+        "at": {
+          "line": 55,
+          "text": "Add to `~/.codeium/windsurf/mcp_config.json`:"
+        }
+      },
+      {
+        "name": "move_range",
+        "at": {
+          "line": 134,
+          "text": "Not every action honors `changeMode`. Some ignore it and edit directly, and `move_range` accepts it and then fails without mutating, so check the action rather than assuming the argument applied."
+        }
+      },
+      {
+        "name": "reject_tracked_changes",
+        "at": {
+          "line": 132,
+          "text": "…g them differs by preset. Under `legacy`, call `superdoc_track_changes`. Under `core` that tool does not exist: use `superdoc_perform_action` with `accept_tracked_changes` or `reject_tracked_changes`."
+        }
+      },
+      {
+        "name": "session_id",
+        "at": {
+          "line": 77,
+          "text": "All tools except `superdoc_open` take a `session_id` from `superdoc_open`."
+        }
+      },
+      {
+        "name": "superdoc_close",
+        "at": {
+          "line": 91,
+          "text": "| `superdoc_close` | Close the session and release memory |"
+        }
+      },
+      {
+        "name": "superdoc_comment",
+        "at": {
+          "line": 106,
+          "text": "| `superdoc_comment` | Create, update, resolve, and read comment threads |"
+        }
+      },
+      {
+        "name": "superdoc_create",
+        "at": {
+          "line": 103,
+          "text": "| `superdoc_create` | Create paragraphs, headings, and tables |"
+        }
+      },
+      {
+        "name": "superdoc_edit",
+        "at": {
+          "line": 101,
+          "text": "| `superdoc_edit` | Insert, replace, and delete text, delete whole blocks or block ranges, plus undo and redo |"
+        }
+      },
+      {
+        "name": "superdoc_format",
+        "at": {
+          "line": 102,
+          "text": "| `superdoc_format` | Inline and paragraph formatting, styles, direction, and flow |"
+        }
+      },
+      {
+        "name": "superdoc_get_content",
+        "at": {
+          "line": 99,
+          "text": "| `superdoc_get_content` | Read the document as text, markdown, HTML, blocks, or metadata |"
+        }
+      },
+      {
+        "name": "superdoc_inspect",
+        "at": {
+          "line": 75,
+          "text": "| `core` | 5: 3 lifecycle + `superdoc_inspect` and `superdoc_perform_action` |"
+        }
+      },
+      {
+        "name": "superdoc_list",
+        "at": {
+          "line": 104,
+          "text": "| `superdoc_list` | Create, convert, nest, split, merge, and renumber lists |"
+        }
+      },
+      {
+        "name": "superdoc_mutations",
+        "at": {
+          "line": 108,
+          "text": "| `superdoc_mutations` | Preview and apply multi-step edits as one atomic batch |"
+        }
+      },
+      {
+        "name": "superdoc_open",
+        "at": {
+          "line": 77,
+          "text": "All tools except `superdoc_open` take a `session_id` from `superdoc_open`."
+        }
+      },
+      {
+        "name": "superdoc_perform_action",
+        "at": {
+          "line": 75,
+          "text": "| `core` | 5: 3 lifecycle + `superdoc_inspect` and `superdoc_perform_action` |"
+        }
+      },
+      {
+        "name": "superdoc_save",
+        "at": {
+          "line": 83,
+          "text": "`superdoc_save` has no overwrite guard: it resolves `out` and writes it, replacing any file already there, including the source. Point the agent at copies, and preflight the destination yourself when …"
+        }
+      },
+      {
+        "name": "superdoc_search",
+        "at": {
+          "line": 95,
+          "text": "Most intent tools take an `action` argument selecting the operation within the group. `superdoc_search` is the exception: it takes `select`, not `action`."
+        }
+      },
+      {
+        "name": "superdoc_table",
+        "at": {
+          "line": 105,
+          "text": "| `superdoc_table` | Table structure, content, and styling |"
+        }
+      },
+      {
+        "name": "superdoc_track_changes",
+        "at": {
+          "line": 107,
+          "text": "| `superdoc_track_changes` | List tracked changes and decide on them |"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "superdoc",
+    "version": "1.12.0"
+  },
+  "observed": {
+    "offered": [
+      "superdoc_close",
+      "superdoc_comment",
+      "superdoc_create",
+      "superdoc_edit",
+      "superdoc_format",
+      "superdoc_get_content",
+      "superdoc_list",
+      "superdoc_mutations",
+      "superdoc_open",
+      "superdoc_save",
+      "superdoc_search",
+      "superdoc_table",
+      "superdoc_track_changes"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "setpriv",
+      "superdoc-mcp"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "superdoc_close",
+          "at": {
+            "line": 91,
+            "text": "| `superdoc_close` | Close the session and release memory |"
+          }
+        },
+        {
+          "name": "superdoc_comment",
+          "at": {
+            "line": 106,
+            "text": "| `superdoc_comment` | Create, update, resolve, and read comment threads |"
+          }
+        },
+        {
+          "name": "superdoc_create",
+          "at": {
+            "line": 103,
+            "text": "| `superdoc_create` | Create paragraphs, headings, and tables |"
+          }
+        },
+        {
+          "name": "superdoc_edit",
+          "at": {
+            "line": 101,
+            "text": "| `superdoc_edit` | Insert, replace, and delete text, delete whole blocks or block ranges, plus undo and redo |"
+          }
+        },
+        {
+          "name": "superdoc_format",
+          "at": {
+            "line": 102,
+            "text": "| `superdoc_format` | Inline and paragraph formatting, styles, direction, and flow |"
+          }
+        },
+        {
+          "name": "superdoc_get_content",
+          "at": {
+            "line": 99,
+            "text": "| `superdoc_get_content` | Read the document as text, markdown, HTML, blocks, or metadata |"
+          }
+        },
+        {
+          "name": "superdoc_list",
+          "at": {
+            "line": 104,
+            "text": "| `superdoc_list` | Create, convert, nest, split, merge, and renumber lists |"
+          }
+        },
+        {
+          "name": "superdoc_mutations",
+          "at": {
+            "line": 108,
+            "text": "| `superdoc_mutations` | Preview and apply multi-step edits as one atomic batch |"
+          }
+        },
+        {
+          "name": "superdoc_open",
+          "at": {
+            "line": 77,
+            "text": "All tools except `superdoc_open` take a `session_id` from `superdoc_open`."
+          }
+        },
+        {
+          "name": "superdoc_save",
+          "at": {
+            "line": 83,
+            "text": "`superdoc_save` has no overwrite guard: it resolves `out` and writes it, replacing any file already there, including the source. Point the agent at copies, and preflight the destination yourself when …"
+          }
+        },
+        {
+          "name": "superdoc_search",
+          "at": {
+            "line": 95,
+            "text": "Most intent tools take an `action` argument selecting the operation within the group. `superdoc_search` is the exception: it takes `select`, not `action`."
+          }
+        },
+        {
+          "name": "superdoc_table",
+          "at": {
+            "line": 105,
+            "text": "| `superdoc_table` | Table structure, content, and styling |"
+          }
+        },
+        {
+          "name": "superdoc_track_changes",
+          "at": {
+            "line": 107,
+            "text": "| `superdoc_track_changes` | List tracked changes and decide on them |"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "index.ts",
+          "at": {
+            "line": 156,
+            "text": "bun run src/index.ts"
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 40,
+            "text": "Add to `~/.cursor/mcp.json`:"
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 3,
+            "text": "MCP server for SuperDoc. Lets AI agents open, read, edit, and save `.docx` files through the [Model Context Protocol](https://modelcontextprotocol.io)."
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @superdoc/mcp@1.12.0",
+        "integrity sha512-A7UOrn+8UInOeJu3zvS5qSN3t8jBOpTRYgkifeW67RqttHYf1wIKse7gBrF5b9M0qLsECExKJaia0zpC6NDCnw==",
+        "tarball https://registry.npmjs.org/@superdoc/mcp/-/mcp-1.12.0.tgz"
+      ]
+    }
+  ]
+}

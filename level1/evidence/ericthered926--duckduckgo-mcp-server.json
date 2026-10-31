@@ -1,0 +1,321 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@ericthered926/duckduckgo-mcp-server@0.6.0",
+  "measuredAt": "2026-10-31T13:53:59.213Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "ericthered926--duckduckgo-mcp-server",
+  "package": {
+    "name": "@ericthered926/duckduckgo-mcp-server",
+    "version": "0.6.0",
+    "tarball": "https://registry.npmjs.org/@ericthered926/duckduckgo-mcp-server/-/duckduckgo-mcp-server-0.6.0.tgz",
+    "integrity": "sha512-KIF3h+WXncB5+H93YWp9YSRzWY9C1qsF2J+SG2F2XXm7SoWKffvtVzQ4P+0D4cgmgCKjoPiVH5HirCc2bWTPEg==",
+    "repository": "git+https://github.com/ericthered926/duckduckgo-mcp-server.git",
+    "homepage": "https://github.com/ericthered926/duckduckgo-mcp-server#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "3ae3d7b4cd35ae7095d021b6c167340adfecbc250820452a0666a9740b1b6c2b",
+    "lines": 298,
+    "bytes": 9571
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "duckduckgo-mcp-server.svg",
+        "at": {
+          "line": 5,
+          "text": "[![npm version](https://img.shields.io/npm/v/@ericthered926/duckduckgo-mcp-server.svg)](https://www.npmjs.com/package/@ericthered926/duckduckgo-mcp-server)"
+        }
+      },
+      {
+        "host": "eslint.config.js",
+        "at": {
+          "line": 231,
+          "text": "├── eslint.config.js      # ESLint 9.x flat config"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 7,
+          "text": "> **Attribution**: This project is a fork of [zhsama/duckduckgo-mcp-server](https://github.com/zhsama/duckduckgo-mcp-server), originally created by [zhsama](https://github.com/zhsama). This fork adds …"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 5,
+          "text": "[![npm version](https://img.shields.io/npm/v/@ericthered926/duckduckgo-mcp-server.svg)](https://www.npmjs.com/package/@ericthered926/duckduckgo-mcp-server)"
+        }
+      },
+      {
+        "host": "index.js",
+        "at": {
+          "line": 189,
+          "text": "\"args\": [\"/path/to/duckduckgo-mcp-server/build/index.js\"],"
+        }
+      },
+      {
+        "host": "index.ts",
+        "at": {
+          "line": 226,
+          "text": "│   └── index.ts          # Main server (web + news search)"
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 3,
+          "text": "A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides DuckDuckGo search functionality for AI assistants."
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 24,
+          "text": "- Node.js >= 18.0.0 (tested with Node 24)"
+        }
+      },
+      {
+        "host": "server.test.js",
+        "at": {
+          "line": 228,
+          "text": "│   └── server.test.js    # Smoke tests"
+        }
+      },
+      {
+        "host": "tsconfig.json",
+        "at": {
+          "line": 232,
+          "text": "├── tsconfig.json         # Strict TypeScript config"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 5,
+          "text": "[![npm version](https://img.shields.io/npm/v/@ericthered926/duckduckgo-mcp-server.svg)](https://www.npmjs.com/package/@ericthered926/duckduckgo-mcp-server)"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "claude_desktop_config",
+        "at": {
+          "line": 148,
+          "text": "**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`"
+        }
+      },
+      {
+        "name": "duckduckgo_news_search",
+        "at": {
+          "line": 60,
+          "text": "### `duckduckgo_news_search`"
+        }
+      },
+      {
+        "name": "duckduckgo_web_search",
+        "at": {
+          "line": 36,
+          "text": "### `duckduckgo_web_search`"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "duckduckgo-mcp-server",
+    "version": "0.3.0"
+  },
+  "observed": {
+    "offered": [
+      "duckduckgo_news_search",
+      "duckduckgo_web_search"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "duckduckgo-mcp-server",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "duckduckgo_news_search",
+          "at": {
+            "line": 60,
+            "text": "### `duckduckgo_news_search`"
+          }
+        },
+        {
+          "name": "duckduckgo_web_search",
+          "at": {
+            "line": 36,
+            "text": "### `duckduckgo_web_search`"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "duckduckgo-mcp-server.svg",
+          "at": {
+            "line": 5,
+            "text": "[![npm version](https://img.shields.io/npm/v/@ericthered926/duckduckgo-mcp-server.svg)](https://www.npmjs.com/package/@ericthered926/duckduckgo-mcp-server)"
+          }
+        },
+        {
+          "host": "eslint.config.js",
+          "at": {
+            "line": 231,
+            "text": "├── eslint.config.js      # ESLint 9.x flat config"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 7,
+            "text": "> **Attribution**: This project is a fork of [zhsama/duckduckgo-mcp-server](https://github.com/zhsama/duckduckgo-mcp-server), originally created by [zhsama](https://github.com/zhsama). This fork adds …"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 5,
+            "text": "[![npm version](https://img.shields.io/npm/v/@ericthered926/duckduckgo-mcp-server.svg)](https://www.npmjs.com/package/@ericthered926/duckduckgo-mcp-server)"
+          }
+        },
+        {
+          "host": "index.js",
+          "at": {
+            "line": 189,
+            "text": "\"args\": [\"/path/to/duckduckgo-mcp-server/build/index.js\"],"
+          }
+        },
+        {
+          "host": "index.ts",
+          "at": {
+            "line": 226,
+            "text": "│   └── index.ts          # Main server (web + news search)"
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 3,
+            "text": "A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides DuckDuckGo search functionality for AI assistants."
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 24,
+            "text": "- Node.js >= 18.0.0 (tested with Node 24)"
+          }
+        },
+        {
+          "host": "server.test.js",
+          "at": {
+            "line": 228,
+            "text": "│   └── server.test.js    # Smoke tests"
+          }
+        },
+        {
+          "host": "tsconfig.json",
+          "at": {
+            "line": 232,
+            "text": "├── tsconfig.json         # Strict TypeScript config"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 5,
+            "text": "[![npm version](https://img.shields.io/npm/v/@ericthered926/duckduckgo-mcp-server.svg)](https://www.npmjs.com/package/@ericthered926/duckduckgo-mcp-server)"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at ZodObject._parse (file:///srv/brydge-measure/ericthered926--duckduckgo-mcp-server-1793454840640/install/node_modules/zod/v3/types.js:1958:35) read 5 variables"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @ericthered926/duckduckgo-mcp-server@0.6.0",
+        "integrity sha512-KIF3h+WXncB5+H93YWp9YSRzWY9C1qsF2J+SG2F2XXm7SoWKffvtVzQ4P+0D4cgmgCKjoPiVH5HirCc2bWTPEg==",
+        "tarball https://registry.npmjs.org/@ericthered926/duckduckgo-mcp-server/-/duckduckgo-mcp-server-0.6.0.tgz"
+      ]
+    }
+  ]
+}

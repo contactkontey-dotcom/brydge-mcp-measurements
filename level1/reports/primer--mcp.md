@@ -1,0 +1,121 @@
+# @primer/mcp 1.1.2 — Level 1 measurement
+
+Measured 2026-10-31. Asked for `@primer/mcp@1.1.2`. Instrument fingerprint `ca9170dfaeae`.
+
+Published on npm as `@primer/mcp`. Its own manifest points at https://github.com/primer/react, which is what the package says about itself and is not checked here.
+
+**This is not a ranking of the most-used servers.** This package was measured because it appeared in a candidate list built from registry searches, and the order of those searches is not a measure of use.
+
+**Level 1, and not calibration-backed.** No tool was called, so this report makes no claim about any tool doing what it says. The calibration that backs the ten curated measurements proves the instrument catches planted claims about what a tool *did*; Level 1 runs no such checks, and reads the package's own documentation by a stated rule rather than by a person, so nothing in that calibration speaks to this page.
+
+## In plain words
+
+We installed `@primer/mcp 1.1.2` from the npm registry, started it in a room with no route to the internet, where every website name answers to this machine and every credential is fake, and asked it to list its tools without calling any of them. Before any tool was used it offered 20 tools, looked up 0 websites, started 2 programs and wrote 0 files; of those, 20 tools and 0 websites are not named in its own README. We called no tool and read the contents of no encrypted connection, so this page says nothing about whether any of its tools does what it says.
+
+## The standard this report uses
+
+**A website counts as declared only if the README names it.**
+
+A sentence about connecting somewhere, without the address, names no website. A tool counts as documented only if its name appears in the README as a whole word. Each question is asked once per thing observed, so what the README documents is never worked out from what the program offered — which is the only way "offered but not documented" can be found at all.
+
+The host rule is loose in one direction, and it is better to say so: it reads any dotted name whose last part is two or more letters, so a filename written in prose can read as a website. That can only make the declared list longer and leave something out of the findings below. It cannot put something in.
+
+## What it did at startup, before any tool was used
+
+It started and identified itself as `Primer 1.1.2`.
+
+| | |
+| --- | --- |
+| Websites it looked up | none |
+| Encrypted connections it opened | none |
+| Other addresses it tried | none |
+| Programs it started | `mcp`, `node`, `setpriv` |
+| Files it wrote | none |
+| Package-manager commands it ran | none |
+| Tools it offered | 20 |
+
+`setpriv` in that list is the harness's own launcher, not the package's doing.
+
+## Tools it offers, against its own README
+
+It offered 20 tools. 0 of them are named in `README.md`.
+
+20 tools it offered are not:
+
+- **find_tokens**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "find_tokens"
+- **get_color_usage**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_color_usage"
+- **get_component**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_component"
+- **get_component_accessibility_guidelines**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_component_accessibility_guidelines"
+- **get_component_batch**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_component_batch"
+- **get_component_examples**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_component_examples"
+- **get_component_usage_guidelines**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_component_usage_guidelines"
+- **get_design_token_specs**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_design_token_specs"
+- **get_icon**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_icon"
+- **get_pattern**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_pattern"
+- **get_token_group_bundle**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_token_group_bundle"
+- **get_token_usage_patterns**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_token_usage_patterns"
+- **get_typography_usage**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "get_typography_usage"
+- **init**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "init"
+- **lint_css**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "lint_css"
+- **list_components**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "list_components"
+- **list_icons**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "list_icons"
+- **list_patterns**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "list_patterns"
+- **primer_coding_guidelines**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "primer_coding_guidelines"
+- **review_alt_text**
+  - offered in tools/list by @primer/mcp@1.1.2
+  - absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for "review_alt_text"
+
+## Websites it reached for, against its own README
+
+It reached for no website at startup.
+
+## What this report does not say
+
+- **It judges no tool.** Level 1 calls none, so no claim any tool makes is tested here.
+- **It is one run, once.** A program that behaves one way while being watched and another way otherwise would produce this same page.
+- **It ran with no route off the machine**, so anything that only happens after a connection succeeds did not happen.
+- **Encrypted traffic was not read.** The name it asked for is recorded; the contents are not, and would not be even with a route.
+- **"Declared" means named in the README**, nothing more. Only the README file that shipped in the package was read. A package that documents its tools or its destinations somewhere else — a reference file beside the README, a privacy policy, a wiki, its source — will show every one of them above as not named, which is a fact about this rule and not about the package.
+- **It is not calibration-backed**, for the reason at the top.
+- **It is not a ranking.** No page here says a server is more used, better or worse than another, and the set measured is whatever the candidate searches returned.
+- **The harness is BRYDGE's own**, and BRYDGE has an interest in the question of whether tools do what they say.
+
+Evidence: `README.md` (46 lines, sha256 `5d7bc6ad844c`), package integrity `sha512-NRAV2hmn09PMU6//7…`.

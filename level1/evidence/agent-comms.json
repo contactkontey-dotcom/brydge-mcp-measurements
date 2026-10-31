@@ -1,0 +1,832 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "agent-comms@8.15.22",
+  "measuredAt": "2026-10-31T14:10:20.491Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "agent-comms",
+  "package": {
+    "name": "agent-comms",
+    "version": "8.15.22",
+    "tarball": "https://registry.npmjs.org/agent-comms/-/agent-comms-8.15.22.tgz",
+    "integrity": "sha512-HnACJpxgWzRNd0ReIkZLPfInwNYp8vgm29wwDyxwTq7pcKyH50+/+PQK294BpodedLOJrPH5AhGbFQ+oGCf/gQ==",
+    "repository": "git+https://github.com/ExaDev/agent-comms.git",
+    "homepage": "https://github.com/ExaDev/agent-comms#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "285239cbace8c37384ff6e0cbaa148e0048a9923730b29d3724d2be5504493b4",
+    "lines": 592,
+    "bytes": 57726
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "account.bundle",
+        "at": {
+          "line": 585,
+          "text": "npx agent-comms account export ~/account.bundle   # on a machine that holds the account"
+        }
+      },
+      {
+        "host": "agent-comms.git",
+        "at": {
+          "line": 178,
+          "text": "git clone https://github.com/ExaDev/agent-comms.git"
+        }
+      },
+      {
+        "host": "agent-comms.svg",
+        "at": {
+          "line": 7,
+          "text": "[![npm downloads chart, log scale](https://shieldcn.dev/chart/npm/agent-comms.svg?bg=transparent&logo=false&yScale=log)](https://www.npmjs.com/package/agent-comms)"
+        }
+      },
+      {
+        "host": "ci.yml",
+        "at": {
+          "line": 3,
+          "text": "…tps://github.com/ExaDev/agent-comms/releases/latest) [![CI](https://img.shields.io/github/actions/workflow/status/ExaDev/agent-comms/ci.yml?branch=main)](https://github.com/ExaDev/agent-comms/actions)"
+        }
+      },
+      {
+        "host": "code.claude.com",
+        "at": {
+          "line": 133,
+          "text": "Alternatively, register the MCP server directly with [`claude mcp add`](https://code.claude.com/docs/en/mcp):"
+        }
+      },
+      {
+        "host": "config.datadir",
+        "at": {
+          "line": 106,
+          "text": "const slot = { harness: \"my-bridge\", cwd: process.cwd(), dataDir: config.dataDir };"
+        }
+      },
+      {
+        "host": "drain.sh",
+        "at": {
+          "line": 310,
+          "text": "…cwd-slug>.jsonl`. Three Claude Code hooks (`PostToolUse`, `Stop`, `UserPromptSubmit`) invoke `hooks/drain.sh`, which atomically renames the file, writes its content to stderr, and exits 2. Claude Code…"
+        }
+      },
+      {
+        "host": "gateway-trust.json",
+        "at": {
+          "line": 499,
+          "text": "The trusted set is one file, `~/.agent-comms/gateway-trust.json`, shared by every bridge on the machine and by each session the default cc-peer front handles, so trusting a device once in any of them …"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 3,
+          "text": "[![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)](https://github.com/ExaDev/agent-comms) [![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white)](ht…"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 3,
+          "text": "[![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)](https://github.com/ExaDev/agent-comms) [![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white)](ht…"
+        }
+      },
+      {
+        "host": "index.html",
+        "at": {
+          "line": 351,
+          "text": "… under `/web-console/*`. When the variable is unset, or doesn't point at a directory containing an `index.html`, the route isn't registered at all — every request under `/web-console` still 404s, same…"
+        }
+      },
+      {
+        "host": "io.github.exadev",
+        "at": {
+          "line": 158,
+          "text": "This server is also published to the MCP Registry as `io.github.ExaDev/agent-comms`."
+        }
+      },
+      {
+        "host": "keys.openpgp.org",
+        "at": {
+          "line": 555,
+          "text": "# Redeeming a signed code needs the signer's public key to verify against -- paste it directly, or supply a fingerprint you already trust and let the redeemer fetch it from keys.openpgp.org"
+        }
+      },
+      {
+        "host": "machine-identity.json",
+        "at": {
+          "line": 93,
+          "text": "…e account's user principal, shared by every bridge the account runs on the machine. `~/.agent-comms/machine-identity.json` is the machine, shared by every bridge the account runs on the host. Because …"
+        }
+      },
+      {
+        "host": "mesh.exadev.io",
+        "at": {
+          "line": 337,
+          "text": "Plain `http` and `ws` are what the LAN path uses, so a page served over `https` (the hosted mesh.exadev.io instance) cannot dial it; open the bridge's own address instead. A bridge that binds beyond l…"
+        }
+      },
+      {
+        "host": "meta.streamingbehavior",
+        "at": {
+          "line": 304,
+          "text": "| `steer`    | Act now — react at the next decision boundary            | `deliverAs: \"steer\"`    | `[STEER]` prefix + `meta.streamingBehavior`    | `[STEER]` prefix on drain    |"
+        }
+      },
+      {
+        "host": "orpc.unnoq.com",
+        "at": {
+          "line": 316,
+          "text": "Two independent transports sit inside that dashboard, both built on [oRPC](https://orpc.unnoq.com/), a contract-first RPC layer with Zod-validated inputs and outputs and native support for streaming p…"
+        }
+      },
+      {
+        "host": "package.json",
+        "at": {
+          "line": 120,
+          "text": "The [`pi` manifest](/package.json) registers the extension automatically. It points at the TypeScript source, which pi loads without a build step, so the same entry serves `pi install npm:agent-comms`…"
+        }
+      },
+      {
+        "host": "patterns.md",
+        "at": {
+          "line": 591,
+          "text": "… appends to a data-domain log of its own (wire-mesh's replicated issuer grant ledger pattern, `spec/PATTERNS.md`), and the logs replicate to every machine holding the account, so `dm_revoke` on any of…"
+        }
+      },
+      {
+        "host": "petnames.json",
+        "at": {
+          "line": 369,
+          "text": "Your own names, petnames, are yours alone. They live in `~/.agent-comms/petnames.json`, shared by your bridges on this machine, and are never gossiped or sent to anyone. A petname is set for a full de…"
+        }
+      },
+      {
+        "host": "plugin.json",
+        "at": {
+          "line": 131,
+          "text": "This repo serves as its own marketplace. The [plugin manifest](/.claude-plugin/plugin.json) defines the MCP server."
+        }
+      },
+      {
+        "host": "process.cwd",
+        "at": {
+          "line": 106,
+          "text": "const slot = { harness: \"my-bridge\", cwd: process.cwd(), dataDir: config.dataDir };"
+        }
+      },
+      {
+        "host": "process.pid",
+        "at": {
+          "line": 257,
+          "text": "{ agentId, harness: \"my-harness\", cwd: process.cwd(), pid: process.pid },"
+        }
+      },
+      {
+        "host": "settings.json",
+        "at": {
+          "line": 205,
+          "text": "To accept those messages without approving each one, set `crossSessionInbound` to `accept` in **user** settings, `~/.claude/settings.json`:"
+        }
+      },
+      {
+        "host": "shieldcn.dev",
+        "at": {
+          "line": 7,
+          "text": "[![npm downloads chart, log scale](https://shieldcn.dev/chart/npm/agent-comms.svg?bg=transparent&logo=false&yScale=log)](https://www.npmjs.com/package/agent-comms)"
+        }
+      },
+      {
+        "host": "slot.dir",
+        "at": {
+          "line": 110,
+          "text": "An explicit `dataDir` wins over the environment and the existing `slot.dir` override. Without `dataDir`, `slot.dir` keeps its existing scope: device-slot files, trust and petnames; account and machine…"
+        }
+      },
+      {
+        "host": "store.init",
+        "at": {
+          "line": 241,
+          "text": "await store.init();"
+        }
+      },
+      {
+        "host": "store.ondelivery",
+        "at": {
+          "line": 249,
+          "text": "store.onDelivery = (_targetId, event) => {"
+        }
+      },
+      {
+        "host": "store.sendroommessage",
+        "at": {
+          "line": 437,
+          "text": "await store.sendRoomMessage(roomId, senderId, \"Keep this message\", options);"
+        }
+      },
+      {
+        "host": "tanstack.com",
+        "at": {
+          "line": 323,
+          "text": "…t/response reads with no ongoing subscription of their own. Those three go through [TanStack Query](https://tanstack.com/query), wired up via [oRPC's own TanStack Query integration](https://orpc.unnoq…"
+        }
+      },
+      {
+        "host": "tool.handle",
+        "at": {
+          "line": 256,
+          "text": "const result = await tool.handle("
+        }
+      },
+      {
+        "host": "user-identity.json",
+        "at": {
+          "line": 93,
+          "text": "… generated locally on first use and never derived from anything about the hardware. `~/.agent-comms/user-identity.json` is the account's user principal, shared by every bridge the account runs on the …"
+        }
+      },
+      {
+        "host": "user-identity.replaced",
+        "at": {
+          "line": 580,
+          "text": "…st each other's devices from then on. The account the new machine held before is kept beside it as `user-identity.replaced-<id>.json`, since its key is still the only one that can revoke what it issue…"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 3,
+          "text": "….com/ExaDev/agent-comms) [![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white)](https://www.npmjs.com/package/agent-comms) [![Release](https://img.shields.io/github/v/release/ExaDe…"
+        }
+      },
+      {
+        "host": "yourharness.push",
+        "at": {
+          "line": 251,
+          "text": "yourHarness.push(`📬 ${line}`);"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "agent_comms",
+        "at": {
+          "line": 223,
+          "text": "1. **A tool**, so the LLM can call `agent_comms({ action: \"send\", ... })`"
+        }
+      },
+      {
+        "name": "delivery_status",
+        "at": {
+          "line": 359,
+          "text": "… a direct connection or the relay hub admitting the device, and the sender is told through the same `delivery_status` event that carries read receipts. The queue is bounded both by how many messages i…"
+        }
+      },
+      {
+        "name": "dm_admit",
+        "at": {
+          "line": 361,
+          "text": "To let a device DM you without deciding on the spot, admit it ahead of time. `dm_admit` with that device's id returns a grant and the exact call to make with it; the sender then calls `dm_use_grant` w…"
+        }
+      },
+      {
+        "name": "dm_revoke",
+        "at": {
+          "line": 361,
+          "text": "…t` with your device id and the grant, and their first DM goes through with no decision at your end. `dm_revoke` withdraws it. A grant only works for the device it was minted for, unless you pass `prin…"
+        }
+      },
+      {
+        "name": "dm_use_grant",
+        "at": {
+          "line": 361,
+          "text": "…it` with that device's id returns a grant and the exact call to make with it; the sender then calls `dm_use_grant` with your device id and the grant, and their first DM goes through with no decision a…"
+        }
+      },
+      {
+        "name": "gateway_list_trusted",
+        "at": {
+          "line": 367,
+          "text": "…ned with the user key beside the membership proof, and shown next to the principal id (in `whoami`, `gateway_list_trusted` and the \"vouched for by\" column) only when it verifies against the principal …"
+        }
+      },
+      {
+        "name": "gateway_redeem_connection_code",
+        "at": {
+          "line": 580,
+          "text": "…shorter with `--ttl-minutes <n>` but not longer. Redeeming it trusts the issuing device, exactly as `gateway_redeem_connection_code` does, then asks that device for the account key over the mesh's end…"
+        }
+      },
+      {
+        "name": "gateway_trust",
+        "at": {
+          "line": 529,
+          "text": "…lf normally has to be learned out of band (Slack, email, a phone call) before it can be pasted into `gateway_trust`. A connection code is a single-use, short-lived artifact that makes that hand-off it…"
+        }
+      },
+      {
+        "name": "lan_web_uis",
+        "at": {
+          "line": 339,
+          "text": "The other bridges on the network hear those beacons. `lan_web_uis` lists every neighbouring web UI heard this way, each as a ready-to-open `http://<address>:<port>` URL beside the full peer id and its…"
+        }
+      },
+      {
+        "name": "list_agents",
+        "at": {
+          "line": 93,
+          "text": "… it is and which host it runs on. `whoami` shows them as the `Principal:` and `Machine:` lines, and `list_agents` groups agents under the machine that vouches for each, this machine first; an agent no…"
+        }
+      },
+      {
+        "name": "list_rooms",
+        "at": {
+          "line": 390,
+          "text": "| `public`  | Listed in `list_rooms` | Anyone      | Anyone       |"
+        }
+      },
+      {
+        "name": "machine_name",
+        "at": {
+          "line": 367,
+          "text": "An agent names itself with `register` and `update`. A machine names itself with `machine_name`, which every bridge the account runs on the host then signs with the machine key and gossips beside its m…"
+        }
+      },
+      {
+        "name": "member_joined",
+        "at": {
+          "line": 404,
+          "text": "…it receives a `room_members` delivery event listing all current members with their status. Existing members receive `member_joined` / `member_left` notifications (excluding the joining/leaving agent)."
+        }
+      },
+      {
+        "name": "member_left",
+        "at": {
+          "line": 404,
+          "text": "…it receives a `room_members` delivery event listing all current members with their status. Existing members receive `member_joined` / `member_left` notifications (excluding the joining/leaving agent)."
+        }
+      },
+      {
+        "name": "member_status",
+        "at": {
+          "line": 422,
+          "text": "When an agent's status changes (active / idle / busy / offline), all rooms it belongs to receive a `member_status` notification. This covers:"
+        }
+      },
+      {
+        "name": "message_read",
+        "at": {
+          "line": 475,
+          "text": "…when `onDelivery` is called (push bridges: pi, Claude Code) or when `drainDelivery` is called (drain bridges: MCP, Codex, OpenCode). Cross-peer read receipts propagate via a `message_read` mesh patch."
+        }
+      },
+      {
+        "name": "node_modules",
+        "at": {
+          "line": 122,
+          "text": "…-coding-agent`. A `@mariozechner` host at `0.73.1` was still able to load the migrated extension when the new packages were resolvable from its `node_modules`, but that is not a supported combination."
+        }
+      },
+      {
+        "name": "petname_set",
+        "at": {
+          "line": 384,
+          "text": "…racters, and free of control characters. `register`, `update`, `machine_name`, `principal_name` and `petname_set` refuse a name that breaks those rules, an agent that gossips one is not listed, and an…"
+        }
+      },
+      {
+        "name": "principal_name",
+        "at": {
+          "line": 367,
+          "text": "… it; what the name says is still the machine's own claim. An account names itself the same way with `principal_name`: the name is kept in `user-identity.json`, signed with the user key beside the memb…"
+        }
+      },
+      {
+        "name": "room_accept",
+        "at": {
+          "line": 213,
+          "text": "A session reached only through cc-peer has no agent-comms tool, so it can't call `room_accept` or `room_reject`. When a room join or a first-contact DM is waiting on it, the relayed message says which…"
+        }
+      },
+      {
+        "name": "room_join_request",
+        "at": {
+          "line": 355,
+          "text": "…ss before anything is sent: the call waits while the recipient's agent is told about the request (a `room_join_request` event, listed by `room_pending`) and answers it with `room_accept` or `room_reje…"
+        }
+      },
+      {
+        "name": "room_members",
+        "at": {
+          "line": 404,
+          "text": "When an agent joins a room, it receives a `room_members` delivery event listing all current members with their status. Existing members receive `member_joined` / `member_left` notifications (excluding…"
+        }
+      },
+      {
+        "name": "room_pending",
+        "at": {
+          "line": 355,
+          "text": "…waits while the recipient's agent is told about the request (a `room_join_request` event, listed by `room_pending`) and answers it with `room_accept` or `room_reject`. Once accepted, later messages go…"
+        }
+      },
+      {
+        "name": "room_reject",
+        "at": {
+          "line": 213,
+          "text": "A session reached only through cc-peer has no agent-comms tool, so it can't call `room_accept` or `room_reject`. When a room join or a first-contact DM is waiting on it, the relayed message says which…"
+        }
+      },
+      {
+        "name": "session_shutdown",
+        "at": {
+          "line": 483,
+          "text": "… the OpenCode plugin, which runs inside its host's process, re-raises the signal instead and leaves the decision to the host. The pi extension uses pi's own `session_shutdown` hook for the same thing."
+        }
+      },
+      {
+        "name": "web_url",
+        "at": {
+          "line": 333,
+          "text": "… machine, meaning loopback or one of this machine's own interface addresses, needs no token, so the `web_url` an agent is given works even for a server bound to one interface address. Every request fr…"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "agent-comms",
+    "version": "1.1.0"
+  },
+  "observed": {
+    "offered": [
+      "agent_comms"
+    ],
+    "dnsNames": [
+      "registry.npmjs.org"
+    ],
+    "tlsHosts": [
+      "registry.npmjs.org"
+    ],
+    "connectAttempts": [],
+    "programsStarted": [
+      "agent-comms",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "agent_comms",
+          "at": {
+            "line": 32,
+            "text": "A_LLM -- \"agent_comms(send, ...)\" --> A_Bridge"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "account.bundle",
+          "at": {
+            "line": 585,
+            "text": "npx agent-comms account export ~/account.bundle   # on a machine that holds the account"
+          }
+        },
+        {
+          "host": "agent-comms.git",
+          "at": {
+            "line": 178,
+            "text": "git clone https://github.com/ExaDev/agent-comms.git"
+          }
+        },
+        {
+          "host": "agent-comms.svg",
+          "at": {
+            "line": 7,
+            "text": "[![npm downloads chart, log scale](https://shieldcn.dev/chart/npm/agent-comms.svg?bg=transparent&logo=false&yScale=log)](https://www.npmjs.com/package/agent-comms)"
+          }
+        },
+        {
+          "host": "ci.yml",
+          "at": {
+            "line": 3,
+            "text": "…tps://github.com/ExaDev/agent-comms/releases/latest) [![CI](https://img.shields.io/github/actions/workflow/status/ExaDev/agent-comms/ci.yml?branch=main)](https://github.com/ExaDev/agent-comms/actions)"
+          }
+        },
+        {
+          "host": "code.claude.com",
+          "at": {
+            "line": 133,
+            "text": "Alternatively, register the MCP server directly with [`claude mcp add`](https://code.claude.com/docs/en/mcp):"
+          }
+        },
+        {
+          "host": "config.datadir",
+          "at": {
+            "line": 106,
+            "text": "const slot = { harness: \"my-bridge\", cwd: process.cwd(), dataDir: config.dataDir };"
+          }
+        },
+        {
+          "host": "drain.sh",
+          "at": {
+            "line": 310,
+            "text": "…cwd-slug>.jsonl`. Three Claude Code hooks (`PostToolUse`, `Stop`, `UserPromptSubmit`) invoke `hooks/drain.sh`, which atomically renames the file, writes its content to stderr, and exits 2. Claude Code…"
+          }
+        },
+        {
+          "host": "gateway-trust.json",
+          "at": {
+            "line": 499,
+            "text": "The trusted set is one file, `~/.agent-comms/gateway-trust.json`, shared by every bridge on the machine and by each session the default cc-peer front handles, so trusting a device once in any of them …"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 3,
+            "text": "[![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)](https://github.com/ExaDev/agent-comms) [![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white)](ht…"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 3,
+            "text": "[![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)](https://github.com/ExaDev/agent-comms) [![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white)](ht…"
+          }
+        },
+        {
+          "host": "index.html",
+          "at": {
+            "line": 351,
+            "text": "… under `/web-console/*`. When the variable is unset, or doesn't point at a directory containing an `index.html`, the route isn't registered at all — every request under `/web-console` still 404s, same…"
+          }
+        },
+        {
+          "host": "io.github.exadev",
+          "at": {
+            "line": 158,
+            "text": "This server is also published to the MCP Registry as `io.github.ExaDev/agent-comms`."
+          }
+        },
+        {
+          "host": "keys.openpgp.org",
+          "at": {
+            "line": 555,
+            "text": "# Redeeming a signed code needs the signer's public key to verify against -- paste it directly, or supply a fingerprint you already trust and let the redeemer fetch it from keys.openpgp.org"
+          }
+        },
+        {
+          "host": "machine-identity.json",
+          "at": {
+            "line": 93,
+            "text": "…e account's user principal, shared by every bridge the account runs on the machine. `~/.agent-comms/machine-identity.json` is the machine, shared by every bridge the account runs on the host. Because …"
+          }
+        },
+        {
+          "host": "mesh.exadev.io",
+          "at": {
+            "line": 337,
+            "text": "Plain `http` and `ws` are what the LAN path uses, so a page served over `https` (the hosted mesh.exadev.io instance) cannot dial it; open the bridge's own address instead. A bridge that binds beyond l…"
+          }
+        },
+        {
+          "host": "meta.streamingbehavior",
+          "at": {
+            "line": 304,
+            "text": "| `steer`    | Act now — react at the next decision boundary            | `deliverAs: \"steer\"`    | `[STEER]` prefix + `meta.streamingBehavior`    | `[STEER]` prefix on drain    |"
+          }
+        },
+        {
+          "host": "orpc.unnoq.com",
+          "at": {
+            "line": 316,
+            "text": "Two independent transports sit inside that dashboard, both built on [oRPC](https://orpc.unnoq.com/), a contract-first RPC layer with Zod-validated inputs and outputs and native support for streaming p…"
+          }
+        },
+        {
+          "host": "package.json",
+          "at": {
+            "line": 120,
+            "text": "The [`pi` manifest](/package.json) registers the extension automatically. It points at the TypeScript source, which pi loads without a build step, so the same entry serves `pi install npm:agent-comms`…"
+          }
+        },
+        {
+          "host": "patterns.md",
+          "at": {
+            "line": 591,
+            "text": "… appends to a data-domain log of its own (wire-mesh's replicated issuer grant ledger pattern, `spec/PATTERNS.md`), and the logs replicate to every machine holding the account, so `dm_revoke` on any of…"
+          }
+        },
+        {
+          "host": "petnames.json",
+          "at": {
+            "line": 369,
+            "text": "Your own names, petnames, are yours alone. They live in `~/.agent-comms/petnames.json`, shared by your bridges on this machine, and are never gossiped or sent to anyone. A petname is set for a full de…"
+          }
+        },
+        {
+          "host": "plugin.json",
+          "at": {
+            "line": 131,
+            "text": "This repo serves as its own marketplace. The [plugin manifest](/.claude-plugin/plugin.json) defines the MCP server."
+          }
+        },
+        {
+          "host": "process.cwd",
+          "at": {
+            "line": 106,
+            "text": "const slot = { harness: \"my-bridge\", cwd: process.cwd(), dataDir: config.dataDir };"
+          }
+        },
+        {
+          "host": "process.pid",
+          "at": {
+            "line": 257,
+            "text": "{ agentId, harness: \"my-harness\", cwd: process.cwd(), pid: process.pid },"
+          }
+        },
+        {
+          "host": "settings.json",
+          "at": {
+            "line": 205,
+            "text": "To accept those messages without approving each one, set `crossSessionInbound` to `accept` in **user** settings, `~/.claude/settings.json`:"
+          }
+        },
+        {
+          "host": "shieldcn.dev",
+          "at": {
+            "line": 7,
+            "text": "[![npm downloads chart, log scale](https://shieldcn.dev/chart/npm/agent-comms.svg?bg=transparent&logo=false&yScale=log)](https://www.npmjs.com/package/agent-comms)"
+          }
+        },
+        {
+          "host": "slot.dir",
+          "at": {
+            "line": 110,
+            "text": "An explicit `dataDir` wins over the environment and the existing `slot.dir` override. Without `dataDir`, `slot.dir` keeps its existing scope: device-slot files, trust and petnames; account and machine…"
+          }
+        },
+        {
+          "host": "store.init",
+          "at": {
+            "line": 241,
+            "text": "await store.init();"
+          }
+        },
+        {
+          "host": "store.ondelivery",
+          "at": {
+            "line": 249,
+            "text": "store.onDelivery = (_targetId, event) => {"
+          }
+        },
+        {
+          "host": "store.sendroommessage",
+          "at": {
+            "line": 437,
+            "text": "await store.sendRoomMessage(roomId, senderId, \"Keep this message\", options);"
+          }
+        },
+        {
+          "host": "tanstack.com",
+          "at": {
+            "line": 323,
+            "text": "…t/response reads with no ongoing subscription of their own. Those three go through [TanStack Query](https://tanstack.com/query), wired up via [oRPC's own TanStack Query integration](https://orpc.unnoq…"
+          }
+        },
+        {
+          "host": "tool.handle",
+          "at": {
+            "line": 256,
+            "text": "const result = await tool.handle("
+          }
+        },
+        {
+          "host": "user-identity.json",
+          "at": {
+            "line": 93,
+            "text": "… generated locally on first use and never derived from anything about the hardware. `~/.agent-comms/user-identity.json` is the account's user principal, shared by every bridge the account runs on the …"
+          }
+        },
+        {
+          "host": "user-identity.replaced",
+          "at": {
+            "line": 580,
+            "text": "…st each other's devices from then on. The account the new machine held before is kept beside it as `user-identity.replaced-<id>.json`, since its key is still the only one that can revoke what it issue…"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 3,
+            "text": "….com/ExaDev/agent-comms) [![npm](https://img.shields.io/badge/npm-CB3837?logo=npm&logoColor=white)](https://www.npmjs.com/package/agent-comms) [![Release](https://img.shields.io/github/v/release/ExaDe…"
+          }
+        },
+        {
+          "host": "yourharness.push",
+          "at": {
+            "line": 251,
+            "text": "yourHarness.push(`📬 ${line}`);"
+          }
+        }
+      ],
+      "undeclared": [
+        {
+          "host": "registry.npmjs.org",
+          "evidence": [
+            "looked up \"registry.npmjs.org\" during the run; answered 127.0.0.1, so nothing left the machine",
+            "opened TLS with SNI \"registry.npmjs.org\"; the bytes are encrypted and were not seen",
+            "absent from README.md (592 lines, sha256 285239cbace8…): the README does not contain this hostname"
+          ]
+        }
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "network:dns",
+      "kind": "network",
+      "security": false,
+      "says": "Looked up 1 name(s) not in its declared destinations: registry.npmjs.org.",
+      "evidence": [
+        "every lookup was answered with 127.0.0.1; nothing left the machine"
+      ]
+    },
+    {
+      "id": "network:tls",
+      "kind": "network",
+      "security": false,
+      "says": "Opened TLS to registry.npmjs.org. The bytes it would have sent are encrypted and were NOT seen — a limit of the method.",
+      "evidence": [
+        "SNI registry.npmjs.org"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm agent-comms@8.15.22",
+        "integrity sha512-HnACJpxgWzRNd0ReIkZLPfInwNYp8vgm29wwDyxwTq7pcKyH50+/+PQK294BpodedLOJrPH5AhGbFQ+oGCf/gQ==",
+        "tarball https://registry.npmjs.org/agent-comms/-/agent-comms-8.15.22.tgz"
+      ]
+    }
+  ]
+}

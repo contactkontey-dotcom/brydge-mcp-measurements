@@ -1,0 +1,190 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@aws/nx-plugin-mcp@1.3.2",
+  "measuredAt": "2026-10-31T13:50:55.892Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "aws--nx-plugin-mcp",
+  "package": {
+    "name": "@aws/nx-plugin-mcp",
+    "version": "1.3.2",
+    "tarball": "https://registry.npmjs.org/@aws/nx-plugin-mcp/-/nx-plugin-mcp-1.3.2.tgz",
+    "integrity": "sha512-F3zNrlf/9B4LmI+cCYPN5UF+HemC4m9eeA9/n9Qa1bVk/CHaHL1D79hAjfkO0jvHSHnX2KctCbyaOr5sYIJpaA==",
+    "repository": "https://github.com/awslabs/nx-plugin-for-aws.git",
+    "homepage": null
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "0a329f7f0be7eda67c0eed35d70d3498b08e4c405a33c4b84719ddda41bda46b",
+    "lines": 23,
+    "bytes": 380
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "github.com",
+        "at": {
+          "line": 3,
+          "text": "A lightweight, standalone MCP (Model Context Protocol) server for the [Nx Plugin for AWS](https://github.com/awslabs/nx-plugin-for-aws)."
+        }
+      }
+    ],
+    "identifiers": []
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "nx-plugin-for-aws",
+    "version": "0.0.0"
+  },
+  "observed": {
+    "offered": [
+      "add-to-existing-project",
+      "best-practices",
+      "create-workspace-command",
+      "general-guidance",
+      "generator-guide",
+      "list-generators",
+      "upgrade-workspace"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "aws-nx-mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [],
+      "undocumented": [
+        {
+          "name": "add-to-existing-project",
+          "evidence": [
+            "offered in tools/list by @aws/nx-plugin-mcp@1.3.2",
+            "absent from README.md (23 lines, sha256 0a329f7f0be7…): no whole-word match for \"add-to-existing-project\""
+          ]
+        },
+        {
+          "name": "best-practices",
+          "evidence": [
+            "offered in tools/list by @aws/nx-plugin-mcp@1.3.2",
+            "absent from README.md (23 lines, sha256 0a329f7f0be7…): no whole-word match for \"best-practices\""
+          ]
+        },
+        {
+          "name": "create-workspace-command",
+          "evidence": [
+            "offered in tools/list by @aws/nx-plugin-mcp@1.3.2",
+            "absent from README.md (23 lines, sha256 0a329f7f0be7…): no whole-word match for \"create-workspace-command\""
+          ]
+        },
+        {
+          "name": "general-guidance",
+          "evidence": [
+            "offered in tools/list by @aws/nx-plugin-mcp@1.3.2",
+            "absent from README.md (23 lines, sha256 0a329f7f0be7…): no whole-word match for \"general-guidance\""
+          ]
+        },
+        {
+          "name": "generator-guide",
+          "evidence": [
+            "offered in tools/list by @aws/nx-plugin-mcp@1.3.2",
+            "absent from README.md (23 lines, sha256 0a329f7f0be7…): no whole-word match for \"generator-guide\""
+          ]
+        },
+        {
+          "name": "list-generators",
+          "evidence": [
+            "offered in tools/list by @aws/nx-plugin-mcp@1.3.2",
+            "absent from README.md (23 lines, sha256 0a329f7f0be7…): no whole-word match for \"list-generators\""
+          ]
+        },
+        {
+          "name": "upgrade-workspace",
+          "evidence": [
+            "offered in tools/list by @aws/nx-plugin-mcp@1.3.2",
+            "absent from README.md (23 lines, sha256 0a329f7f0be7…): no whole-word match for \"upgrade-workspace\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "github.com",
+          "at": {
+            "line": 3,
+            "text": "A lightweight, standalone MCP (Model Context Protocol) server for the [Nx Plugin for AWS](https://github.com/awslabs/nx-plugin-for-aws)."
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @aws/nx-plugin-mcp@1.3.2",
+        "integrity sha512-F3zNrlf/9B4LmI+cCYPN5UF+HemC4m9eeA9/n9Qa1bVk/CHaHL1D79hAjfkO0jvHSHnX2KctCbyaOr5sYIJpaA==",
+        "tarball https://registry.npmjs.org/@aws/nx-plugin-mcp/-/nx-plugin-mcp-1.3.2.tgz"
+      ]
+    }
+  ]
+}

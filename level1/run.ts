@@ -154,7 +154,16 @@ export interface Level1Evidence {
    */
   readmeNotes: Array<{ word: string; at: Mention }>;
   declaration: { hosts: Array<{ host: string; at: Mention }>; identifiers: Array<{ name: string; at: Mention }> } | null;
-  couldNotStart: { stage: string; because: string } | null;
+  /*
+   * `because` is the tooling's own message. `installSaid` is npm's output from
+   * the install that preceded it, which `measureServer` captures and this threw
+   * away: fifteen packages in the first sweep reported "the server process
+   * exited" when the truth was that nothing had been installed for it to run,
+   * and the reason was sitting in npm's stderr. A "could not start" that cannot
+   * say why is a measurement of our own plumbing presented as a fact about
+   * somebody else's package.
+   */
+  couldNotStart: { stage: string; because: string; installSaid?: string } | null;
   serverInfo: unknown;
   observed: {
     offered: string[];
@@ -316,11 +325,11 @@ export async function runLevel1(ref: string): Promise<Level1Evidence> {
   /* ── Install under watch, then the sealed room. The instrument's work. ─── */
   const spec = specFor(resolved, declaration ?? { digest: "", lines: 0, bytes: 0, hosts: [], identifiers: [] }, bin);
   let report: Awaited<ReturnType<typeof measureServer>>["report"];
-  let raw: { session?: Record<string, unknown> };
+  let raw: { session?: Record<string, unknown>; installOut?: string };
   try {
     const out = await measureServer(spec);
     report = out.report;
-    raw = out.raw as { session?: Record<string, unknown> };
+    raw = out.raw as { session?: Record<string, unknown>; installOut?: string };
   } catch (e) {
     /*
      * `measureServer` throws when the install produced no executable or the
@@ -339,7 +348,11 @@ export async function runLevel1(ref: string): Promise<Level1Evidence> {
   if (report.initError) {
     return {
       ...shell,
-      couldNotStart: { stage: "initialize", because: report.initError.slice(0, 4000) },
+      couldNotStart: {
+        stage: "initialize",
+        because: report.initError.slice(0, 4000),
+        installSaid: (raw.installOut ?? "").trim().slice(-1500) || undefined,
+      },
       serverInfo: report.serverInfo,
       observed: raw.session ? observeFrom(raw.session, report.offered) : null,
       comparison: null,

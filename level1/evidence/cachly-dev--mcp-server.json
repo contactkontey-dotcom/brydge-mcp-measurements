@@ -1,0 +1,1242 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@cachly-dev/mcp-server@0.10.218",
+  "measuredAt": "2026-10-31T13:51:01.849Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "cachly-dev--mcp-server",
+  "package": {
+    "name": "@cachly-dev/mcp-server",
+    "version": "0.10.218",
+    "tarball": "https://registry.npmjs.org/@cachly-dev/mcp-server/-/mcp-server-0.10.218.tgz",
+    "integrity": "sha512-/wjnxdUNCgcWUOWYZ5QcA1Z2Wqm2Jzj3Ws5cYoB7FnLSnFAsgnOer6iuL7rSFC5G/+c+BSDYxIgejIMMX2aWpg==",
+    "repository": "git+https://github.com/cachly-dev/cachly-mcp.git",
+    "homepage": "https://cachly.dev/docs/mcp"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "529996528a0c3bd4907b5723335893afba12eb4527a066e50d59230271a7bfc5",
+    "lines": 504,
+    "bytes": 26704
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "api.cachly.dev",
+        "at": {
+          "line": 432,
+          "text": "`api.cachly.dev`:"
+        }
+      },
+      {
+        "host": "bench.md",
+        "at": {
+          "line": 278,
+          "text": "The method behind `bench` is described in [BENCH.md](./BENCH.md)."
+        }
+      },
+      {
+        "host": "cachly-ambient.json",
+        "at": {
+          "line": 342,
+          "text": "… **VS Code + Copilot** | yes, detected via `.vscode/` | `.vscode/mcp.json`, hooks in `.github/hooks/cachly-ambient.json` | no | Needs the VS Code MCP support or Copilot chat. Briefing at session start…"
+        }
+      },
+      {
+        "host": "cachly-dev.cachly",
+        "at": {
+          "line": 83,
+          "text": "Install **[cachly Brain](https://marketplace.visualstudio.com/items?itemName=cachly-dev.cachly-brain)**."
+        }
+      },
+      {
+        "host": "cachly.dev",
+        "at": {
+          "line": 11,
+          "text": "`@cachly-dev/mcp-server` connects [cachly](https://cachly.dev) to Claude Code, Cursor,"
+        }
+      },
+      {
+        "host": "cachly.gitlab-ci.yml",
+        "at": {
+          "line": 292,
+          "text": "[GitLab template](https://github.com/cachly-dev/cachly-action/blob/main/templates/cachly.gitlab-ci.yml)"
+        }
+      },
+      {
+        "host": "cachly.mycorp.internal",
+        "at": {
+          "line": 436,
+          "text": "npx @cachly-dev/mcp-server@latest autopilot --api-url https://cachly.mycorp.internal"
+        }
+      },
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 494,
+          "text": "- [Release notes](./CHANGELOG.md)"
+        }
+      },
+      {
+        "host": "config.json",
+        "at": {
+          "line": 346,
+          "text": "| **Continue.dev** | yes, detected via `.continue/` | `.continue/config.json` | no | Uses the `modelContextProtocolServers` key |"
+        }
+      },
+      {
+        "host": "config.toml",
+        "at": {
+          "line": 343,
+          "text": "| **Codex CLI** | yes, detected via `~/.codex` | `.codex/config.toml` (`[mcp_servers.cachly]`), hooks in `.codex/hooks.json` | no | Codex loads both once you trust the folder; confirm the hook once in…"
+        }
+      },
+      {
+        "host": "continue.dev",
+        "at": {
+          "line": 12,
+          "text": "GitHub Copilot, Windsurf, Cline, Continue.dev, Zed, Codex CLI and Gemini CLI over"
+        }
+      },
+      {
+        "host": "credentials.json",
+        "at": {
+          "line": 240,
+          "text": "instance come from the environment or from `~/.cachly/credentials.json`, the file `autopilot` writes."
+        }
+      },
+      {
+        "host": "example.com",
+        "at": {
+          "line": 309,
+          "text": "`npx @cachly-dev/mcp-server@latest invite teammate@example.com`."
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 91,
+          "text": "[cachly-dev/cachly-intellij](https://github.com/cachly-dev/cachly-intellij). The"
+        }
+      },
+      {
+        "host": "hooks.json",
+        "at": {
+          "line": 340,
+          "text": "| **Cursor** | yes, detected via `.cursor/` | `.cursor/mcp.json`, hooks in `.cursor/hooks.json` | no | Project-level; restart Cursor after setup. Lessons arrive with the first tool call of a turn |"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 8,
+          "text": "[![npm version](https://img.shields.io/npm/v/@cachly-dev/mcp-server?color=violet&logo=npm)](https://www.npmjs.com/package/@cachly-dev/mcp-server)"
+        }
+      },
+      {
+        "host": "io.github.cachly",
+        "at": {
+          "line": 99,
+          "text": "`io.github.cachly-dev/mcp-server`. Clients that browse the registry find it by name. The"
+        }
+      },
+      {
+        "host": "lessons.jsonl",
+        "at": {
+          "line": 136,
+          "text": "and `lessons.jsonl` (to reuse). Code excerpts are stored only if you call `index_project`"
+        }
+      },
+      {
+        "host": "lessons.md",
+        "at": {
+          "line": 111,
+          "text": "…ts](https://cachly.dev/docs/coding-agent-lessons-learned) | How to write a lesson your agent finds again: symptom, decisive fact first, what failed, files, a check. With examples and a `LESSONS.md`. |"
+        }
+      },
+      {
+        "host": "marketplace.visualstudio.com",
+        "at": {
+          "line": 83,
+          "text": "Install **[cachly Brain](https://marketplace.visualstudio.com/items?itemName=cachly-dev.cachly-brain)**."
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 339,
+          "text": "| **Claude Code** | yes | `~/.claude/mcp.json` + `.mcp.json` | yes, always | Without a key: test Brain at session start (plugin) or on the first tool call; browser sign-in only as fallback |"
+        }
+      },
+      {
+        "host": "mcpservers.cachly",
+        "at": {
+          "line": 344,
+          "text": "| **Gemini CLI** | yes, detected via `~/.gemini` | `mcpServers.cachly` and `hooks` in `.gemini/settings.json` | no | Gemini loads both once you trust the folder. Lessons are appended to the prompt (`B…"
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 13,
+          "text": "[MCP](https://modelcontextprotocol.io). It offers 124 MCP tools. Your editor lists 27 entries"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 296,
+          "text": "standalone Node.js helper with no dependencies. It always exits 0, so your CI never"
+        }
+      },
+      {
+        "host": "plugins.jetbrains.com",
+        "at": {
+          "line": 88,
+          "text": "Install **[Cachly Brain](https://plugins.jetbrains.com/plugin/32059-cachly-brain)**"
+        }
+      },
+      {
+        "host": "push-ci-outcome.mjs",
+        "at": {
+          "line": 295,
+          "text": "- **Anything else:** [`push-ci-outcome.mjs`](./src/ci-integration/push-ci-outcome.mjs) is a"
+        }
+      },
+      {
+        "host": "registry.modelcontextprotocol.io",
+        "at": {
+          "line": 98,
+          "text": "**[MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=cachly)** as"
+        }
+      },
+      {
+        "host": "settings.json",
+        "at": {
+          "line": 344,
+          "text": "| **Gemini CLI** | yes, detected via `~/.gemini` | `mcpServers.cachly` and `hooks` in `.gemini/settings.json` | no | Gemini loads both once you trust the folder. Lessons are appended to the prompt (`B…"
+        }
+      },
+      {
+        "host": "shot3-lesson-card.png",
+        "at": {
+          "line": 489,
+          "text": "![The Lessons view inside the Cachly Brain VS Code extension, listing six stored lessons](https://cachly.dev/screenshots/vscode/shot3-lesson-card.png)"
+        }
+      },
+      {
+        "host": "tools.ts",
+        "at": {
+          "line": 231,
+          "text": "[`src/tools.ts`](./src/tools.ts)."
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 8,
+          "text": "[![npm version](https://img.shields.io/npm/v/@cachly-dev/mcp-server?color=violet&logo=npm)](https://www.npmjs.com/package/@cachly-dev/mcp-server)"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "brain_collab_pairs",
+        "at": {
+          "line": 180,
+          "text": "| **`brain_collab_pairs`** | Who works with whom, with bus-factor alerts |"
+        }
+      },
+      {
+        "name": "brain_coverage",
+        "at": {
+          "line": 183,
+          "text": "| **`brain_coverage`** | A 0–100 health score for the knowledge of your codebase |"
+        }
+      },
+      {
+        "name": "brain_discover",
+        "at": {
+          "line": 217,
+          "text": "| **`brain_discover`** | Search the Brain marketplace for ready-made knowledge bases |"
+        }
+      },
+      {
+        "name": "brain_file_map",
+        "at": {
+          "line": 178,
+          "text": "| **`brain_file_map`** | Experts and lessons per file, before you touch it |"
+        }
+      },
+      {
+        "name": "brain_from_ci",
+        "at": {
+          "line": 195,
+          "text": "| **`brain_from_ci`** | Bulk-ingest CI outcomes: red→green becomes a fix lesson with a causal `fixes` edge, green→red a `causes` edge |"
+        }
+      },
+      {
+        "name": "brain_from_git",
+        "at": {
+          "line": 194,
+          "text": "| **`brain_from_git`** | Fill people, files and lessons from git history, incrementally |"
+        }
+      },
+      {
+        "name": "brain_import",
+        "at": {
+          "line": 215,
+          "text": "| **`brain_import`** | Import a shared Brain into yours: `topic_prefix`, `min_confidence`, `dry_run` |"
+        }
+      },
+      {
+        "name": "brain_install",
+        "at": {
+          "line": 224,
+          "text": "| `brain_marketplace` / `brain_install` | Browse and install curated Domain Brains (Kubernetes, Auth, databases) |"
+        }
+      },
+      {
+        "name": "brain_marketplace",
+        "at": {
+          "line": 224,
+          "text": "| `brain_marketplace` / `brain_install` | Browse and install curated Domain Brains (Kubernetes, Auth, databases) |"
+        }
+      },
+      {
+        "name": "brain_portability",
+        "at": {
+          "line": 181,
+          "text": "| **`brain_portability`** | Config snippets for 7 MCP clients, so the same Brain serves any model |"
+        }
+      },
+      {
+        "name": "brain_predict",
+        "at": {
+          "line": 125,
+          "text": "5. Before a deploy, `brain_predict` lists failure patterns from past incidents."
+        }
+      },
+      {
+        "name": "brain_predict_failures",
+        "at": {
+          "line": 193,
+          "text": "| **`brain_predict`** / `brain_predict_failures` | Predict likely failures before they happen |"
+        }
+      },
+      {
+        "name": "brain_seed_starter",
+        "at": {
+          "line": 213,
+          "text": "| **`brain_seed_starter`** | Seed 16 universal lessons so your first `smart_recall` finds something; runs on a fresh repo |"
+        }
+      },
+      {
+        "name": "brain_share",
+        "at": {
+          "line": 214,
+          "text": "| **`brain_share`** | Publish a Brain snapshot as a link (public or unlisted). For your own data, run `npx @cachly-dev/mcp-server export` |"
+        }
+      },
+      {
+        "name": "brain_share_list",
+        "at": {
+          "line": 216,
+          "text": "| `brain_share_list` / `brain_unshare` | List your shares; revoke one so the link goes dead |"
+        }
+      },
+      {
+        "name": "brain_unshare",
+        "at": {
+          "line": 216,
+          "text": "| `brain_share_list` / `brain_unshare` | List your shares; revoke one so the link goes dead |"
+        }
+      },
+      {
+        "name": "brain_who_knows",
+        "at": {
+          "line": 177,
+          "text": "| **`brain_who_knows`** | Find your team's experts on a topic, ranked from authorship |"
+        }
+      },
+      {
+        "name": "cache_get",
+        "at": {
+          "line": 225,
+          "text": "| `cache_get` / `cache_set` / `semantic_search` / `index_project` | Cache and semantic operations. Pass `org_id` on `cache_get` / `cache_set` to share the cache org-wide |"
+        }
+      },
+      {
+        "name": "cache_org_stats",
+        "at": {
+          "line": 226,
+          "text": "| `cache_stats` / `cache_org_stats` | Hits, estimated USD saved and a monthly projection, per instance or across your org |"
+        }
+      },
+      {
+        "name": "cache_set",
+        "at": {
+          "line": 225,
+          "text": "| `cache_get` / `cache_set` / `semantic_search` / `index_project` | Cache and semantic operations. Pass `org_id` on `cache_get` / `cache_set` to share the cache org-wide |"
+        }
+      },
+      {
+        "name": "cache_stats",
+        "at": {
+          "line": 226,
+          "text": "| `cache_stats` / `cache_org_stats` | Hits, estimated USD saved and a monthly projection, per instance or across your org |"
+        }
+      },
+      {
+        "name": "cachly_tool",
+        "at": {
+          "line": 14,
+          "text": "by default and reaches the rest through one of them, `cachly_tool` (details under MCP"
+        }
+      },
+      {
+        "name": "causal_trace",
+        "at": {
+          "line": 123,
+          "text": "4. When an error appears, `causal_trace` walks from the symptom to the cause and to the fix"
+        }
+      },
+      {
+        "name": "ckg_inspect",
+        "at": {
+          "line": 197,
+          "text": "| `ckg_inspect` | Inspect the causal graph around a concept |"
+        }
+      },
+      {
+        "name": "cky_live_xxx",
+        "at": {
+          "line": 359,
+          "text": "| `CACHLY_JWT=cky_live_xxx npx ... autosetup` | Skips the sign-in step and uses the key you pass |"
+        }
+      },
+      {
+        "name": "compact_recover",
+        "at": {
+          "line": 167,
+          "text": "| **`compact_recover`** | Recover your context after you hit the context-window limit |"
+        }
+      },
+      {
+        "name": "context_servers",
+        "at": {
+          "line": 347,
+          "text": "| **Zed** | yes, detected via `.zed/` | `.zed/settings.json` | no | Uses the `context_servers` key |"
+        }
+      },
+      {
+        "name": "create_instance",
+        "at": {
+          "line": 227,
+          "text": "| `list_instances` / `create_instance` / `delete_instance` | Manage Brain instances |"
+        }
+      },
+      {
+        "name": "delete_instance",
+        "at": {
+          "line": 227,
+          "text": "| `list_instances` / `create_instance` / `delete_instance` | Manage Brain instances |"
+        }
+      },
+      {
+        "name": "dry_run",
+        "at": {
+          "line": 215,
+          "text": "| **`brain_import`** | Import a shared Brain into yours: `topic_prefix`, `min_confidence`, `dry_run` |"
+        }
+      },
+      {
+        "name": "fedbrain_search",
+        "at": {
+          "line": 223,
+          "text": "| `syndicate` / `fedbrain_search` | Contribute to, and search, the global Knowledge Commons |"
+        }
+      },
+      {
+        "name": "index_project",
+        "at": {
+          "line": 136,
+          "text": "and `lessons.jsonl` (to reuse). Code excerpts are stored only if you call `index_project`"
+        }
+      },
+      {
+        "name": "learn_from_attempts",
+        "at": {
+          "line": 163,
+          "text": "| **`learn_from_attempts`** | Store a structured lesson after any fix, deploy or discovery (with `author`, `visibility`) |"
+        }
+      },
+      {
+        "name": "list_instances",
+        "at": {
+          "line": 227,
+          "text": "| `list_instances` / `create_instance` / `delete_instance` | Manage Brain instances |"
+        }
+      },
+      {
+        "name": "madc_deliberate",
+        "at": {
+          "line": 184,
+          "text": "| `madc_deliberate` | Specialist AI agents vote to resolve contradictory lessons |"
+        }
+      },
+      {
+        "name": "mcp_servers",
+        "at": {
+          "line": 343,
+          "text": "| **Codex CLI** | yes, detected via `~/.codex` | `.codex/config.toml` (`[mcp_servers.cachly]`), hooks in `.codex/hooks.json` | no | Codex loads both once you trust the folder; confirm the hook once in…"
+        }
+      },
+      {
+        "name": "memory_consolidate",
+        "at": {
+          "line": 196,
+          "text": "| `memory_consolidate` | Detect contradictions, merge duplicates, expire stale lessons |"
+        }
+      },
+      {
+        "name": "memory_crystalize",
+        "at": {
+          "line": 185,
+          "text": "| `memory_crystalize` | Distill all lessons into a Crystal for instant team context |"
+        }
+      },
+      {
+        "name": "min_confidence",
+        "at": {
+          "line": 215,
+          "text": "| **`brain_import`** | Import a shared Brain into yours: `topic_prefix`, `min_confidence`, `dry_run` |"
+        }
+      },
+      {
+        "name": "org_id",
+        "at": {
+          "line": 225,
+          "text": "| `cache_get` / `cache_set` / `semantic_search` / `index_project` | Cache and semantic operations. Pass `org_id` on `cache_get` / `cache_set` to share the cache org-wide |"
+        }
+      },
+      {
+        "name": "recall_best_solution",
+        "at": {
+          "line": 164,
+          "text": "| **`recall_best_solution`** | The known fix for a topic, with its success and failure history |"
+        }
+      },
+      {
+        "name": "remember_context",
+        "at": {
+          "line": 166,
+          "text": "| **`remember_context`** | Keep architecture findings, decisions and file summaries |"
+        }
+      },
+      {
+        "name": "roadmap_add",
+        "at": {
+          "line": 228,
+          "text": "| `roadmap_add` / `roadmap_next` | A project roadmap stored in the Brain |"
+        }
+      },
+      {
+        "name": "roadmap_next",
+        "at": {
+          "line": 228,
+          "text": "| `roadmap_add` / `roadmap_next` | A project roadmap stored in the Brain |"
+        }
+      },
+      {
+        "name": "semantic_search",
+        "at": {
+          "line": 225,
+          "text": "| `cache_get` / `cache_set` / `semantic_search` / `index_project` | Cache and semantic operations. Pass `org_id` on `cache_get` / `cache_set` to share the cache org-wide |"
+        }
+      },
+      {
+        "name": "session_end",
+        "at": {
+          "line": 162,
+          "text": "| **`session_end`** | Save what you built; extract lessons from the summary and the git log |"
+        }
+      },
+      {
+        "name": "session_start",
+        "at": {
+          "line": 47,
+          "text": "update is waiting, the first `session_start` of a session says so in one line."
+        }
+      },
+      {
+        "name": "skill_gaps",
+        "at": {
+          "line": 182,
+          "text": "| **`skill_gaps`** | Knowledge blind spots: unresolved failures, missing attribution |"
+        }
+      },
+      {
+        "name": "smart_recall",
+        "at": {
+          "line": 121,
+          "text": "3. When you ask for something, `smart_recall` looks up the lessons that match. It combines"
+        }
+      },
+      {
+        "name": "summary_chars",
+        "at": {
+          "line": 313,
+          "text": "`summary_chars`, 1200 characters by default) per indexed file, on your own EU instance."
+        }
+      },
+      {
+        "name": "team_assign_role",
+        "at": {
+          "line": 175,
+          "text": "| `team_assign_role` / `team_roster` / `team_whoami` | Roles (admin, reviewer, contributor, viewer), enforced once an admin is set |"
+        }
+      },
+      {
+        "name": "team_audit",
+        "at": {
+          "line": 176,
+          "text": "| `team_audit` | Admin-only governance trail: every role change and lesson confirmation |"
+        }
+      },
+      {
+        "name": "team_confirm",
+        "at": {
+          "line": 174,
+          "text": "| `team_confirm` | A reviewer confirms a lesson (senior or peer); confirmed lessons rank higher in recall |"
+        }
+      },
+      {
+        "name": "team_crystallize",
+        "at": {
+          "line": 186,
+          "text": "| `team_crystallize` | A Team Crystal: fixes that 2 or more teammates reached independently |"
+        }
+      },
+      {
+        "name": "team_expertise_map",
+        "at": {
+          "line": 179,
+          "text": "| **`team_expertise_map`** | The team's skills matrix in one table |"
+        }
+      },
+      {
+        "name": "team_learn",
+        "at": {
+          "line": 173,
+          "text": "| `team_learn` / `team_recall` | Share lessons across the team with author attribution |"
+        }
+      },
+      {
+        "name": "team_recall",
+        "at": {
+          "line": 173,
+          "text": "| `team_learn` / `team_recall` | Share lessons across the team with author attribution |"
+        }
+      },
+      {
+        "name": "team_roster",
+        "at": {
+          "line": 153,
+          "text": "Nothing is unreachable. The server dispatches by name, so `team_roster` called directly"
+        }
+      },
+      {
+        "name": "team_whoami",
+        "at": {
+          "line": 175,
+          "text": "| `team_assign_role` / `team_roster` / `team_whoami` | Roles (admin, reviewer, contributor, viewer), enforced once an admin is set |"
+        }
+      },
+      {
+        "name": "topic_prefix",
+        "at": {
+          "line": 215,
+          "text": "| **`brain_import`** | Import a shared Brain into yours: `topic_prefix`, `min_confidence`, `dry_run` |"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "cachly-mcp",
+    "version": "0.10.218"
+  },
+  "observed": {
+    "offered": [
+      "autopilot",
+      "brain_doctor",
+      "brain_from_git",
+      "brain_predict",
+      "brain_search",
+      "cache_get",
+      "cache_set",
+      "cachly_tool",
+      "causal_trace",
+      "forget_context",
+      "index_project",
+      "learn_from_attempts",
+      "list_remembered",
+      "recall_best_solution",
+      "recall_context",
+      "remember_context",
+      "roadmap_add",
+      "roadmap_list",
+      "roadmap_next",
+      "roadmap_update",
+      "semantic_search",
+      "session_end",
+      "session_handoff",
+      "session_start",
+      "smart_recall",
+      "team_learn",
+      "team_recall"
+    ],
+    "dnsNames": [
+      "api.cachly.dev",
+      "registry.npmjs.org"
+    ],
+    "tlsHosts": [
+      "registry.npmjs.org"
+    ],
+    "connectAttempts": [],
+    "programsStarted": [
+      "cachly-mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "autopilot",
+          "at": {
+            "line": 64,
+            "text": "npx @cachly-dev/mcp-server@latest autopilot"
+          }
+        },
+        {
+          "name": "brain_from_git",
+          "at": {
+            "line": 194,
+            "text": "| **`brain_from_git`** | Fill people, files and lessons from git history, incrementally |"
+          }
+        },
+        {
+          "name": "brain_predict",
+          "at": {
+            "line": 125,
+            "text": "5. Before a deploy, `brain_predict` lists failure patterns from past incidents."
+          }
+        },
+        {
+          "name": "cache_get",
+          "at": {
+            "line": 225,
+            "text": "| `cache_get` / `cache_set` / `semantic_search` / `index_project` | Cache and semantic operations. Pass `org_id` on `cache_get` / `cache_set` to share the cache org-wide |"
+          }
+        },
+        {
+          "name": "cache_set",
+          "at": {
+            "line": 225,
+            "text": "| `cache_get` / `cache_set` / `semantic_search` / `index_project` | Cache and semantic operations. Pass `org_id` on `cache_get` / `cache_set` to share the cache org-wide |"
+          }
+        },
+        {
+          "name": "cachly_tool",
+          "at": {
+            "line": 14,
+            "text": "by default and reaches the rest through one of them, `cachly_tool` (details under MCP"
+          }
+        },
+        {
+          "name": "causal_trace",
+          "at": {
+            "line": 123,
+            "text": "4. When an error appears, `causal_trace` walks from the symptom to the cause and to the fix"
+          }
+        },
+        {
+          "name": "index_project",
+          "at": {
+            "line": 136,
+            "text": "and `lessons.jsonl` (to reuse). Code excerpts are stored only if you call `index_project`"
+          }
+        },
+        {
+          "name": "learn_from_attempts",
+          "at": {
+            "line": 163,
+            "text": "| **`learn_from_attempts`** | Store a structured lesson after any fix, deploy or discovery (with `author`, `visibility`) |"
+          }
+        },
+        {
+          "name": "recall_best_solution",
+          "at": {
+            "line": 164,
+            "text": "| **`recall_best_solution`** | The known fix for a topic, with its success and failure history |"
+          }
+        },
+        {
+          "name": "remember_context",
+          "at": {
+            "line": 166,
+            "text": "| **`remember_context`** | Keep architecture findings, decisions and file summaries |"
+          }
+        },
+        {
+          "name": "roadmap_add",
+          "at": {
+            "line": 228,
+            "text": "| `roadmap_add` / `roadmap_next` | A project roadmap stored in the Brain |"
+          }
+        },
+        {
+          "name": "roadmap_next",
+          "at": {
+            "line": 228,
+            "text": "| `roadmap_add` / `roadmap_next` | A project roadmap stored in the Brain |"
+          }
+        },
+        {
+          "name": "semantic_search",
+          "at": {
+            "line": 225,
+            "text": "| `cache_get` / `cache_set` / `semantic_search` / `index_project` | Cache and semantic operations. Pass `org_id` on `cache_get` / `cache_set` to share the cache org-wide |"
+          }
+        },
+        {
+          "name": "session_end",
+          "at": {
+            "line": 162,
+            "text": "| **`session_end`** | Save what you built; extract lessons from the summary and the git log |"
+          }
+        },
+        {
+          "name": "session_start",
+          "at": {
+            "line": 47,
+            "text": "update is waiting, the first `session_start` of a session says so in one line."
+          }
+        },
+        {
+          "name": "smart_recall",
+          "at": {
+            "line": 121,
+            "text": "3. When you ask for something, `smart_recall` looks up the lessons that match. It combines"
+          }
+        },
+        {
+          "name": "team_learn",
+          "at": {
+            "line": 173,
+            "text": "| `team_learn` / `team_recall` | Share lessons across the team with author attribution |"
+          }
+        },
+        {
+          "name": "team_recall",
+          "at": {
+            "line": 173,
+            "text": "| `team_learn` / `team_recall` | Share lessons across the team with author attribution |"
+          }
+        }
+      ],
+      "undocumented": [
+        {
+          "name": "brain_doctor",
+          "evidence": [
+            "offered in tools/list by @cachly-dev/mcp-server@0.10.218",
+            "absent from README.md (504 lines, sha256 529996528a0c…): no whole-word match for \"brain_doctor\""
+          ]
+        },
+        {
+          "name": "brain_search",
+          "evidence": [
+            "offered in tools/list by @cachly-dev/mcp-server@0.10.218",
+            "absent from README.md (504 lines, sha256 529996528a0c…): no whole-word match for \"brain_search\""
+          ]
+        },
+        {
+          "name": "forget_context",
+          "evidence": [
+            "offered in tools/list by @cachly-dev/mcp-server@0.10.218",
+            "absent from README.md (504 lines, sha256 529996528a0c…): no whole-word match for \"forget_context\""
+          ]
+        },
+        {
+          "name": "list_remembered",
+          "evidence": [
+            "offered in tools/list by @cachly-dev/mcp-server@0.10.218",
+            "absent from README.md (504 lines, sha256 529996528a0c…): no whole-word match for \"list_remembered\""
+          ]
+        },
+        {
+          "name": "recall_context",
+          "evidence": [
+            "offered in tools/list by @cachly-dev/mcp-server@0.10.218",
+            "absent from README.md (504 lines, sha256 529996528a0c…): no whole-word match for \"recall_context\""
+          ]
+        },
+        {
+          "name": "roadmap_list",
+          "evidence": [
+            "offered in tools/list by @cachly-dev/mcp-server@0.10.218",
+            "absent from README.md (504 lines, sha256 529996528a0c…): no whole-word match for \"roadmap_list\""
+          ]
+        },
+        {
+          "name": "roadmap_update",
+          "evidence": [
+            "offered in tools/list by @cachly-dev/mcp-server@0.10.218",
+            "absent from README.md (504 lines, sha256 529996528a0c…): no whole-word match for \"roadmap_update\""
+          ]
+        },
+        {
+          "name": "session_handoff",
+          "evidence": [
+            "offered in tools/list by @cachly-dev/mcp-server@0.10.218",
+            "absent from README.md (504 lines, sha256 529996528a0c…): no whole-word match for \"session_handoff\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "api.cachly.dev",
+          "at": {
+            "line": 432,
+            "text": "`api.cachly.dev`:"
+          }
+        },
+        {
+          "host": "bench.md",
+          "at": {
+            "line": 278,
+            "text": "The method behind `bench` is described in [BENCH.md](./BENCH.md)."
+          }
+        },
+        {
+          "host": "cachly-ambient.json",
+          "at": {
+            "line": 342,
+            "text": "… **VS Code + Copilot** | yes, detected via `.vscode/` | `.vscode/mcp.json`, hooks in `.github/hooks/cachly-ambient.json` | no | Needs the VS Code MCP support or Copilot chat. Briefing at session start…"
+          }
+        },
+        {
+          "host": "cachly-dev.cachly",
+          "at": {
+            "line": 83,
+            "text": "Install **[cachly Brain](https://marketplace.visualstudio.com/items?itemName=cachly-dev.cachly-brain)**."
+          }
+        },
+        {
+          "host": "cachly.dev",
+          "at": {
+            "line": 11,
+            "text": "`@cachly-dev/mcp-server` connects [cachly](https://cachly.dev) to Claude Code, Cursor,"
+          }
+        },
+        {
+          "host": "cachly.gitlab-ci.yml",
+          "at": {
+            "line": 292,
+            "text": "[GitLab template](https://github.com/cachly-dev/cachly-action/blob/main/templates/cachly.gitlab-ci.yml)"
+          }
+        },
+        {
+          "host": "cachly.mycorp.internal",
+          "at": {
+            "line": 436,
+            "text": "npx @cachly-dev/mcp-server@latest autopilot --api-url https://cachly.mycorp.internal"
+          }
+        },
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 494,
+            "text": "- [Release notes](./CHANGELOG.md)"
+          }
+        },
+        {
+          "host": "config.json",
+          "at": {
+            "line": 346,
+            "text": "| **Continue.dev** | yes, detected via `.continue/` | `.continue/config.json` | no | Uses the `modelContextProtocolServers` key |"
+          }
+        },
+        {
+          "host": "config.toml",
+          "at": {
+            "line": 343,
+            "text": "| **Codex CLI** | yes, detected via `~/.codex` | `.codex/config.toml` (`[mcp_servers.cachly]`), hooks in `.codex/hooks.json` | no | Codex loads both once you trust the folder; confirm the hook once in…"
+          }
+        },
+        {
+          "host": "continue.dev",
+          "at": {
+            "line": 12,
+            "text": "GitHub Copilot, Windsurf, Cline, Continue.dev, Zed, Codex CLI and Gemini CLI over"
+          }
+        },
+        {
+          "host": "credentials.json",
+          "at": {
+            "line": 240,
+            "text": "instance come from the environment or from `~/.cachly/credentials.json`, the file `autopilot` writes."
+          }
+        },
+        {
+          "host": "example.com",
+          "at": {
+            "line": 309,
+            "text": "`npx @cachly-dev/mcp-server@latest invite teammate@example.com`."
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 91,
+            "text": "[cachly-dev/cachly-intellij](https://github.com/cachly-dev/cachly-intellij). The"
+          }
+        },
+        {
+          "host": "hooks.json",
+          "at": {
+            "line": 340,
+            "text": "| **Cursor** | yes, detected via `.cursor/` | `.cursor/mcp.json`, hooks in `.cursor/hooks.json` | no | Project-level; restart Cursor after setup. Lessons arrive with the first tool call of a turn |"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 8,
+            "text": "[![npm version](https://img.shields.io/npm/v/@cachly-dev/mcp-server?color=violet&logo=npm)](https://www.npmjs.com/package/@cachly-dev/mcp-server)"
+          }
+        },
+        {
+          "host": "io.github.cachly",
+          "at": {
+            "line": 99,
+            "text": "`io.github.cachly-dev/mcp-server`. Clients that browse the registry find it by name. The"
+          }
+        },
+        {
+          "host": "lessons.jsonl",
+          "at": {
+            "line": 136,
+            "text": "and `lessons.jsonl` (to reuse). Code excerpts are stored only if you call `index_project`"
+          }
+        },
+        {
+          "host": "lessons.md",
+          "at": {
+            "line": 111,
+            "text": "…ts](https://cachly.dev/docs/coding-agent-lessons-learned) | How to write a lesson your agent finds again: symptom, decisive fact first, what failed, files, a check. With examples and a `LESSONS.md`. |"
+          }
+        },
+        {
+          "host": "marketplace.visualstudio.com",
+          "at": {
+            "line": 83,
+            "text": "Install **[cachly Brain](https://marketplace.visualstudio.com/items?itemName=cachly-dev.cachly-brain)**."
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 339,
+            "text": "| **Claude Code** | yes | `~/.claude/mcp.json` + `.mcp.json` | yes, always | Without a key: test Brain at session start (plugin) or on the first tool call; browser sign-in only as fallback |"
+          }
+        },
+        {
+          "host": "mcpservers.cachly",
+          "at": {
+            "line": 344,
+            "text": "| **Gemini CLI** | yes, detected via `~/.gemini` | `mcpServers.cachly` and `hooks` in `.gemini/settings.json` | no | Gemini loads both once you trust the folder. Lessons are appended to the prompt (`B…"
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 13,
+            "text": "[MCP](https://modelcontextprotocol.io). It offers 124 MCP tools. Your editor lists 27 entries"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 296,
+            "text": "standalone Node.js helper with no dependencies. It always exits 0, so your CI never"
+          }
+        },
+        {
+          "host": "plugins.jetbrains.com",
+          "at": {
+            "line": 88,
+            "text": "Install **[Cachly Brain](https://plugins.jetbrains.com/plugin/32059-cachly-brain)**"
+          }
+        },
+        {
+          "host": "push-ci-outcome.mjs",
+          "at": {
+            "line": 295,
+            "text": "- **Anything else:** [`push-ci-outcome.mjs`](./src/ci-integration/push-ci-outcome.mjs) is a"
+          }
+        },
+        {
+          "host": "registry.modelcontextprotocol.io",
+          "at": {
+            "line": 98,
+            "text": "**[MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=cachly)** as"
+          }
+        },
+        {
+          "host": "settings.json",
+          "at": {
+            "line": 344,
+            "text": "| **Gemini CLI** | yes, detected via `~/.gemini` | `mcpServers.cachly` and `hooks` in `.gemini/settings.json` | no | Gemini loads both once you trust the folder. Lessons are appended to the prompt (`B…"
+          }
+        },
+        {
+          "host": "shot3-lesson-card.png",
+          "at": {
+            "line": 489,
+            "text": "![The Lessons view inside the Cachly Brain VS Code extension, listing six stored lessons](https://cachly.dev/screenshots/vscode/shot3-lesson-card.png)"
+          }
+        },
+        {
+          "host": "tools.ts",
+          "at": {
+            "line": 231,
+            "text": "[`src/tools.ts`](./src/tools.ts)."
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 8,
+            "text": "[![npm version](https://img.shields.io/npm/v/@cachly-dev/mcp-server?color=violet&logo=npm)](https://www.npmjs.com/package/@cachly-dev/mcp-server)"
+          }
+        }
+      ],
+      "undeclared": [
+        {
+          "host": "registry.npmjs.org",
+          "evidence": [
+            "looked up \"registry.npmjs.org\" during the run; answered 127.0.0.1, so nothing left the machine",
+            "opened TLS with SNI \"registry.npmjs.org\"; the bytes are encrypted and were not seen",
+            "absent from README.md (504 lines, sha256 529996528a0c…): the README does not contain this hostname"
+          ]
+        }
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at _ (file:///srv/brydge-measure/cachly-dev--mcp-server-1793454663455/install/node_modules/@cachly-dev/mcp-server/dist/src/editor.js:1:46) read 13 variables"
+      ]
+    },
+    {
+      "id": "credential:note:looked",
+      "kind": "credential",
+      "security": false,
+      "says": "Looked for credential-like variables we did not plant: CACHLY_API_KEY, CACHLY_CLIENT_SECRET, TELEGRAM_BOT_TOKEN. Reported for completeness; not counted as a credential read.",
+      "evidence": [
+        "no planted secret was behind these names"
+      ]
+    },
+    {
+      "id": "network:dns",
+      "kind": "network",
+      "security": false,
+      "says": "Looked up 1 name(s) not in its declared destinations: registry.npmjs.org.",
+      "evidence": [
+        "every lookup was answered with 127.0.0.1; nothing left the machine"
+      ]
+    },
+    {
+      "id": "network:tls",
+      "kind": "network",
+      "security": false,
+      "says": "Opened TLS to registry.npmjs.org. The bytes it would have sent are encrypted and were NOT seen — a limit of the method.",
+      "evidence": [
+        "SNI registry.npmjs.org"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @cachly-dev/mcp-server@0.10.218",
+        "integrity sha512-/wjnxdUNCgcWUOWYZ5QcA1Z2Wqm2Jzj3Ws5cYoB7FnLSnFAsgnOer6iuL7rSFC5G/+c+BSDYxIgejIMMX2aWpg==",
+        "tarball https://registry.npmjs.org/@cachly-dev/mcp-server/-/mcp-server-0.10.218.tgz"
+      ]
+    }
+  ]
+}

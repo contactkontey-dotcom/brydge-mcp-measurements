@@ -1,8 +1,8 @@
 {
   "level": 1,
   "notCalibrationBacked": true,
-  "asked": "@playwright/mcp@0.0.83",
-  "measuredAt": "2026-10-30T10:01:54.460Z",
+  "asked": "playwright-mcp@0.0.19",
+  "measuredAt": "2026-10-31T14:21:28.873Z",
   "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "standard": {
     "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
@@ -52,469 +52,96 @@
   ],
   "slug": "playwright-mcp",
   "package": {
-    "name": "@playwright/mcp",
-    "version": "0.0.83",
-    "tarball": "https://registry.npmjs.org/@playwright/mcp/-/mcp-0.0.83.tgz",
-    "integrity": "sha512-oNcl+Ae2/IAjhfPeP46BfIkSakfmprY+aOtkv5MjrQ4lPav4/yNtPhL0iq8SlIM90oApWgBDUxaNKvktazUKOg=="
+    "name": "playwright-mcp",
+    "version": "0.0.19",
+    "tarball": "https://registry.npmjs.org/playwright-mcp/-/playwright-mcp-0.0.19.tgz",
+    "integrity": "sha512-KzqO66bShWvXQU7pGrb/NkQ3pQKRAxOK5H+tHVUCBv/0X+2fcV7AJrsgr97BOAo5dv+/7ZrNK6o7aMkMJ/MMmA==",
+    "repository": "git+https://github.com/Ashish-Bansal/playwright-mcp.git",
+    "homepage": "https://github.com/Ashish-Bansal/playwright-mcp#readme"
   },
   "readme": {
     "file": "README.md",
-    "digest": "b33aa71a13d655e96e6b736d0c9de1e5ddea52f205916ca20b876387ff830e87",
-    "lines": 1663,
-    "bytes": 66837
+    "digest": "49032bf0fc7e717b5eb65a1e532ac7df66f6683eeb4a3ecad43b41be2f26a9a4",
+    "lines": 142,
+    "bytes": 6427
   },
   "readmeNotes": [],
   "declaration": {
     "hosts": [
       {
-        "host": "add-to-kiro.svg",
+        "host": "ashish-bansal.github.io",
         "at": {
-          "line": 293,
-          "text": "[![Add to Kiro](https://kiro.dev/images/add-to-kiro.svg)](https://kiro.dev/launch/mcp/add?name=playwright&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22%40playwright%2Fmcp%40latest%22%5D%7D…"
+          "line": 3,
+          "text": "…//img.shields.io/npm/v/playwright-mcp)](https://www.npmjs.com/package/playwright-mcp) [![Docs](https://img.shields.io/badge/docs-playwright--mcp-blue)](https://ashish-bansal.github.io/playwright-mcp/)"
         }
       },
       {
-        "host": "amp.mcpservers",
+        "host": "cursor-add-mcp.png",
         "at": {
-          "line": 55,
-          "text": "\"amp.mcpServers\": {"
-        }
-      },
-      {
-        "host": "block.github.io",
-        "at": {
-          "line": 233,
-          "text": "[![Install in Goose](https://block.github.io/goose/img/extension-install-dark.svg)](https://block.github.io/goose/extension?cmd=npx&arg=%40playwright%2Fmcp%40latest&id=playwright&name=Playwright&descr…"
-        }
-      },
-      {
-        "host": "chromium.org",
-        "at": {
-          "line": 443,
-          "text": "| --proxy-bypass <bypass> | comma-separated domains to bypass proxy, for example \".com,chromium.org,.domain.com\"<br>*env* `PLAYWRIGHT_MCP_PROXY_BYPASS` |"
-        }
-      },
-      {
-        "host": "cli.js",
-        "at": {
-          "line": 851,
-          "text": "/app/cli.js --headless --browser chromium --no-sandbox --port 8931 --host 0.0.0.0"
-        }
-      },
-      {
-        "host": "code.visualstudio.com",
-        "at": {
-          "line": 363,
-          "text": "Follow the MCP install [guide](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server), use the standard config above. You can also install the Playwright MCP server using the …"
-        }
-      },
-      {
-        "host": "config.json",
-        "at": {
-          "line": 330,
-          "text": "\"$schema\": \"https://opencode.ai/config.json\","
-        }
-      },
-      {
-        "host": "config.md",
-        "at": {
-          "line": 157,
-          "text": "For more information, see the [Codex MCP documentation](https://github.com/openai/codex/blob/main/codex-rs/config.md#mcp_servers)."
-        }
-      },
-      {
-        "host": "config.toml",
-        "at": {
-          "line": 149,
-          "text": "Alternatively, create or edit the configuration file `~/.codex/config.toml` and add:"
-        }
-      },
-      {
-        "host": "connection.connect",
-        "at": {
-          "line": 878,
-          "text": "await connection.connect(transport);"
-        }
-      },
-      {
-        "host": "cursor.com",
-        "at": {
-          "line": 198,
-          "text": "[<img src=\"https://cursor.com/deeplink/mcp-install-dark.svg\" alt=\"Install in Cursor\">](https://cursor.com/en/install-mcp?name=Playwright&config=eyJjb21tYW5kIjoibnB4IEBwbGF5d3JpZ2h0L21jcEBsYXRlc3QifQ%3…"
-        }
-      },
-      {
-        "host": "docs.cline.bot",
-        "at": {
-          "line": 115,
-          "text": "Follow the instruction in the section [Configuring MCP Servers](https://docs.cline.bot/mcp/configuring-mcp-servers)"
-        }
-      },
-      {
-        "host": "docs.factory.ai",
-        "at": {
-          "line": 217,
-          "text": "For more information, see the [Factory MCP documentation](https://docs.factory.ai/cli/configuration/mcp)."
-        }
-      },
-      {
-        "host": "docs.github.com",
-        "at": {
-          "line": 189,
-          "text": "For more information, see the [Copilot CLI documentation](https://docs.github.com/en/copilot/concepts/agents/about-copilot-cli)."
-        }
-      },
-      {
-        "host": "docs.qodo.ai",
-        "at": {
-          "line": 349,
-          "text": "Open [Qodo Gen](https://docs.qodo.ai/qodo-documentation/qodo-gen) chat panel in VSCode or IntelliJ → Connect more tools → + Add new MCP → Paste the standard config above."
-        }
-      },
-      {
-        "host": "docs.warp.dev",
-        "at": {
-          "line": 376,
-          "text": "Go to `Settings` -> `AI` -> `Manage MCP Servers` -> `+ Add` to [add an MCP Server](https://docs.warp.dev/knowledge-and-collaboration/mcp#adding-an-mcp-server). Use the standard config above."
-        }
-      },
-      {
-        "host": "docs.windsurf.com",
-        "at": {
-          "line": 397,
-          "text": "Follow Windsurf MCP [documentation](https://docs.windsurf.com/windsurf/cascade/mcp). Use the standard config above."
-        }
-      },
-      {
-        "host": "docs.x.ai",
-        "at": {
-          "line": 257,
-          "text": "For more information, see the [Grok MCP documentation](https://docs.x.ai/build/features/mcp-servers)."
-        }
-      },
-      {
-        "host": "domain.com",
-        "at": {
-          "line": 443,
-          "text": "| --proxy-bypass <bypass> | comma-separated domains to bypass proxy, for example \".com,chromium.org,.domain.com\"<br>*env* `PLAYWRIGHT_MCP_PROXY_BYPASS` |"
-        }
-      },
-      {
-        "host": "element.getboundingclientrect",
-        "at": {
-          "line": 778,
-          "text": "* Coordinates are viewport-relative, in CSS pixels (Element.getBoundingClientRect)."
-        }
-      },
-      {
-        "host": "example.com",
-        "at": {
-          "line": 710,
-          "text": "* - Full origin: `https://example.com:8080` - matches only that origin"
-        }
-      },
-      {
-        "host": "example.spec.ts",
-        "at": {
-          "line": 1434,
-          "text": "- `location` (string, optional): Pause execution at a specific <file>:<line>, e.g. \"example.spec.ts:42\"."
-        }
-      },
-      {
-        "host": "extension-install-dark.svg",
-        "at": {
-          "line": 233,
-          "text": "[![Install in Goose](https://block.github.io/goose/img/extension-install-dark.svg)](https://block.github.io/goose/extension?cmd=npx&arg=%40playwright%2Fmcp%40latest&id=playwright&name=Playwright&descr…"
-        }
-      },
-      {
-        "host": "files.lmstudio.ai",
-        "at": {
-          "line": 316,
-          "text": "[![Add MCP Server playwright to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=playwright&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyJAcGxheXd…"
-        }
-      },
-      {
-        "host": "generate-links.js",
-        "at": {
-          "line": 25,
-          "text": "node utils/generate-links.js"
+          "line": 72,
+          "text": "![Connect playwright-mcp to cursor](https://github.com/Ashish-Bansal/playwright-mcp/blob/docs/static/img/cursor-add-mcp.png?raw=true)"
         }
       },
       {
         "host": "github.com",
         "at": {
-          "line": 7,
-          "text": "This package provides MCP interface into Playwright. If you are using a **coding agent**, you might benefit from using the [CLI+SKILLS](https://github.com/microsoft/playwright-cli) instead."
-        }
-      },
-      {
-        "host": "http.createserver",
-        "at": {
-          "line": 872,
-          "text": "http.createServer(async (req, res) => {"
+          "line": 72,
+          "text": "![Connect playwright-mcp to cursor](https://github.com/Ashish-Bansal/playwright-mcp/blob/docs/static/img/cursor-add-mcp.png?raw=true)"
         }
       },
       {
         "host": "img.shields.io",
         "at": {
-          "line": 47,
-          "text": "[<img src=\"https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF\" alt=\"Install in VS Code\">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstal…"
-        }
-      },
-      {
-        "host": "init-page.ts",
-        "at": {
-          "line": 526,
-          "text": "// init-page.ts"
-        }
-      },
-      {
-        "host": "init-script.js",
-        "at": {
-          "line": 538,
-          "text": "// init-script.js"
-        }
-      },
-      {
-        "host": "insiders.vscode.dev",
-        "at": {
-          "line": 47,
-          "text": "…e/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF\" alt=\"Install in VS Code\">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playw…"
-        }
-      },
-      {
-        "host": "junie-cli-mcp-configuration.html",
-        "at": {
-          "line": 286,
-          "text": "For more information, see the [Junie MCP configuration documentation](https://junie.jetbrains.com/docs/junie-cli-mcp-configuration.html)."
-        }
-      },
-      {
-        "host": "junie.jetbrains.com",
-        "at": {
-          "line": 286,
-          "text": "For more information, see the [Junie MCP configuration documentation](https://junie.jetbrains.com/docs/junie-cli-mcp-configuration.html)."
-        }
-      },
-      {
-        "host": "kiro.dev",
-        "at": {
-          "line": 293,
-          "text": "[![Add to Kiro](https://kiro.dev/images/add-to-kiro.svg)](https://kiro.dev/launch/mcp/add?name=playwright&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22%40playwright%2Fmcp%40latest%22%5D%7D…"
-        }
-      },
-      {
-        "host": "lmstudio.ai",
-        "at": {
-          "line": 316,
-          "text": "…[Add MCP Server playwright to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=playwright&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyJAcGxheXdya…"
-        }
-      },
-      {
-        "host": "mcp-config.json",
-        "at": {
-          "line": 170,
-          "text": "Alternatively, create or edit the configuration file `~/.copilot/mcp-config.json` and add:"
-        }
-      },
-      {
-        "host": "mcp-install-dark.svg",
-        "at": {
-          "line": 198,
-          "text": "[<img src=\"https://cursor.com/deeplink/mcp-install-dark.svg\" alt=\"Install in Cursor\">](https://cursor.com/en/install-mcp?name=Playwright&config=eyJjb21tYW5kIjoibnB4IEBwbGF5d3JpZ2h0L21jcEBsYXRlc3QifQ%3…"
-        }
-      },
-      {
-        "host": "mcp-install-light.svg",
-        "at": {
-          "line": 316,
-          "text": "[![Add MCP Server playwright to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=playwright&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyJAcGxheXd…"
-        }
-      },
-      {
-        "host": "mcp-server.md",
-        "at": {
-          "line": 224,
-          "text": "Follow the MCP install [guide](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md#configure-the-mcp-server-in-settingsjson), use the standard config above."
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/playwright-mcp)](https://www.npmjs.com/package/playwright-mcp) [![Docs](https://img.shields.io/badge/docs-playwright--mcp-blue)](https://ashish-bansal.gith…"
         }
       },
       {
         "host": "mcp.json",
         "at": {
-          "line": 270,
-          "text": "Alternatively, add to `.junie/mcp/mcp.json`:"
-        }
-      },
-      {
-        "host": "mcr.microsoft.com",
-        "at": {
-          "line": 837,
-          "text": "\"args\": [\"run\", \"-i\", \"--rm\", \"--init\", \"--pull=always\", \"mcr.microsoft.com/playwright/mcp\"]"
-        }
-      },
-      {
-        "host": "modelcontextprotocol.io",
-        "at": {
-          "line": 108,
-          "text": "Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user), use the standard config above."
+          "line": 78,
+          "text": "Note: If clicking on \"Add new MCP server\", opens a file(.cursor/mcp.json), Paste the following code and save:"
         }
       },
       {
         "host": "node.js",
         "at": {
-          "line": 20,
-          "text": "- Node.js 18 or newer"
+          "line": 52,
+          "text": "✅ Node.js installed on your system (because, well… it's an npm package)"
         }
       },
       {
-        "host": "opencode.ai",
-        "at": {
-          "line": 326,
-          "text": "Follow the MCP Servers [documentation](https://opencode.ai/docs/mcp-servers/). For example in `~/.config/opencode/opencode.json`:"
-        }
-      },
-      {
-        "host": "opencode.json",
-        "at": {
-          "line": 326,
-          "text": "Follow the MCP Servers [documentation](https://opencode.ai/docs/mcp-servers/). For example in `~/.config/opencode/opencode.json`:"
-        }
-      },
-      {
-        "host": "page.context",
-        "at": {
-          "line": 528,
-          "text": "await page.context().grantPermissions(['geolocation']);"
-        }
-      },
-      {
-        "host": "page.getbyrole",
-        "at": {
-          "line": 1086,
-          "text": "…oked with a single argument, page, which you can use for any page interaction. For example: `async (page) => { await page.getByRole('button', { name: 'Submit' }).click(); return await page.title(); }`"
-        }
-      },
-      {
-        "host": "page.setviewportsize",
-        "at": {
-          "line": 530,
-          "text": "await page.setViewportSize({ width: 1280, height: 720 });"
-        }
-      },
-      {
-        "host": "page.title",
-        "at": {
-          "line": 1086,
-          "text": "…oked with a single argument, page, which you can use for any page interaction. For example: `async (page) => { await page.getByRole('button', { name: 'Submit' }).click(); return await page.title(); }`"
-        }
-      },
-      {
-        "host": "playwright.browsercontextoptions",
-        "at": {
-          "line": 591,
-          "text": "contextOptions?: playwright.BrowserContextOptions;"
-        }
-      },
-      {
-        "host": "playwright.connectoptions",
-        "at": {
-          "line": 615,
-          "text": "remoteEndpoint?: string | playwright.ConnectOptions & { endpoint: string };"
-        }
-      },
-      {
-        "host": "playwright.dev",
+        "host": "www.npmjs.com",
         "at": {
           "line": 3,
-          "text": "…odel Context Protocol (MCP) server that provides browser automation capabilities using [Playwright](https://playwright.dev). This server enables LLMs to interact with web pages through structured acce…"
-        }
-      },
-      {
-        "host": "playwright.launchoptions",
-        "at": {
-          "line": 584,
-          "text": "launchOptions?: playwright.LaunchOptions;"
-        }
-      },
-      {
-        "host": "settings.json",
-        "at": {
-          "line": 52,
-          "text": "Add via the Amp VS Code extension settings screen or by updating your settings.json file:"
-        }
-      },
-      {
-        "host": "sse.js",
-        "at": {
-          "line": 870,
-          "text": "import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';"
-        }
-      },
-      {
-        "host": "storage.json",
-        "at": {
-          "line": 502,
-          "text": "\"--storage-state={path/to/storage.json}\""
-        }
-      },
-      {
-        "host": "update-readme.js",
-        "at": {
-          "line": 405,
-          "text": "<!--- Options generated by update-readme.js -->"
-        }
-      },
-      {
-        "host": "window.isplaywrightmcp",
-        "at": {
-          "line": 539,
-          "text": "window.isPlaywrightMCP = true;"
+          "text": "[![npm version](https://img.shields.io/npm/v/playwright-mcp)](https://www.npmjs.com/package/playwright-mcp) [![Docs](https://img.shields.io/badge/docs-playwright--mcp-blue)](https://ashish-bansal.gith…"
         }
       }
     ],
     "identifiers": [
       {
-        "name": "cline_mcp_settings",
+        "name": "claude_desktop_config",
         "at": {
-          "line": 119,
-          "text": "Add the following to your [`cline_mcp_settings.json`](https://docs.cline.bot/mcp/configuring-mcp-servers#editing-mcp-settings-files) file:"
+          "line": 108,
+          "text": "1. `%APPDATA%\\Claude\\claude_desktop_config.json`"
         }
       }
     ]
   },
   "couldNotStart": null,
   "serverInfo": {
-    "name": "Playwright",
-    "version": "1.64.0-alpha-1790635538000"
+    "name": "playwright",
+    "version": "1.0.0"
   },
   "observed": {
     "offered": [
-      "browser_click",
-      "browser_close",
-      "browser_console_messages",
-      "browser_drag",
-      "browser_drop",
-      "browser_emulate_media",
-      "browser_evaluate",
-      "browser_file_upload",
-      "browser_fill_form",
-      "browser_find",
-      "browser_handle_dialog",
-      "browser_hover",
-      "browser_navigate",
-      "browser_navigate_back",
-      "browser_network_request",
-      "browser_network_requests",
-      "browser_press_key",
-      "browser_resize",
-      "browser_run_code_unsafe",
-      "browser_select_option",
-      "browser_snapshot",
-      "browser_tabs",
-      "browser_take_screenshot",
-      "browser_type",
-      "browser_wait_for"
+      "execute-code",
+      "get-full-dom",
+      "get-full-snapshot",
+      "get-interactive-snapshot",
+      "get-screenshot",
+      "get-text-snapshot",
+      "init-browser"
     ],
     "dnsNames": [],
     "tlsHosts": [],
@@ -532,178 +159,52 @@
       "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
       "documented": [
         {
-          "name": "browser_click",
+          "name": "execute-code",
           "at": {
-            "line": 894,
-            "text": "- **browser_click**"
+            "line": 136,
+            "text": "7. `execute-code` → Run custom Playwright JavaScript code against the page"
           }
         },
         {
-          "name": "browser_close",
+          "name": "get-full-dom",
           "at": {
-            "line": 907,
-            "text": "- **browser_close**"
+            "line": 135,
+            "text": "6. `get-full-dom` → Get raw HTML DOM (deprecated - use snapshot tools instead)"
           }
         },
         {
-          "name": "browser_console_messages",
+          "name": "get-full-snapshot",
           "at": {
-            "line": 915,
-            "text": "- **browser_console_messages**"
+            "line": 132,
+            "text": "3. `get-full-snapshot` → Get complete page snapshot including all visible content for full context understanding"
           }
         },
         {
-          "name": "browser_drag",
+          "name": "get-interactive-snapshot",
           "at": {
-            "line": 926,
-            "text": "- **browser_drag**"
+            "line": 131,
+            "text": "2. `get-interactive-snapshot` → Get focused snapshot of interactive elements (buttons, links, inputs) with annotated screenshot"
           }
         },
         {
-          "name": "browser_drop",
+          "name": "get-screenshot",
           "at": {
-            "line": 938,
-            "text": "- **browser_drop**"
+            "line": 134,
+            "text": "5. `get-screenshot` → Take a simple screenshot of the current page"
           }
         },
         {
-          "name": "browser_emulate_media",
+          "name": "get-text-snapshot",
           "at": {
-            "line": 950,
-            "text": "- **browser_emulate_media**"
+            "line": 133,
+            "text": "4. `get-text-snapshot` → Extract all text content from the page for reading and content analysis"
           }
         },
         {
-          "name": "browser_evaluate",
+          "name": "init-browser",
           "at": {
-            "line": 963,
-            "text": "- **browser_evaluate**"
-          }
-        },
-        {
-          "name": "browser_file_upload",
-          "at": {
-            "line": 975,
-            "text": "- **browser_file_upload**"
-          }
-        },
-        {
-          "name": "browser_fill_form",
-          "at": {
-            "line": 984,
-            "text": "- **browser_fill_form**"
-          }
-        },
-        {
-          "name": "browser_find",
-          "at": {
-            "line": 993,
-            "text": "- **browser_find**"
-          }
-        },
-        {
-          "name": "browser_handle_dialog",
-          "at": {
-            "line": 1004,
-            "text": "- **browser_handle_dialog**"
-          }
-        },
-        {
-          "name": "browser_hover",
-          "at": {
-            "line": 1014,
-            "text": "- **browser_hover**"
-          }
-        },
-        {
-          "name": "browser_navigate",
-          "at": {
-            "line": 1024,
-            "text": "- **browser_navigate**"
-          }
-        },
-        {
-          "name": "browser_navigate_back",
-          "at": {
-            "line": 1033,
-            "text": "- **browser_navigate_back**"
-          }
-        },
-        {
-          "name": "browser_network_request",
-          "at": {
-            "line": 1041,
-            "text": "- **browser_network_request**"
-          }
-        },
-        {
-          "name": "browser_network_requests",
-          "at": {
-            "line": 1052,
-            "text": "- **browser_network_requests**"
-          }
-        },
-        {
-          "name": "browser_press_key",
-          "at": {
-            "line": 1063,
-            "text": "- **browser_press_key**"
-          }
-        },
-        {
-          "name": "browser_resize",
-          "at": {
-            "line": 1072,
-            "text": "- **browser_resize**"
-          }
-        },
-        {
-          "name": "browser_run_code_unsafe",
-          "at": {
-            "line": 1082,
-            "text": "- **browser_run_code_unsafe**"
-          }
-        },
-        {
-          "name": "browser_select_option",
-          "at": {
-            "line": 1092,
-            "text": "- **browser_select_option**"
-          }
-        },
-        {
-          "name": "browser_snapshot",
-          "at": {
-            "line": 1103,
-            "text": "- **browser_snapshot**"
-          }
-        },
-        {
-          "name": "browser_tabs",
-          "at": {
-            "line": 1158,
-            "text": "- **browser_tabs**"
-          }
-        },
-        {
-          "name": "browser_take_screenshot",
-          "at": {
-            "line": 1115,
-            "text": "- **browser_take_screenshot**"
-          }
-        },
-        {
-          "name": "browser_type",
-          "at": {
-            "line": 1129,
-            "text": "- **browser_type**"
-          }
-        },
-        {
-          "name": "browser_wait_for",
-          "at": {
-            "line": 1142,
-            "text": "- **browser_wait_for**"
+            "line": 130,
+            "text": "1. `init-browser` → Initialize browser and navigate to a URL"
           }
         }
       ],
@@ -713,409 +214,52 @@
       "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
       "declared": [
         {
-          "host": "add-to-kiro.svg",
+          "host": "ashish-bansal.github.io",
           "at": {
-            "line": 293,
-            "text": "[![Add to Kiro](https://kiro.dev/images/add-to-kiro.svg)](https://kiro.dev/launch/mcp/add?name=playwright&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22%40playwright%2Fmcp%40latest%22%5D%7D…"
+            "line": 3,
+            "text": "…//img.shields.io/npm/v/playwright-mcp)](https://www.npmjs.com/package/playwright-mcp) [![Docs](https://img.shields.io/badge/docs-playwright--mcp-blue)](https://ashish-bansal.github.io/playwright-mcp/)"
           }
         },
         {
-          "host": "amp.mcpservers",
+          "host": "cursor-add-mcp.png",
           "at": {
-            "line": 55,
-            "text": "\"amp.mcpServers\": {"
-          }
-        },
-        {
-          "host": "block.github.io",
-          "at": {
-            "line": 233,
-            "text": "[![Install in Goose](https://block.github.io/goose/img/extension-install-dark.svg)](https://block.github.io/goose/extension?cmd=npx&arg=%40playwright%2Fmcp%40latest&id=playwright&name=Playwright&descr…"
-          }
-        },
-        {
-          "host": "chromium.org",
-          "at": {
-            "line": 443,
-            "text": "| --proxy-bypass <bypass> | comma-separated domains to bypass proxy, for example \".com,chromium.org,.domain.com\"<br>*env* `PLAYWRIGHT_MCP_PROXY_BYPASS` |"
-          }
-        },
-        {
-          "host": "cli.js",
-          "at": {
-            "line": 851,
-            "text": "/app/cli.js --headless --browser chromium --no-sandbox --port 8931 --host 0.0.0.0"
-          }
-        },
-        {
-          "host": "code.visualstudio.com",
-          "at": {
-            "line": 363,
-            "text": "Follow the MCP install [guide](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server), use the standard config above. You can also install the Playwright MCP server using the …"
-          }
-        },
-        {
-          "host": "config.json",
-          "at": {
-            "line": 330,
-            "text": "\"$schema\": \"https://opencode.ai/config.json\","
-          }
-        },
-        {
-          "host": "config.md",
-          "at": {
-            "line": 157,
-            "text": "For more information, see the [Codex MCP documentation](https://github.com/openai/codex/blob/main/codex-rs/config.md#mcp_servers)."
-          }
-        },
-        {
-          "host": "config.toml",
-          "at": {
-            "line": 149,
-            "text": "Alternatively, create or edit the configuration file `~/.codex/config.toml` and add:"
-          }
-        },
-        {
-          "host": "connection.connect",
-          "at": {
-            "line": 878,
-            "text": "await connection.connect(transport);"
-          }
-        },
-        {
-          "host": "cursor.com",
-          "at": {
-            "line": 198,
-            "text": "[<img src=\"https://cursor.com/deeplink/mcp-install-dark.svg\" alt=\"Install in Cursor\">](https://cursor.com/en/install-mcp?name=Playwright&config=eyJjb21tYW5kIjoibnB4IEBwbGF5d3JpZ2h0L21jcEBsYXRlc3QifQ%3…"
-          }
-        },
-        {
-          "host": "docs.cline.bot",
-          "at": {
-            "line": 115,
-            "text": "Follow the instruction in the section [Configuring MCP Servers](https://docs.cline.bot/mcp/configuring-mcp-servers)"
-          }
-        },
-        {
-          "host": "docs.factory.ai",
-          "at": {
-            "line": 217,
-            "text": "For more information, see the [Factory MCP documentation](https://docs.factory.ai/cli/configuration/mcp)."
-          }
-        },
-        {
-          "host": "docs.github.com",
-          "at": {
-            "line": 189,
-            "text": "For more information, see the [Copilot CLI documentation](https://docs.github.com/en/copilot/concepts/agents/about-copilot-cli)."
-          }
-        },
-        {
-          "host": "docs.qodo.ai",
-          "at": {
-            "line": 349,
-            "text": "Open [Qodo Gen](https://docs.qodo.ai/qodo-documentation/qodo-gen) chat panel in VSCode or IntelliJ → Connect more tools → + Add new MCP → Paste the standard config above."
-          }
-        },
-        {
-          "host": "docs.warp.dev",
-          "at": {
-            "line": 376,
-            "text": "Go to `Settings` -> `AI` -> `Manage MCP Servers` -> `+ Add` to [add an MCP Server](https://docs.warp.dev/knowledge-and-collaboration/mcp#adding-an-mcp-server). Use the standard config above."
-          }
-        },
-        {
-          "host": "docs.windsurf.com",
-          "at": {
-            "line": 397,
-            "text": "Follow Windsurf MCP [documentation](https://docs.windsurf.com/windsurf/cascade/mcp). Use the standard config above."
-          }
-        },
-        {
-          "host": "docs.x.ai",
-          "at": {
-            "line": 257,
-            "text": "For more information, see the [Grok MCP documentation](https://docs.x.ai/build/features/mcp-servers)."
-          }
-        },
-        {
-          "host": "domain.com",
-          "at": {
-            "line": 443,
-            "text": "| --proxy-bypass <bypass> | comma-separated domains to bypass proxy, for example \".com,chromium.org,.domain.com\"<br>*env* `PLAYWRIGHT_MCP_PROXY_BYPASS` |"
-          }
-        },
-        {
-          "host": "element.getboundingclientrect",
-          "at": {
-            "line": 778,
-            "text": "* Coordinates are viewport-relative, in CSS pixels (Element.getBoundingClientRect)."
-          }
-        },
-        {
-          "host": "example.com",
-          "at": {
-            "line": 710,
-            "text": "* - Full origin: `https://example.com:8080` - matches only that origin"
-          }
-        },
-        {
-          "host": "example.spec.ts",
-          "at": {
-            "line": 1434,
-            "text": "- `location` (string, optional): Pause execution at a specific <file>:<line>, e.g. \"example.spec.ts:42\"."
-          }
-        },
-        {
-          "host": "extension-install-dark.svg",
-          "at": {
-            "line": 233,
-            "text": "[![Install in Goose](https://block.github.io/goose/img/extension-install-dark.svg)](https://block.github.io/goose/extension?cmd=npx&arg=%40playwright%2Fmcp%40latest&id=playwright&name=Playwright&descr…"
-          }
-        },
-        {
-          "host": "files.lmstudio.ai",
-          "at": {
-            "line": 316,
-            "text": "[![Add MCP Server playwright to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=playwright&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyJAcGxheXd…"
-          }
-        },
-        {
-          "host": "generate-links.js",
-          "at": {
-            "line": 25,
-            "text": "node utils/generate-links.js"
+            "line": 72,
+            "text": "![Connect playwright-mcp to cursor](https://github.com/Ashish-Bansal/playwright-mcp/blob/docs/static/img/cursor-add-mcp.png?raw=true)"
           }
         },
         {
           "host": "github.com",
           "at": {
-            "line": 7,
-            "text": "This package provides MCP interface into Playwright. If you are using a **coding agent**, you might benefit from using the [CLI+SKILLS](https://github.com/microsoft/playwright-cli) instead."
-          }
-        },
-        {
-          "host": "http.createserver",
-          "at": {
-            "line": 872,
-            "text": "http.createServer(async (req, res) => {"
+            "line": 72,
+            "text": "![Connect playwright-mcp to cursor](https://github.com/Ashish-Bansal/playwright-mcp/blob/docs/static/img/cursor-add-mcp.png?raw=true)"
           }
         },
         {
           "host": "img.shields.io",
           "at": {
-            "line": 47,
-            "text": "[<img src=\"https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF\" alt=\"Install in VS Code\">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstal…"
-          }
-        },
-        {
-          "host": "init-page.ts",
-          "at": {
-            "line": 526,
-            "text": "// init-page.ts"
-          }
-        },
-        {
-          "host": "init-script.js",
-          "at": {
-            "line": 538,
-            "text": "// init-script.js"
-          }
-        },
-        {
-          "host": "insiders.vscode.dev",
-          "at": {
-            "line": 47,
-            "text": "…e/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF\" alt=\"Install in VS Code\">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playw…"
-          }
-        },
-        {
-          "host": "junie-cli-mcp-configuration.html",
-          "at": {
-            "line": 286,
-            "text": "For more information, see the [Junie MCP configuration documentation](https://junie.jetbrains.com/docs/junie-cli-mcp-configuration.html)."
-          }
-        },
-        {
-          "host": "junie.jetbrains.com",
-          "at": {
-            "line": 286,
-            "text": "For more information, see the [Junie MCP configuration documentation](https://junie.jetbrains.com/docs/junie-cli-mcp-configuration.html)."
-          }
-        },
-        {
-          "host": "kiro.dev",
-          "at": {
-            "line": 293,
-            "text": "[![Add to Kiro](https://kiro.dev/images/add-to-kiro.svg)](https://kiro.dev/launch/mcp/add?name=playwright&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22%40playwright%2Fmcp%40latest%22%5D%7D…"
-          }
-        },
-        {
-          "host": "lmstudio.ai",
-          "at": {
-            "line": 316,
-            "text": "…[Add MCP Server playwright to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=playwright&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyJAcGxheXdya…"
-          }
-        },
-        {
-          "host": "mcp-config.json",
-          "at": {
-            "line": 170,
-            "text": "Alternatively, create or edit the configuration file `~/.copilot/mcp-config.json` and add:"
-          }
-        },
-        {
-          "host": "mcp-install-dark.svg",
-          "at": {
-            "line": 198,
-            "text": "[<img src=\"https://cursor.com/deeplink/mcp-install-dark.svg\" alt=\"Install in Cursor\">](https://cursor.com/en/install-mcp?name=Playwright&config=eyJjb21tYW5kIjoibnB4IEBwbGF5d3JpZ2h0L21jcEBsYXRlc3QifQ%3…"
-          }
-        },
-        {
-          "host": "mcp-install-light.svg",
-          "at": {
-            "line": 316,
-            "text": "[![Add MCP Server playwright to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=playwright&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyJAcGxheXd…"
-          }
-        },
-        {
-          "host": "mcp-server.md",
-          "at": {
-            "line": 224,
-            "text": "Follow the MCP install [guide](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md#configure-the-mcp-server-in-settingsjson), use the standard config above."
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/playwright-mcp)](https://www.npmjs.com/package/playwright-mcp) [![Docs](https://img.shields.io/badge/docs-playwright--mcp-blue)](https://ashish-bansal.gith…"
           }
         },
         {
           "host": "mcp.json",
           "at": {
-            "line": 270,
-            "text": "Alternatively, add to `.junie/mcp/mcp.json`:"
-          }
-        },
-        {
-          "host": "mcr.microsoft.com",
-          "at": {
-            "line": 837,
-            "text": "\"args\": [\"run\", \"-i\", \"--rm\", \"--init\", \"--pull=always\", \"mcr.microsoft.com/playwright/mcp\"]"
-          }
-        },
-        {
-          "host": "modelcontextprotocol.io",
-          "at": {
-            "line": 108,
-            "text": "Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user), use the standard config above."
+            "line": 78,
+            "text": "Note: If clicking on \"Add new MCP server\", opens a file(.cursor/mcp.json), Paste the following code and save:"
           }
         },
         {
           "host": "node.js",
           "at": {
-            "line": 20,
-            "text": "- Node.js 18 or newer"
+            "line": 52,
+            "text": "✅ Node.js installed on your system (because, well… it's an npm package)"
           }
         },
         {
-          "host": "opencode.ai",
-          "at": {
-            "line": 326,
-            "text": "Follow the MCP Servers [documentation](https://opencode.ai/docs/mcp-servers/). For example in `~/.config/opencode/opencode.json`:"
-          }
-        },
-        {
-          "host": "opencode.json",
-          "at": {
-            "line": 326,
-            "text": "Follow the MCP Servers [documentation](https://opencode.ai/docs/mcp-servers/). For example in `~/.config/opencode/opencode.json`:"
-          }
-        },
-        {
-          "host": "page.context",
-          "at": {
-            "line": 528,
-            "text": "await page.context().grantPermissions(['geolocation']);"
-          }
-        },
-        {
-          "host": "page.getbyrole",
-          "at": {
-            "line": 1086,
-            "text": "…oked with a single argument, page, which you can use for any page interaction. For example: `async (page) => { await page.getByRole('button', { name: 'Submit' }).click(); return await page.title(); }`"
-          }
-        },
-        {
-          "host": "page.setviewportsize",
-          "at": {
-            "line": 530,
-            "text": "await page.setViewportSize({ width: 1280, height: 720 });"
-          }
-        },
-        {
-          "host": "page.title",
-          "at": {
-            "line": 1086,
-            "text": "…oked with a single argument, page, which you can use for any page interaction. For example: `async (page) => { await page.getByRole('button', { name: 'Submit' }).click(); return await page.title(); }`"
-          }
-        },
-        {
-          "host": "playwright.browsercontextoptions",
-          "at": {
-            "line": 591,
-            "text": "contextOptions?: playwright.BrowserContextOptions;"
-          }
-        },
-        {
-          "host": "playwright.connectoptions",
-          "at": {
-            "line": 615,
-            "text": "remoteEndpoint?: string | playwright.ConnectOptions & { endpoint: string };"
-          }
-        },
-        {
-          "host": "playwright.dev",
+          "host": "www.npmjs.com",
           "at": {
             "line": 3,
-            "text": "…odel Context Protocol (MCP) server that provides browser automation capabilities using [Playwright](https://playwright.dev). This server enables LLMs to interact with web pages through structured acce…"
-          }
-        },
-        {
-          "host": "playwright.launchoptions",
-          "at": {
-            "line": 584,
-            "text": "launchOptions?: playwright.LaunchOptions;"
-          }
-        },
-        {
-          "host": "settings.json",
-          "at": {
-            "line": 52,
-            "text": "Add via the Amp VS Code extension settings screen or by updating your settings.json file:"
-          }
-        },
-        {
-          "host": "sse.js",
-          "at": {
-            "line": 870,
-            "text": "import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';"
-          }
-        },
-        {
-          "host": "storage.json",
-          "at": {
-            "line": 502,
-            "text": "\"--storage-state={path/to/storage.json}\""
-          }
-        },
-        {
-          "host": "update-readme.js",
-          "at": {
-            "line": 405,
-            "text": "<!--- Options generated by update-readme.js -->"
-          }
-        },
-        {
-          "host": "window.isplaywrightmcp",
-          "at": {
-            "line": 539,
-            "text": "window.isPlaywrightMCP = true;"
+            "text": "[![npm version](https://img.shields.io/npm/v/playwright-mcp)](https://www.npmjs.com/package/playwright-mcp) [![Docs](https://img.shields.io/badge/docs-playwright--mcp-blue)](https://ashish-bansal.gith…"
           }
         }
       ],
@@ -1129,18 +273,9 @@
       "security": false,
       "says": "Copied the whole environment at 3 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
       "evidence": [
-        "at getFromENV (/srv/brydge-measure/playwright-mcp-1793354515558/install/node_modules/playwright-core/lib/coreBundle.js:8713:27) read 8 variables",
-        "at getFromENV (/srv/brydge-measure/playwright-mcp-1793354515558/install/node_modules/playwright-core/lib/coreBundle.js:8714:43) read 8 variables",
-        "at getFromENV (/srv/brydge-measure/playwright-mcp-1793354515558/install/node_modules/playwright-core/lib/coreBundle.js:8715:43) read 8 variables"
-      ]
-    },
-    {
-      "id": "credential:note:looked",
-      "kind": "credential",
-      "security": false,
-      "says": "Looked for credential-like variables we did not plant: PLAYWRIGHT_MCP_SECRETS_FILE. Reported for completeness; not counted as a credential read.",
-      "evidence": [
-        "no planted secret was behind these names"
+        "at getFromENV (/srv/brydge-measure/playwright-mcp-1793456490204/install/node_modules/playwright-core/lib/coreBundle.js:8836:27) read 8 variables",
+        "at getFromENV (/srv/brydge-measure/playwright-mcp-1793456490204/install/node_modules/playwright-core/lib/coreBundle.js:8837:43) read 8 variables",
+        "at getFromENV (/srv/brydge-measure/playwright-mcp-1793456490204/install/node_modules/playwright-core/lib/coreBundle.js:8838:43) read 8 variables"
       ]
     },
     {
@@ -1149,9 +284,9 @@
       "security": false,
       "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
       "evidence": [
-        "npm @playwright/mcp@0.0.83",
-        "integrity sha512-oNcl+Ae2/IAjhfPeP46BfIkSakfmprY+aOtkv5MjrQ4lPav4/yNtPhL0iq8SlIM90oApWgBDUxaNKvktazUKOg==",
-        "tarball https://registry.npmjs.org/@playwright/mcp/-/mcp-0.0.83.tgz"
+        "npm playwright-mcp@0.0.19",
+        "integrity sha512-KzqO66bShWvXQU7pGrb/NkQ3pQKRAxOK5H+tHVUCBv/0X+2fcV7AJrsgr97BOAo5dv+/7ZrNK6o7aMkMJ/MMmA==",
+        "tarball https://registry.npmjs.org/playwright-mcp/-/playwright-mcp-0.0.19.tgz"
       ]
     }
   ]

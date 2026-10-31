@@ -1,0 +1,752 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@godxjp/ui-mcp@33.26.0",
+  "measuredAt": "2026-10-31T13:54:32.166Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "godxjp--ui-mcp",
+  "package": {
+    "name": "@godxjp/ui-mcp",
+    "version": "33.26.0",
+    "tarball": "https://registry.npmjs.org/@godxjp/ui-mcp/-/ui-mcp-33.26.0.tgz",
+    "integrity": "sha512-bUwn6nnokMHgzsCn6/yaiVmk1qJsUzSsHWtFxOOEfjFFYgXkNPNQc9/aeSjrz2dg2H2D8knbsB8jlJkTgD3ODA==",
+    "repository": "git+https://github.com/godx-jp/godxjp-ui.git",
+    "homepage": "https://github.com/godx-jp/godxjp-ui/tree/main/mcp#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "c0c208d91cbebf3f425db2c40b41536211c15b2fb10fac6669169a6c5c7f7bf1",
+    "lines": 397,
+    "bytes": 20243
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "claude.json",
+        "at": {
+          "line": 81,
+          "text": "`~/.claude.json` (user-level) or `.mcp.json` at project root:"
+        }
+      },
+      {
+        "host": "claude.md",
+        "at": {
+          "line": 131,
+          "text": "`CLAUDE.md` and `.claude/settings.json` only from the directory it starts in (gh#1324). Two"
+        }
+      },
+      {
+        "host": "config.toml",
+        "at": {
+          "line": 143,
+          "text": "`~/.codex/config.toml`:"
+        }
+      },
+      {
+        "host": "config.yaml",
+        "at": {
+          "line": 187,
+          "text": "`~/.continue/config.yaml`:"
+        }
+      },
+      {
+        "host": "continue.dev",
+        "at": {
+          "line": 185,
+          "text": "### Continue.dev"
+        }
+      },
+      {
+        "host": "customer-theming.md",
+        "at": {
+          "line": 14,
+          "text": "complex-theme rules — see `docs/CUSTOMER-THEMING.md` · \"Building a COMPLEX theme\"; 51 is \"a"
+        }
+      },
+      {
+        "host": "design.md",
+        "at": {
+          "line": 253,
+          "text": "| `get_design`         | DESIGN.md: tokens, colour scarcity, admin screen anatomy, do/don't. Optional `section` returns one section                                    | ~1 KB / ~12 KB  |"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 3,
+          "text": "Model Context Protocol server for [`@godxjp/ui`](https://github.com/godx-jp/godxjp-ui)."
+        }
+      },
+      {
+        "host": "index.js",
+        "at": {
+          "line": 376,
+          "text": "echo '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}' | node dist/index.js"
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 57,
+          "text": "`node_modules` is not where this server is launched from. `.mcp.json` launches it by"
+        }
+      },
+      {
+        "host": "package.json",
+        "at": {
+          "line": 97,
+          "text": "line naming the server that produced it — read from this package's `package.json` — followed by the"
+        }
+      },
+      {
+        "host": "plan.md",
+        "at": {
+          "line": 385,
+          "text": "See `PLAN.md` for the full design decisions:"
+        }
+      },
+      {
+        "host": "readme.md",
+        "at": {
+          "line": 290,
+          "text": "discipline lives in the repo's `.claude/skills/` (see that folder's `README.md`)."
+        }
+      },
+      {
+        "host": "settings.json",
+        "at": {
+          "line": 131,
+          "text": "`CLAUDE.md` and `.claude/settings.json` only from the directory it starts in (gh#1324). Two"
+        }
+      },
+      {
+        "host": "skills-index.ts",
+        "at": {
+          "line": 388,
+          "text": "- Skill catalog mapped to `data/skills-index.ts` (compact metadata)"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "check_compatibility",
+        "at": {
+          "line": 272,
+          "text": "| `check_compatibility`  | Match/mismatch verdict: installed @godxjp/ui version vs this catalog   | ~500 B |"
+        }
+      },
+      {
+        "name": "cline_mcp_settings",
+        "at": {
+          "line": 171,
+          "text": "`cline_mcp_settings.json`:"
+        }
+      },
+      {
+        "name": "draft_bug_report",
+        "at": {
+          "line": 25,
+          "text": "that hides core library-maintenance skills, plus `draft_bug_report` for filing library bugs"
+        }
+      },
+      {
+        "name": "get_component",
+        "at": {
+          "line": 226,
+          "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+        }
+      },
+      {
+        "name": "get_consumer_skill",
+        "at": {
+          "line": 24,
+          "text": "- a consumer namespace (`list_consumer_skills` / `route_consumer_task` / `get_consumer_skill`)"
+        }
+      },
+      {
+        "name": "get_design",
+        "at": {
+          "line": 253,
+          "text": "| `get_design`         | DESIGN.md: tokens, colour scarcity, admin screen anatomy, do/don't. Optional `section` returns one section                                    | ~1 KB / ~12 KB  |"
+        }
+      },
+      {
+        "name": "get_exemplar",
+        "at": {
+          "line": 254,
+          "text": "| `get_exemplar`       | Reference screen for an archetype (list, detail, settings, dashboard, approval-queue): anatomy, showcase source, live preview URL             | ~8–30 KB        |"
+        }
+      },
+      {
+        "name": "get_frame_coverage",
+        "at": {
+          "line": 252,
+          "text": "| `get_frame_coverage` | Frame-contract coverage for one export (or the totals). Reports `UNTESTED` explicitly — never infers support from a happy-path example (#163) | ~1 KB           |"
+        }
+      },
+      {
+        "name": "get_pattern",
+        "at": {
+          "line": 226,
+          "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+        }
+      },
+      {
+        "name": "get_rule",
+        "at": {
+          "line": 226,
+          "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+        }
+      },
+      {
+        "name": "get_skill_section",
+        "at": {
+          "line": 28,
+          "text": "drill into ONE section at a time via `get_skill_section`. Average"
+        }
+      },
+      {
+        "name": "get_tokens",
+        "at": {
+          "line": 226,
+          "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+        }
+      },
+      {
+        "name": "get_vocab",
+        "at": {
+          "line": 226,
+          "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+        }
+      },
+      {
+        "name": "lint_jsx",
+        "at": {
+          "line": 226,
+          "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+        }
+      },
+      {
+        "name": "list_anti_ai_tells",
+        "at": {
+          "line": 237,
+          "text": "| `list_anti_ai_tells`   | 20+ AI-tell patterns. Optional `category` filter.                                                                                                            | ~2 KB  |"
+        }
+      },
+      {
+        "name": "list_audit_rules",
+        "at": {
+          "line": 239,
+          "text": "| `list_audit_rules`     | Local STATIC ui-audit rules (WCAG/ARIA/Intl/ISO/CSS-Logical) to run BEFORE a visual pass. Optional `category` filter.                                        | ~3 KB  |"
+        }
+      },
+      {
+        "name": "list_consumer_skills",
+        "at": {
+          "line": 24,
+          "text": "- a consumer namespace (`list_consumer_skills` / `route_consumer_task` / `get_consumer_skill`)"
+        }
+      },
+      {
+        "name": "list_patterns",
+        "at": {
+          "line": 236,
+          "text": "| `list_patterns`        | 7 canonical patterns + taglines                                                                                                                              | ~500 B |"
+        }
+      },
+      {
+        "name": "list_primitives",
+        "at": {
+          "line": 234,
+          "text": "| `list_primitives`      | All components, grouped + tagline. Optional `group` filter.                                                                                                  | ~3 KB  |"
+        }
+      },
+      {
+        "name": "list_redesign_checks",
+        "at": {
+          "line": 238,
+          "text": "| `list_redesign_checks` | 50+ audit checks + fix priority. Optional `category` filter.                                                                                                 | ~5 KB  |"
+        }
+      },
+      {
+        "name": "list_skills",
+        "at": {
+          "line": 233,
+          "text": "| `list_skills`          | 15 design skills (audience-tagged) + section ids                                                                                                             | ~1 KB  |"
+        }
+      },
+      {
+        "name": "list_utilities",
+        "at": {
+          "line": 235,
+          "text": "| `list_utilities`       | Every NON-component export — hooks, helper functions, constants (`cn`, `formatDate`, `toast`, `useDebouncedValue`, `CHART_COLORS`…). Optional `kind` filter. | ~2 KB  |"
+        }
+      },
+      {
+        "name": "list_visual_checks",
+        "at": {
+          "line": 240,
+          "text": "| `list_visual_checks`   | RUNTIME visual-audit checks (Playwright: contrast, target-size, chroma, emoji, banner anatomy). Optional `category` filter.                                  | ~2 KB  |"
+        }
+      },
+      {
+        "name": "node_modules",
+        "at": {
+          "line": 57,
+          "text": "`node_modules` is not where this server is launched from. `.mcp.json` launches it by"
+        }
+      },
+      {
+        "name": "route_consumer_task",
+        "at": {
+          "line": 24,
+          "text": "- a consumer namespace (`list_consumer_skills` / `route_consumer_task` / `get_consumer_skill`)"
+        }
+      },
+      {
+        "name": "route_task",
+        "at": {
+          "line": 260,
+          "text": "| `route_task`        | `{ skill, section, why, alsoSee }` for a natural-language task | ~300 B |"
+        }
+      },
+      {
+        "name": "search_components",
+        "at": {
+          "line": 262,
+          "text": "| `search_components` | Fuzzy-search by name / tagline / prop                          | ~1 KB  |"
+        }
+      },
+      {
+        "name": "suggest_primitive",
+        "at": {
+          "line": 261,
+          "text": "| `suggest_primitive` | Use case → recommended primitive + rationale                   | ~500 B |"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "godx-ui-mcp",
+    "version": "33.26.0"
+  },
+  "observed": {
+    "offered": [
+      "check_compatibility",
+      "draft_bug_report",
+      "get_anti_ai_tell",
+      "get_component",
+      "get_consumer_skill",
+      "get_design",
+      "get_exemplar",
+      "get_frame_coverage",
+      "get_pattern",
+      "get_redesign_check",
+      "get_rule",
+      "get_skill_section",
+      "get_tokens",
+      "get_vocab",
+      "lint_jsx",
+      "list_anti_ai_tells",
+      "list_audit_rules",
+      "list_consumer_skills",
+      "list_patterns",
+      "list_primitives",
+      "list_redesign_checks",
+      "list_skills",
+      "list_utilities",
+      "list_visual_checks",
+      "route_consumer_task",
+      "route_task",
+      "search_components",
+      "suggest_primitive"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "godx-ui-mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "check_compatibility",
+          "at": {
+            "line": 272,
+            "text": "| `check_compatibility`  | Match/mismatch verdict: installed @godxjp/ui version vs this catalog   | ~500 B |"
+          }
+        },
+        {
+          "name": "draft_bug_report",
+          "at": {
+            "line": 25,
+            "text": "that hides core library-maintenance skills, plus `draft_bug_report` for filing library bugs"
+          }
+        },
+        {
+          "name": "get_component",
+          "at": {
+            "line": 226,
+            "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+          }
+        },
+        {
+          "name": "get_consumer_skill",
+          "at": {
+            "line": 24,
+            "text": "- a consumer namespace (`list_consumer_skills` / `route_consumer_task` / `get_consumer_skill`)"
+          }
+        },
+        {
+          "name": "get_design",
+          "at": {
+            "line": 253,
+            "text": "| `get_design`         | DESIGN.md: tokens, colour scarcity, admin screen anatomy, do/don't. Optional `section` returns one section                                    | ~1 KB / ~12 KB  |"
+          }
+        },
+        {
+          "name": "get_exemplar",
+          "at": {
+            "line": 254,
+            "text": "| `get_exemplar`       | Reference screen for an archetype (list, detail, settings, dashboard, approval-queue): anatomy, showcase source, live preview URL             | ~8–30 KB        |"
+          }
+        },
+        {
+          "name": "get_frame_coverage",
+          "at": {
+            "line": 252,
+            "text": "| `get_frame_coverage` | Frame-contract coverage for one export (or the totals). Reports `UNTESTED` explicitly — never infers support from a happy-path example (#163) | ~1 KB           |"
+          }
+        },
+        {
+          "name": "get_pattern",
+          "at": {
+            "line": 214,
+            "text": "→ get_pattern name=\"app-shell\""
+          }
+        },
+        {
+          "name": "get_rule",
+          "at": {
+            "line": 226,
+            "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+          }
+        },
+        {
+          "name": "get_skill_section",
+          "at": {
+            "line": 28,
+            "text": "drill into ONE section at a time via `get_skill_section`. Average"
+          }
+        },
+        {
+          "name": "get_tokens",
+          "at": {
+            "line": 226,
+            "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+          }
+        },
+        {
+          "name": "get_vocab",
+          "at": {
+            "line": 226,
+            "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+          }
+        },
+        {
+          "name": "lint_jsx",
+          "at": {
+            "line": 226,
+            "text": "> (`get_component`, `get_tokens`, `get_rule`, `get_vocab`, `get_pattern`, `lint_jsx`) serve both"
+          }
+        },
+        {
+          "name": "list_anti_ai_tells",
+          "at": {
+            "line": 237,
+            "text": "| `list_anti_ai_tells`   | 20+ AI-tell patterns. Optional `category` filter.                                                                                                            | ~2 KB  |"
+          }
+        },
+        {
+          "name": "list_audit_rules",
+          "at": {
+            "line": 239,
+            "text": "| `list_audit_rules`     | Local STATIC ui-audit rules (WCAG/ARIA/Intl/ISO/CSS-Logical) to run BEFORE a visual pass. Optional `category` filter.                                        | ~3 KB  |"
+          }
+        },
+        {
+          "name": "list_consumer_skills",
+          "at": {
+            "line": 24,
+            "text": "- a consumer namespace (`list_consumer_skills` / `route_consumer_task` / `get_consumer_skill`)"
+          }
+        },
+        {
+          "name": "list_patterns",
+          "at": {
+            "line": 236,
+            "text": "| `list_patterns`        | 7 canonical patterns + taglines                                                                                                                              | ~500 B |"
+          }
+        },
+        {
+          "name": "list_primitives",
+          "at": {
+            "line": 234,
+            "text": "| `list_primitives`      | All components, grouped + tagline. Optional `group` filter.                                                                                                  | ~3 KB  |"
+          }
+        },
+        {
+          "name": "list_redesign_checks",
+          "at": {
+            "line": 238,
+            "text": "| `list_redesign_checks` | 50+ audit checks + fix priority. Optional `category` filter.                                                                                                 | ~5 KB  |"
+          }
+        },
+        {
+          "name": "list_skills",
+          "at": {
+            "line": 233,
+            "text": "| `list_skills`          | 15 design skills (audience-tagged) + section ids                                                                                                             | ~1 KB  |"
+          }
+        },
+        {
+          "name": "list_utilities",
+          "at": {
+            "line": 235,
+            "text": "| `list_utilities`       | Every NON-component export — hooks, helper functions, constants (`cn`, `formatDate`, `toast`, `useDebouncedValue`, `CHART_COLORS`…). Optional `kind` filter. | ~2 KB  |"
+          }
+        },
+        {
+          "name": "list_visual_checks",
+          "at": {
+            "line": 240,
+            "text": "| `list_visual_checks`   | RUNTIME visual-audit checks (Playwright: contrast, target-size, chroma, emoji, banner anatomy). Optional `category` filter.                                  | ~2 KB  |"
+          }
+        },
+        {
+          "name": "route_consumer_task",
+          "at": {
+            "line": 24,
+            "text": "- a consumer namespace (`list_consumer_skills` / `route_consumer_task` / `get_consumer_skill`)"
+          }
+        },
+        {
+          "name": "route_task",
+          "at": {
+            "line": 206,
+            "text": "→ route_task task=\"premium agency landing page hero\""
+          }
+        },
+        {
+          "name": "search_components",
+          "at": {
+            "line": 262,
+            "text": "| `search_components` | Fuzzy-search by name / tagline / prop                          | ~1 KB  |"
+          }
+        },
+        {
+          "name": "suggest_primitive",
+          "at": {
+            "line": 261,
+            "text": "| `suggest_primitive` | Use case → recommended primitive + rationale                   | ~500 B |"
+          }
+        }
+      ],
+      "undocumented": [
+        {
+          "name": "get_anti_ai_tell",
+          "evidence": [
+            "offered in tools/list by @godxjp/ui-mcp@33.26.0",
+            "absent from README.md (397 lines, sha256 c0c208d91cbe…): no whole-word match for \"get_anti_ai_tell\""
+          ]
+        },
+        {
+          "name": "get_redesign_check",
+          "evidence": [
+            "offered in tools/list by @godxjp/ui-mcp@33.26.0",
+            "absent from README.md (397 lines, sha256 c0c208d91cbe…): no whole-word match for \"get_redesign_check\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "claude.json",
+          "at": {
+            "line": 81,
+            "text": "`~/.claude.json` (user-level) or `.mcp.json` at project root:"
+          }
+        },
+        {
+          "host": "claude.md",
+          "at": {
+            "line": 131,
+            "text": "`CLAUDE.md` and `.claude/settings.json` only from the directory it starts in (gh#1324). Two"
+          }
+        },
+        {
+          "host": "config.toml",
+          "at": {
+            "line": 143,
+            "text": "`~/.codex/config.toml`:"
+          }
+        },
+        {
+          "host": "config.yaml",
+          "at": {
+            "line": 187,
+            "text": "`~/.continue/config.yaml`:"
+          }
+        },
+        {
+          "host": "continue.dev",
+          "at": {
+            "line": 185,
+            "text": "### Continue.dev"
+          }
+        },
+        {
+          "host": "customer-theming.md",
+          "at": {
+            "line": 14,
+            "text": "complex-theme rules — see `docs/CUSTOMER-THEMING.md` · \"Building a COMPLEX theme\"; 51 is \"a"
+          }
+        },
+        {
+          "host": "design.md",
+          "at": {
+            "line": 253,
+            "text": "| `get_design`         | DESIGN.md: tokens, colour scarcity, admin screen anatomy, do/don't. Optional `section` returns one section                                    | ~1 KB / ~12 KB  |"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 3,
+            "text": "Model Context Protocol server for [`@godxjp/ui`](https://github.com/godx-jp/godxjp-ui)."
+          }
+        },
+        {
+          "host": "index.js",
+          "at": {
+            "line": 376,
+            "text": "echo '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}' | node dist/index.js"
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 57,
+            "text": "`node_modules` is not where this server is launched from. `.mcp.json` launches it by"
+          }
+        },
+        {
+          "host": "package.json",
+          "at": {
+            "line": 97,
+            "text": "line naming the server that produced it — read from this package's `package.json` — followed by the"
+          }
+        },
+        {
+          "host": "plan.md",
+          "at": {
+            "line": 385,
+            "text": "See `PLAN.md` for the full design decisions:"
+          }
+        },
+        {
+          "host": "readme.md",
+          "at": {
+            "line": 290,
+            "text": "discipline lives in the repo's `.claude/skills/` (see that folder's `README.md`)."
+          }
+        },
+        {
+          "host": "settings.json",
+          "at": {
+            "line": 131,
+            "text": "`CLAUDE.md` and `.claude/settings.json` only from the directory it starts in (gh#1324). Two"
+          }
+        },
+        {
+          "host": "skills-index.ts",
+          "at": {
+            "line": 388,
+            "text": "- Skill catalog mapped to `data/skills-index.ts` (compact metadata)"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @godxjp/ui-mcp@33.26.0",
+        "integrity sha512-bUwn6nnokMHgzsCn6/yaiVmk1qJsUzSsHWtFxOOEfjFFYgXkNPNQc9/aeSjrz2dg2H2D8knbsB8jlJkTgD3ODA==",
+        "tarball https://registry.npmjs.org/@godxjp/ui-mcp/-/ui-mcp-33.26.0.tgz"
+      ]
+    }
+  ]
+}

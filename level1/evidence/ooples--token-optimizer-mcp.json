@@ -1,0 +1,1989 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@ooples/token-optimizer-mcp@7.7.1",
+  "measuredAt": "2026-10-31T14:02:42.838Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "ooples--token-optimizer-mcp",
+  "package": {
+    "name": "@ooples/token-optimizer-mcp",
+    "version": "7.7.1",
+    "tarball": "https://registry.npmjs.org/@ooples/token-optimizer-mcp/-/token-optimizer-mcp-7.7.1.tgz",
+    "integrity": "sha512-S53xHzwmLGWUTYNCGJ/CV/Vr9/7BzhUwCNcrdmi3edYFyedfJ7+7x7lXCLw1B790tfXOmlBoLw7pemS8XX90SQ==",
+    "repository": "git+https://github.com/ooples/token-optimizer-mcp.git",
+    "homepage": "https://github.com/ooples/token-optimizer-mcp#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "d2b4fef775ccabdcf609628916aa92fc995d4a14c51909a9f554f8dac76f7050",
+    "lines": 3104,
+    "bytes": 157747
+  },
+  "readmeNotes": [
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 25,
+        "text": "<img src=\"https://img.shields.io/badge/telemetry-opt--in-2ea043\" alt=\"Telemetry is opt-in and off by default\">"
+      }
+    },
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 1087,
+        "text": "| `TOKEN_OPTIMIZER_QUIET_ENV`            | on         | quiet defaults (pagers, progress bars, telemetry banners) for agents' shells |"
+      }
+    },
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 1195,
+        "text": "### The telemetry switches"
+      }
+    },
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 1647,
+        "text": "| Telemetry                    | None                                                                 | Varies                                               |"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 594,
+        "text": "creates separately attributed rows without seeding the analytics database:"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2109,
+        "text": "| Analytics               | `get_optimization_report`, `get_action_analytics`, `get_hook_analytics`, `export_analytics`         | Token-savings visibility                 |"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2122,
+        "text": "- analytics: `~/.token-optimizer-mcp/analytics.db`"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2179,
+        "text": "…detailed operational material below is intentionally retained for users who want to understand the complete tool surface, hooks pipeline, performance controls, analytics, and troubleshooting behavior."
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2395,
+        "text": "- **predictive-analytics** - Predictive analysis with concise results"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2401,
+        "text": "#### Token Analytics (5 tools)"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2410,
+        "text": "- **export_analytics** - Export recorded analytics for external analysis"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2440,
+        "text": "#### Analytics workflow and storage"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2445,
+        "text": "Granular token usage analytics for pinpointing optimization opportunities:"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2450,
+        "text": "- **export_analytics** - Export analytics data in JSON or CSV format with filtering"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2455,
+        "text": "// Get per-hook analytics"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2462,
+        "text": "// Get per-action analytics"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2466,
+        "text": "// Export analytics as CSV"
+      }
+    },
+    {
+      "word": "analytics",
+      "at": {
+        "line": 2848,
+        "text": "This removes the Codex registration; it does not delete your local cache or analytics database."
+      }
+    }
+  ],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "2ftoken-optimizer-mcp.svg",
+        "at": {
+          "line": 1,
+          "text": "[![MCP Toplist](https://mcptoplist.com/badge/io.github.ooples%2Ftoken-optimizer-mcp.svg)](https://mcptoplist.com/server/io.github.ooples%2Ftoken-optimizer-mcp)"
+        }
+      },
+      {
+        "host": "ab.sh",
+        "at": {
+          "line": 777,
+          "text": "recorded in commit `f712b4ec` used `bench/live/ab.sh`, rotated each arm through"
+        }
+      },
+      {
+        "host": "agent-accounting-live.png",
+        "at": {
+          "line": 551,
+          "text": "…alt=\"Per-agent token accounting with historical rows left unattributed and live Codex, Claude Code, and Gemini rows measured separately\" src=\"./docs/media/live/agent-accounting-live.png\" width=\"1000\">"
+        }
+      },
+      {
+        "host": "agents.md",
+        "at": {
+          "line": 1383,
+          "text": "file that agent already reads -- `CLAUDE.md` for Claude Code, `AGENTS.md` for"
+        }
+      },
+      {
+        "host": "analytics.db",
+        "at": {
+          "line": 2122,
+          "text": "- analytics: `~/.token-optimizer-mcp/analytics.db`"
+        }
+      },
+      {
+        "host": "api.example.com",
+        "at": {
+          "line": 2264,
+          "text": "url: 'https://api.example.com/data',"
+        }
+      },
+      {
+        "host": "api.openai.com",
+        "at": {
+          "line": 990,
+          "text": "token-optimizer-route zed --upstream https://api.openai.com/v1 --model gpt-4o"
+        }
+      },
+      {
+        "host": "api.orcarouter.ai",
+        "at": {
+          "line": 1588,
+          "text": "| Inference and model discovery    | `https://api.orcarouter.ai/v1` |"
+        }
+      },
+      {
+        "host": "app.ts",
+        "at": {
+          "line": 2563,
+          "text": "await smart_read({ path: '/src/app.ts' });"
+        }
+      },
+      {
+        "host": "auth-methods.png",
+        "at": {
+          "line": 1549,
+          "text": "![The OrcaRouter card showing both authentication choices side by side, with the stored key masked](./docs/media/orcarouter/auth-methods.png)"
+        }
+      },
+      {
+        "host": "auth.ts",
+        "at": {
+          "line": 487,
+          "text": "you touch  src/auth.ts"
+        }
+      },
+      {
+        "host": "badge.svg",
+        "at": {
+          "line": 16,
+          "text": "<a href=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml\"><img src=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml/badge.svg?branch=master\" alt=\"CI\"></a>"
+        }
+      },
+      {
+        "host": "block.text",
+        "at": {
+          "line": 1253,
+          "text": "on `block.text`. That matters because an image costs about `width * height /"
+        }
+      },
+      {
+        "host": "cache.db",
+        "at": {
+          "line": 3025,
+          "text": "**Symptom**: `~/.token-optimizer/cache.db` is >1GB"
+        }
+      },
+      {
+        "host": "capture-health-live.png",
+        "at": {
+          "line": 602,
+          "text": "<img alt=\"Structured cross-client hook and MCP health cards from live local data\" src=\"./docs/media/live/capture-health-live.png\" width=\"1000\">"
+        }
+      },
+      {
+        "host": "ccr-tool.py",
+        "at": {
+          "line": 145,
+          "text": "`bench/compression/alt-a/ccr-tool.py`. The turn that first adds the tool also"
+        }
+      },
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 3095,
+          "text": "- [Changelog](./CHANGELOG.md)"
+        }
+      },
+      {
+        "host": "ci.yml",
+        "at": {
+          "line": 16,
+          "text": "<a href=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml\"><img src=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml/badge.svg?branch=master\" alt=\"CI\"></a>"
+        }
+      },
+      {
+        "host": "claude.md",
+        "at": {
+          "line": 1336,
+          "text": "! CLAUDE.md:2 has an embedded timestamp, invalidating everything after it"
+        }
+      },
+      {
+        "host": "codex-mcp-installed.png",
+        "at": {
+          "line": 1735,
+          "text": "![Codex MCP list showing token-optimizer installed and enabled](./docs/assets/codex-mcp-installed.png)"
+        }
+      },
+      {
+        "host": "codex.cmd",
+        "at": {
+          "line": 1723,
+          "text": "codex.cmd mcp add token-optimizer -- npx -y @ooples/token-optimizer-mcp@latest"
+        }
+      },
+      {
+        "host": "codex.mjs",
+        "at": {
+          "line": 829,
+          "text": "Reproduce with `ALT_A_MODE=token node bench/live/codex.mjs`, then"
+        }
+      },
+      {
+        "host": "config.json",
+        "at": {
+          "line": 1958,
+          "text": "\"$schema\": \"https://opencode.ai/config.json\","
+        }
+      },
+      {
+        "host": "config.toml",
+        "at": {
+          "line": 1726,
+          "text": "This writes the server to `~/.codex/config.toml`. Codex CLI, the Codex IDE extension, and the Codex app on the same host share that configuration."
+        }
+      },
+      {
+        "host": "contributing.md",
+        "at": {
+          "line": 3093,
+          "text": "- [Contributing](./docs/CONTRIBUTING.md)"
+        }
+      },
+      {
+        "host": "copilot-instructions.md",
+        "at": {
+          "line": 1893,
+          "text": "Keep [`integrations/AGENTS.md`](./integrations/AGENTS.md) as the repository's `AGENTS.md`, or adapt the same guidance into `.github/copilot-instructions.md`."
+        }
+      },
+      {
+        "host": "current-session.txt",
+        "at": {
+          "line": 2757,
+          "text": "**Location**: `~/.claude-global/hooks/data/current-session.txt`"
+        }
+      },
+      {
+        "host": "dbnettests.bceonrelu",
+        "at": {
+          "line": 1314,
+          "text": "FAILED  DBNetTests.BceOnRelu -- expected 0.0 got NaN"
+        }
+      },
+      {
+        "host": "dispatcher.log",
+        "at": {
+          "line": 3055,
+          "text": "1. **Check the hook logs**: `~/.claude-global/hooks/logs/dispatcher.log`"
+        }
+      },
+      {
+        "host": "dispatcher.sh",
+        "at": {
+          "line": 2906,
+          "text": "[ -f ~/.claude-global/hooks/dispatcher.sh ] && echo \"Exists\" || echo \"Missing\""
+        }
+      },
+      {
+        "host": "docs.github.com",
+        "at": {
+          "line": 1911,
+          "text": "Restart Copilot CLI after changing hook files. See GitHub's official [MCP setup guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers) and [hooks reference](h…"
+        }
+      },
+      {
+        "host": "file.ts",
+        "at": {
+          "line": 2233,
+          "text": "smart_read({ path: '/path/to/file.ts' });"
+        }
+      },
+      {
+        "host": "gemini.md",
+        "at": {
+          "line": 1923,
+          "text": "Alternatively, install this repository as a Gemini extension so the MCP configuration and `GEMINI.md` guidance are packaged together:"
+        }
+      },
+      {
+        "host": "geminicli.com",
+        "at": {
+          "line": 1948,
+          "text": "…CLI after installing, updating, or reconfiguring the extension. See the official [Gemini MCP guide](https://geminicli.com/docs/tools/mcp-server/), [extension guide](https://geminicli.com/docs/extensio…"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 16,
+          "text": "<a href=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml\"><img src=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml/badge.svg?branch=master\" alt=\"CI\"></a>"
+        }
+      },
+      {
+        "host": "graph-balance-live.png",
+        "at": {
+          "line": 610,
+          "text": "<img alt=\"Direct graph savings, remembering cost, holdouts, and an honest collecting causal study\" src=\"./docs/media/live/graph-balance-live.png\" width=\"1000\">"
+        }
+      },
+      {
+        "host": "graph-explorer-live.png",
+        "at": {
+          "line": 620,
+          "text": "<img alt=\"Interactive 3D knowledge graph spanning eleven local projects\" src=\"./docs/media/live/graph-explorer-live.png\" width=\"1000\">"
+        }
+      },
+      {
+        "host": "head-to-head.json",
+        "at": {
+          "line": 59,
+          "text": "`bench/compression/alt-a/results/head-to-head.json`. Written by"
+        }
+      },
+      {
+        "host": "head-to-head.mjs",
+        "at": {
+          "line": 168,
+          "text": "node bench/compression/head-to-head.mjs <out-dir>"
+        }
+      },
+      {
+        "host": "hook-report.json",
+        "at": {
+          "line": 677,
+          "text": "npm run diagnostics -- --include-events --limit 100 --output hook-report.json"
+        }
+      },
+      {
+        "host": "hook-summary.json",
+        "at": {
+          "line": 676,
+          "text": "npm run diagnostics -- --hours 72 --output hook-summary.json"
+        }
+      },
+      {
+        "host": "hooks-installation.md",
+        "at": {
+          "line": 1853,
+          "text": "…_OPTIMIZER_AUTO_INSTALL=1` before installing. Open a new shell to activate managed CLI commands, or use `token-optimizer-run` directly. See the [hook installation guide](./docs/HOOKS-INSTALLATION.md)."
+        }
+      },
+      {
+        "host": "hooks.json",
+        "at": {
+          "line": 1741,
+          "text": "…e hook is also available under [`integrations/codex/hooks`](./integrations/codex/hooks); merge its `hooks.json` into `~/.codex/hooks.json`, copy the script to `~/.codex/hooks/`, and review it once wit…"
+        }
+      },
+      {
+        "host": "hooks.md",
+        "at": {
+          "line": 1760,
+          "text": "See the current [Codex hooks documentation](https://learn.chatgpt.com/docs/hooks.md) for hook trust, matching, and tool-coverage details."
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 15,
+          "text": "<a href=\"https://www.npmjs.com/package/@ooples/token-optimizer-mcp\"><img src=\"https://img.shields.io/npm/v/%40ooples%2Ftoken-optimizer-mcp?logo=npm\" alt=\"npm version\"></a>"
+        }
+      },
+      {
+        "host": "index.js",
+        "at": {
+          "line": 3083,
+          "text": "codex mcp add token-optimizer-local -- node /absolute/path/to/token-optimizer-mcp/dist/server/index.js"
+        }
+      },
+      {
+        "host": "install-hooks.sh",
+        "at": {
+          "line": 2918,
+          "text": "bash install-hooks.sh"
+        }
+      },
+      {
+        "host": "io.github.ooples",
+        "at": {
+          "line": 1,
+          "text": "[![MCP Toplist](https://mcptoplist.com/badge/io.github.ooples%2Ftoken-optimizer-mcp.svg)](https://mcptoplist.com/server/io.github.ooples%2Ftoken-optimizer-mcp)"
+        }
+      },
+      {
+        "host": "large-file.ts",
+        "at": {
+          "line": 2039,
+          "text": "\"path\": \"/absolute/path/to/large-file.ts\""
+        }
+      },
+      {
+        "host": "learn.chatgpt.com",
+        "at": {
+          "line": 1760,
+          "text": "See the current [Codex hooks documentation](https://learn.chatgpt.com/docs/hooks.md) for hook trust, matching, and tool-coverage details."
+        }
+      },
+      {
+        "host": "license-mit-blue.svg",
+        "at": {
+          "line": 17,
+          "text": "<a href=\"./LICENSE\"><img src=\"https://img.shields.io/badge/license-MIT-blue.svg\" alt=\"MIT license\"></a>"
+        }
+      },
+      {
+        "host": "logo-400.png",
+        "at": {
+          "line": 4,
+          "text": "<img src=\"docs/assets/logo-400.png\" alt=\"Token Optimizer\" width=\"96\" height=\"96\">"
+        }
+      },
+      {
+        "host": "mcp-config.json",
+        "at": {
+          "line": 1865,
+          "text": "If your Copilot CLI does not expose `copilot mcp` yet, save this as `~/.copilot/mcp-config.json`:"
+        }
+      },
+      {
+        "host": "mcp-smoke.mjs",
+        "at": {
+          "line": 3077,
+          "text": "node scripts/mcp-smoke.mjs"
+        }
+      },
+      {
+        "host": "mcptoplist.com",
+        "at": {
+          "line": 1,
+          "text": "[![MCP Toplist](https://mcptoplist.com/badge/io.github.ooples%2Ftoken-optimizer-mcp.svg)](https://mcptoplist.com/server/io.github.ooples%2Ftoken-optimizer-mcp)"
+        }
+      },
+      {
+        "host": "message.id",
+        "at": {
+          "line": 464,
+          "text": "assistant rows that share a `message.id`, and each row repeats the usage"
+        }
+      },
+      {
+        "host": "multimodal-model-dropdown.png",
+        "at": {
+          "line": 1619,
+          "text": "…./docs/media/orcarouter/text-model-dropdown.png) | ![The model listbox after switching to images, holding only models that declare image input](./docs/media/orcarouter/multimodal-model-dropdown.png) |"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 18,
+          "text": "<a href=\"https://nodejs.org/\"><img src=\"https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white\" alt=\"Node.js 22+\"></a>"
+        }
+      },
+      {
+        "host": "nodejs.org",
+        "at": {
+          "line": 18,
+          "text": "<a href=\"https://nodejs.org/\"><img src=\"https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white\" alt=\"Node.js 22+\"></a>"
+        }
+      },
+      {
+        "host": "opencode.ai",
+        "at": {
+          "line": 1958,
+          "text": "\"$schema\": \"https://opencode.ai/config.json\","
+        }
+      },
+      {
+        "host": "opencode.json",
+        "at": {
+          "line": 1954,
+          "text": "Create or update `opencode.json` in your project:"
+        }
+      },
+      {
+        "host": "overview-live.png",
+        "at": {
+          "line": 30,
+          "text": "… alt=\"Live Token Optimizer dashboard separating verified net MCP transport savings, excluded reports, per-agent attribution, and graph evidence\" src=\"./docs/media/live/overview-live.png\" width=\"1000\">"
+        }
+      },
+      {
+        "host": "proof.mjs",
+        "at": {
+          "line": 176,
+          "text": "comparator can be checked without their clone. `node bench/compression/proof.mjs`:"
+        }
+      },
+      {
+        "host": "readme-alt-a.check.mjs",
+        "at": {
+          "line": 61,
+          "text": "`node bench/compression/readme-alt-a.check.mjs`; do not hand-edit."
+        }
+      },
+      {
+        "host": "readme-alt-a.render.mjs",
+        "at": {
+          "line": 60,
+          "text": "`node bench/compression/readme-alt-a.render.mjs` and guarded by"
+        }
+      },
+      {
+        "host": "readme-prose.check.mjs",
+        "at": {
+          "line": 715,
+          "text": "registry in bench/compression/readme-prose.check.mjs saying where it comes"
+        }
+      },
+      {
+        "host": "readme-table.check.mjs",
+        "at": {
+          "line": 180,
+          "text": "`node bench/compression/readme-table.check.mjs`; do not hand-edit. -->"
+        }
+      },
+      {
+        "host": "readme.md",
+        "at": {
+          "line": 662,
+          "text": "[live evaluation suite](evals/README.md)."
+        }
+      },
+      {
+        "host": "report-codex.mjs",
+        "at": {
+          "line": 822,
+          "text": "`bench/live/report-codex.mjs` deliberately declines to price them. Three short"
+        }
+      },
+      {
+        "host": "resolve-theirs.py",
+        "at": {
+          "line": 167,
+          "text": "python bench/compression/alt-a/resolve-theirs.py <alt-a-clone> <out-dir>"
+        }
+      },
+      {
+        "host": "run-theirs.py",
+        "at": {
+          "line": 165,
+          "text": "python bench/compression/alt-a/run-theirs.py <alt-a-clone> <out-dir>"
+        }
+      },
+      {
+        "host": "schema.d.ts",
+        "at": {
+          "line": 1361,
+          "text": "generated/schema.d.ts: read in 9/9 sessions, never the source of a finding"
+        }
+      },
+      {
+        "host": "security.md",
+        "at": {
+          "line": 3094,
+          "text": "- [Security policy](./SECURITY.md)"
+        }
+      },
+      {
+        "host": "session-replay.mjs",
+        "at": {
+          "line": 250,
+          "text": "`node bench/compression/session-replay.mjs` replays real recorded conversations"
+        }
+      },
+      {
+        "host": "settings.json",
+        "at": {
+          "line": 938,
+          "text": "Claude Code's own `settings.json`, which is the one thing a session we did not"
+        }
+      },
+      {
+        "host": "spill-path.ts",
+        "at": {
+          "line": 149,
+          "text": "writes (`<home>/.tok/<pid>/<15 digits>`, src/compress/spill-path.ts) rather than"
+        }
+      },
+      {
+        "host": "text-model-dropdown.png",
+        "at": {
+          "line": 1619,
+          "text": "| ![The model listbox open on the live chat catalog](./docs/media/orcarouter/text-model-dropdown.png) | ![The model listbox after switching to images, holding only models that declare image input](./d…"
+        }
+      },
+      {
+        "host": "token-optimizer-compact-window.json",
+        "at": {
+          "line": 1114,
+          "text": "- The record of this and of default routing now sits beside the settings file it describes (`token-optimizer-compact-window.json`, `token-optimizer-routing.json`), not in the optimizer home. A record …"
+        }
+      },
+      {
+        "host": "token-optimizer-mcp.git",
+        "at": {
+          "line": 3072,
+          "text": "git clone https://github.com/ooples/token-optimizer-mcp.git"
+        }
+      },
+      {
+        "host": "token-optimizer-routing.json",
+        "at": {
+          "line": 1114,
+          "text": "…ult routing now sits beside the settings file it describes (`token-optimizer-compact-window.json`, `token-optimizer-routing.json`), not in the optimizer home. A record a 7.6.0 install left in `~/.toke…"
+        }
+      },
+      {
+        "host": "token-optimizer.js",
+        "at": {
+          "line": 1986,
+          "text": "cp integrations/opencode/.opencode/plugins/token-optimizer.js .opencode/plugins/"
+        }
+      },
+      {
+        "host": "tool.execute.before",
+        "at": {
+          "line": 1996,
+          "text": "…en Optimizer usage state in OpenCode's compaction prompt. Under `TOKEN_OPTIMIZER_MODE=enforce` its `tool.execute.before` hook rejects full-file reads over 25 KB and steers the agent to `smart_read`; t…"
+        }
+      },
+      {
+        "host": "tools.md",
+        "at": {
+          "line": 2111,
+          "text": "See [`docs/TOOLS.md`](./docs/TOOLS.md) for detailed tool inputs and examples."
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 15,
+          "text": "<a href=\"https://www.npmjs.com/package/@ooples/token-optimizer-mcp\"><img src=\"https://img.shields.io/npm/v/%40ooples%2Ftoken-optimizer-mcp?logo=npm\" alt=\"npm version\"></a>"
+        }
+      },
+      {
+        "host": "www.orcarouter.ai",
+        "at": {
+          "line": 1534,
+          "text": "[OrcaRouter](https://www.orcarouter.ai) is an OpenAI-compatible AI gateway that"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "alternative_a_retrieve",
+        "at": {
+          "line": 141,
+          "text": "redeemable because their proxy also sends a `alternative_a_retrieve` tool with the"
+        }
+      },
+      {
+        "name": "analyze_optimization",
+        "at": {
+          "line": 2103,
+          "text": "| Context and compression | `optimize_text`, `get_cached`, `count_tokens`, `analyze_optimization`, `context_delta`              | Large payloads and repeated context      |"
+        }
+      },
+      {
+        "name": "cache_compression",
+        "at": {
+          "line": 2105,
+          "text": "| Caching                 | `smart_cache`, `cache_warmup`, `cache_invalidation`, `cache_compression`, `predictive_cache`        | Repeated computation and retrieval       |"
+        }
+      },
+      {
+        "name": "cache_creation",
+        "at": {
+          "line": 787,
+          "text": "Weighted input is `input + 1.25 * cache_creation + 0.1 * cache_read`; it excludes"
+        }
+      },
+      {
+        "name": "cache_creation_input_tokens",
+        "at": {
+          "line": 461,
+          "text": "`cache_read_input_tokens` and `cache_creation_input_tokens`."
+        }
+      },
+      {
+        "name": "cache_invalidation",
+        "at": {
+          "line": 2105,
+          "text": "| Caching                 | `smart_cache`, `cache_warmup`, `cache_invalidation`, `cache_compression`, `predictive_cache`        | Repeated computation and retrieval       |"
+        }
+      },
+      {
+        "name": "cache_read",
+        "at": {
+          "line": 787,
+          "text": "Weighted input is `input + 1.25 * cache_creation + 0.1 * cache_read`; it excludes"
+        }
+      },
+      {
+        "name": "cache_read_input_tokens",
+        "at": {
+          "line": 461,
+          "text": "`cache_read_input_tokens` and `cache_creation_input_tokens`."
+        }
+      },
+      {
+        "name": "cache_warmup",
+        "at": {
+          "line": 2105,
+          "text": "| Caching                 | `smart_cache`, `cache_warmup`, `cache_invalidation`, `cache_compression`, `predictive_cache`        | Repeated computation and retrieval       |"
+        }
+      },
+      {
+        "name": "ccr_inject_tool",
+        "at": {
+          "line": 142,
+          "text": "request -- on by default (`ccr_inject_tool`), and on every later request once a"
+        }
+      },
+      {
+        "name": "compress_text",
+        "at": {
+          "line": 2095,
+          "text": "| `compress_text` | Produce Brotli/base64 data for storage or transport         | May use **more** model tokens if pasted back into context |"
+        }
+      },
+      {
+        "name": "context_delta",
+        "at": {
+          "line": 2103,
+          "text": "| Context and compression | `optimize_text`, `get_cached`, `count_tokens`, `analyze_optimization`, `context_delta`              | Large payloads and repeated context      |"
+        }
+      },
+      {
+        "name": "count_tokens",
+        "at": {
+          "line": 2103,
+          "text": "| Context and compression | `optimize_text`, `get_cached`, `count_tokens`, `analyze_optimization`, `context_delta`              | Large payloads and repeated context      |"
+        }
+      },
+      {
+        "name": "derived_from",
+        "at": {
+          "line": 482,
+          "text": "findings; edges for `derived_from`, `contains`, `supersedes`, `contradicts`,"
+        }
+      },
+      {
+        "name": "export_analytics",
+        "at": {
+          "line": 2109,
+          "text": "| Analytics               | `get_optimization_report`, `get_action_analytics`, `get_hook_analytics`, `export_analytics`         | Token-savings visibility                 |"
+        }
+      },
+      {
+        "name": "fleet_audit",
+        "at": {
+          "line": 1369,
+          "text": "`fleet_audit` ranks your whole machine by measured cost, and does something a"
+        }
+      },
+      {
+        "name": "get_action_analytics",
+        "at": {
+          "line": 2109,
+          "text": "| Analytics               | `get_optimization_report`, `get_action_analytics`, `get_hook_analytics`, `export_analytics`         | Token-savings visibility                 |"
+        }
+      },
+      {
+        "name": "get_cache_stats",
+        "at": {
+          "line": 2785,
+          "text": "- Every 10 operations, the PowerShell hooks automatically call `get_cache_stats()` MCP tool"
+        }
+      },
+      {
+        "name": "get_cached",
+        "at": {
+          "line": 2103,
+          "text": "| Context and compression | `optimize_text`, `get_cached`, `count_tokens`, `analyze_optimization`, `context_delta`              | Large payloads and repeated context      |"
+        }
+      },
+      {
+        "name": "get_hook_analytics",
+        "at": {
+          "line": 2109,
+          "text": "| Analytics               | `get_optimization_report`, `get_action_analytics`, `get_hook_analytics`, `export_analytics`         | Token-savings visibility                 |"
+        }
+      },
+      {
+        "name": "get_optimization_report",
+        "at": {
+          "line": 1755,
+          "text": "- `get_optimization_report` when the user asks for token or compression stats."
+        }
+      },
+      {
+        "name": "get_session_stats",
+        "at": {
+          "line": 2721,
+          "text": "**To view your actual token SAVINGS**, use the `get_session_stats` tool:"
+        }
+      },
+      {
+        "name": "input_modalities",
+        "at": {
+          "line": 1605,
+          "text": "- multimodal — the same, plus an explicit `architecture.input_modalities` entry"
+        }
+      },
+      {
+        "name": "input_tokens",
+        "at": {
+          "line": 460,
+          "text": "assistant row records `input_tokens`, `output_tokens`,"
+        }
+      },
+      {
+        "name": "install_doctor",
+        "at": {
+          "line": 317,
+          "text": "accepted them. `install_doctor` prints which of the two is on, how many events"
+        }
+      },
+      {
+        "name": "optimize_session",
+        "at": {
+          "line": 1803,
+          "text": "| Context fills and compaction starts            | `optimize_session` runs first                        |"
+        }
+      },
+      {
+        "name": "optimize_text",
+        "at": {
+          "line": 1754,
+          "text": "- `optimize_text` to store bulky text outside the model context."
+        }
+      },
+      {
+        "name": "output_tokens",
+        "at": {
+          "line": 460,
+          "text": "assistant row records `input_tokens`, `output_tokens`,"
+        }
+      },
+      {
+        "name": "predictive_cache",
+        "at": {
+          "line": 2105,
+          "text": "| Caching                 | `smart_cache`, `cache_warmup`, `cache_invalidation`, `cache_compression`, `predictive_cache`        | Repeated computation and retrieval       |"
+        }
+      },
+      {
+        "name": "read_file",
+        "at": {
+          "line": 1942,
+          "text": "…tension's `SessionStart` hook injects optimization guidance. Its `AfterTool` hook notices full-file `read_file` results over 25 KB and suggests `smart_read`. To make Gemini automatically replace those…"
+        }
+      },
+      {
+        "name": "repo_ask",
+        "at": {
+          "line": 1082,
+          "text": "| `TOKEN_OPTIMIZER_REPO_ASK`             | off        | a `repo_ask \"<question>\"` shell command for agents, named in their briefing |"
+        }
+      },
+      {
+        "name": "smart_api_fetch",
+        "at": {
+          "line": 2106,
+          "text": "| APIs and databases      | `smart_api_fetch`, `smart_sql`, `smart_graphql`, `smart_rest`, `smart_schema`                       | Responses, schemas, and query analysis   |"
+        }
+      },
+      {
+        "name": "smart_build",
+        "at": {
+          "line": 2107,
+          "text": "| Build and system tasks  | `smart_build`, `smart_test`, `smart_lint`, `smart_logs`, `smart_processes`                          | Build logs and diagnostic output         |"
+        }
+      },
+      {
+        "name": "smart_cache",
+        "at": {
+          "line": 2105,
+          "text": "| Caching                 | `smart_cache`, `cache_warmup`, `cache_invalidation`, `cache_compression`, `predictive_cache`        | Repeated computation and retrieval       |"
+        }
+      },
+      {
+        "name": "smart_diff",
+        "at": {
+          "line": 2104,
+          "text": "| File and Git operations | `smart_read`, `smart_write`, `smart_edit`, `smart_grep`, `smart_glob`, `smart_diff`, `smart_status` | File contents, search results, and diffs |"
+        }
+      },
+      {
+        "name": "smart_edit",
+        "at": {
+          "line": 574,
+          "text": "2. Use `smart_read`, `smart_grep`, `smart_glob`, `smart_edit`, or any other MCP"
+        }
+      },
+      {
+        "name": "smart_glob",
+        "at": {
+          "line": 574,
+          "text": "2. Use `smart_read`, `smart_grep`, `smart_glob`, `smart_edit`, or any other MCP"
+        }
+      },
+      {
+        "name": "smart_graphql",
+        "at": {
+          "line": 2106,
+          "text": "| APIs and databases      | `smart_api_fetch`, `smart_sql`, `smart_graphql`, `smart_rest`, `smart_schema`                       | Responses, schemas, and query analysis   |"
+        }
+      },
+      {
+        "name": "smart_grep",
+        "at": {
+          "line": 574,
+          "text": "2. Use `smart_read`, `smart_grep`, `smart_glob`, `smart_edit`, or any other MCP"
+        }
+      },
+      {
+        "name": "smart_lint",
+        "at": {
+          "line": 2107,
+          "text": "| Build and system tasks  | `smart_build`, `smart_test`, `smart_lint`, `smart_logs`, `smart_processes`                          | Build logs and diagnostic output         |"
+        }
+      },
+      {
+        "name": "smart_logs",
+        "at": {
+          "line": 2107,
+          "text": "| Build and system tasks  | `smart_build`, `smart_test`, `smart_lint`, `smart_logs`, `smart_processes`                          | Build logs and diagnostic output         |"
+        }
+      },
+      {
+        "name": "smart_processes",
+        "at": {
+          "line": 2107,
+          "text": "| Build and system tasks  | `smart_build`, `smart_test`, `smart_lint`, `smart_logs`, `smart_processes`                          | Build logs and diagnostic output         |"
+        }
+      },
+      {
+        "name": "smart_read",
+        "at": {
+          "line": 533,
+          "text": "calls `smart_read`. But at refusal time we already hold the file _and_ the"
+        }
+      },
+      {
+        "name": "smart_rest",
+        "at": {
+          "line": 2106,
+          "text": "| APIs and databases      | `smart_api_fetch`, `smart_sql`, `smart_graphql`, `smart_rest`, `smart_schema`                       | Responses, schemas, and query analysis   |"
+        }
+      },
+      {
+        "name": "smart_schema",
+        "at": {
+          "line": 2106,
+          "text": "| APIs and databases      | `smart_api_fetch`, `smart_sql`, `smart_graphql`, `smart_rest`, `smart_schema`                       | Responses, schemas, and query analysis   |"
+        }
+      },
+      {
+        "name": "smart_sql",
+        "at": {
+          "line": 2106,
+          "text": "| APIs and databases      | `smart_api_fetch`, `smart_sql`, `smart_graphql`, `smart_rest`, `smart_schema`                       | Responses, schemas, and query analysis   |"
+        }
+      },
+      {
+        "name": "smart_status",
+        "at": {
+          "line": 2104,
+          "text": "| File and Git operations | `smart_read`, `smart_write`, `smart_edit`, `smart_grep`, `smart_glob`, `smart_diff`, `smart_status` | File contents, search results, and diffs |"
+        }
+      },
+      {
+        "name": "smart_test",
+        "at": {
+          "line": 2107,
+          "text": "| Build and system tasks  | `smart_build`, `smart_test`, `smart_lint`, `smart_logs`, `smart_processes`                          | Build logs and diagnostic output         |"
+        }
+      },
+      {
+        "name": "smart_write",
+        "at": {
+          "line": 2104,
+          "text": "| File and Git operations | `smart_read`, `smart_write`, `smart_edit`, `smart_grep`, `smart_glob`, `smart_diff`, `smart_status` | File contents, search results, and diffs |"
+        }
+      },
+      {
+        "name": "telemetry_events",
+        "at": {
+          "line": 1204,
+          "text": "| `TOKEN_OPTIMIZER_BEACON_TABLE` | `telemetry_events` | the table to insert into                               |"
+        }
+      },
+      {
+        "name": "wiki_query",
+        "at": {
+          "line": 582,
+          "text": "Use `wiki_query` to read the graph directly — one finding by key, a ranked"
+        }
+      },
+      {
+        "name": "wiki_read",
+        "at": {
+          "line": 579,
+          "text": "new agent re-derives work, call `wiki_read` for the project or the files it is"
+        }
+      },
+      {
+        "name": "wiki_write",
+        "at": {
+          "line": 506,
+          "text": "records durable conclusions itself through `wiki_write`."
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "token-optimizer-mcp",
+    "version": "7.7.1"
+  },
+  "observed": {
+    "offered": [
+      "cache_audit",
+      "expand",
+      "fleet_audit",
+      "get_cached",
+      "get_optimization_report",
+      "install_doctor",
+      "model_routing",
+      "optimize_session",
+      "optimize_text",
+      "smart_edit",
+      "smart_glob",
+      "smart_grep",
+      "smart_read",
+      "smart_write",
+      "token_audit",
+      "waste_audit",
+      "wiki_query",
+      "wiki_read",
+      "wiki_write"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "setpriv",
+      "token-optimizer-mcp"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "expand",
+          "at": {
+            "line": 577,
+            "text": "later `expand` calls debit that reduction."
+          }
+        },
+        {
+          "name": "fleet_audit",
+          "at": {
+            "line": 1369,
+            "text": "`fleet_audit` ranks your whole machine by measured cost, and does something a"
+          }
+        },
+        {
+          "name": "get_cached",
+          "at": {
+            "line": 2103,
+            "text": "| Context and compression | `optimize_text`, `get_cached`, `count_tokens`, `analyze_optimization`, `context_delta`              | Large payloads and repeated context      |"
+          }
+        },
+        {
+          "name": "get_optimization_report",
+          "at": {
+            "line": 1755,
+            "text": "- `get_optimization_report` when the user asks for token or compression stats."
+          }
+        },
+        {
+          "name": "install_doctor",
+          "at": {
+            "line": 317,
+            "text": "accepted them. `install_doctor` prints which of the two is on, how many events"
+          }
+        },
+        {
+          "name": "optimize_session",
+          "at": {
+            "line": 1803,
+            "text": "| Context fills and compaction starts            | `optimize_session` runs first                        |"
+          }
+        },
+        {
+          "name": "optimize_text",
+          "at": {
+            "line": 1754,
+            "text": "- `optimize_text` to store bulky text outside the model context."
+          }
+        },
+        {
+          "name": "smart_edit",
+          "at": {
+            "line": 574,
+            "text": "2. Use `smart_read`, `smart_grep`, `smart_glob`, `smart_edit`, or any other MCP"
+          }
+        },
+        {
+          "name": "smart_glob",
+          "at": {
+            "line": 436,
+            "text": "ToolSearch(\"smart_read smart_grep smart_glob\")."
+          }
+        },
+        {
+          "name": "smart_grep",
+          "at": {
+            "line": 417,
+            "text": "- **Advisories are said once.** A routing hint such as \"use smart_grep\" appears"
+          }
+        },
+        {
+          "name": "smart_read",
+          "at": {
+            "line": 436,
+            "text": "ToolSearch(\"smart_read smart_grep smart_glob\")."
+          }
+        },
+        {
+          "name": "smart_write",
+          "at": {
+            "line": 2104,
+            "text": "| File and Git operations | `smart_read`, `smart_write`, `smart_edit`, `smart_grep`, `smart_glob`, `smart_diff`, `smart_status` | File contents, search results, and diffs |"
+          }
+        },
+        {
+          "name": "token_audit",
+          "at": {
+            "line": 382,
+            "text": "token_audit"
+          }
+        },
+        {
+          "name": "waste_audit",
+          "at": {
+            "line": 1362,
+            "text": "3,400 tokens/session; cost equivalent not priced; apply: waste_audit action=\"apply\""
+          }
+        },
+        {
+          "name": "wiki_query",
+          "at": {
+            "line": 582,
+            "text": "Use `wiki_query` to read the graph directly — one finding by key, a ranked"
+          }
+        },
+        {
+          "name": "wiki_read",
+          "at": {
+            "line": 579,
+            "text": "new agent re-derives work, call `wiki_read` for the project or the files it is"
+          }
+        },
+        {
+          "name": "wiki_write",
+          "at": {
+            "line": 506,
+            "text": "records durable conclusions itself through `wiki_write`."
+          }
+        }
+      ],
+      "undocumented": [
+        {
+          "name": "cache_audit",
+          "evidence": [
+            "offered in tools/list by @ooples/token-optimizer-mcp@7.7.1",
+            "absent from README.md (3104 lines, sha256 d2b4fef775cc…): no whole-word match for \"cache_audit\""
+          ]
+        },
+        {
+          "name": "model_routing",
+          "evidence": [
+            "offered in tools/list by @ooples/token-optimizer-mcp@7.7.1",
+            "absent from README.md (3104 lines, sha256 d2b4fef775cc…): no whole-word match for \"model_routing\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "2ftoken-optimizer-mcp.svg",
+          "at": {
+            "line": 1,
+            "text": "[![MCP Toplist](https://mcptoplist.com/badge/io.github.ooples%2Ftoken-optimizer-mcp.svg)](https://mcptoplist.com/server/io.github.ooples%2Ftoken-optimizer-mcp)"
+          }
+        },
+        {
+          "host": "ab.sh",
+          "at": {
+            "line": 777,
+            "text": "recorded in commit `f712b4ec` used `bench/live/ab.sh`, rotated each arm through"
+          }
+        },
+        {
+          "host": "agent-accounting-live.png",
+          "at": {
+            "line": 551,
+            "text": "…alt=\"Per-agent token accounting with historical rows left unattributed and live Codex, Claude Code, and Gemini rows measured separately\" src=\"./docs/media/live/agent-accounting-live.png\" width=\"1000\">"
+          }
+        },
+        {
+          "host": "agents.md",
+          "at": {
+            "line": 1383,
+            "text": "file that agent already reads -- `CLAUDE.md` for Claude Code, `AGENTS.md` for"
+          }
+        },
+        {
+          "host": "analytics.db",
+          "at": {
+            "line": 2122,
+            "text": "- analytics: `~/.token-optimizer-mcp/analytics.db`"
+          }
+        },
+        {
+          "host": "api.example.com",
+          "at": {
+            "line": 2264,
+            "text": "url: 'https://api.example.com/data',"
+          }
+        },
+        {
+          "host": "api.openai.com",
+          "at": {
+            "line": 990,
+            "text": "token-optimizer-route zed --upstream https://api.openai.com/v1 --model gpt-4o"
+          }
+        },
+        {
+          "host": "api.orcarouter.ai",
+          "at": {
+            "line": 1588,
+            "text": "| Inference and model discovery    | `https://api.orcarouter.ai/v1` |"
+          }
+        },
+        {
+          "host": "app.ts",
+          "at": {
+            "line": 2563,
+            "text": "await smart_read({ path: '/src/app.ts' });"
+          }
+        },
+        {
+          "host": "auth-methods.png",
+          "at": {
+            "line": 1549,
+            "text": "![The OrcaRouter card showing both authentication choices side by side, with the stored key masked](./docs/media/orcarouter/auth-methods.png)"
+          }
+        },
+        {
+          "host": "auth.ts",
+          "at": {
+            "line": 487,
+            "text": "you touch  src/auth.ts"
+          }
+        },
+        {
+          "host": "badge.svg",
+          "at": {
+            "line": 16,
+            "text": "<a href=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml\"><img src=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml/badge.svg?branch=master\" alt=\"CI\"></a>"
+          }
+        },
+        {
+          "host": "block.text",
+          "at": {
+            "line": 1253,
+            "text": "on `block.text`. That matters because an image costs about `width * height /"
+          }
+        },
+        {
+          "host": "cache.db",
+          "at": {
+            "line": 3025,
+            "text": "**Symptom**: `~/.token-optimizer/cache.db` is >1GB"
+          }
+        },
+        {
+          "host": "capture-health-live.png",
+          "at": {
+            "line": 602,
+            "text": "<img alt=\"Structured cross-client hook and MCP health cards from live local data\" src=\"./docs/media/live/capture-health-live.png\" width=\"1000\">"
+          }
+        },
+        {
+          "host": "ccr-tool.py",
+          "at": {
+            "line": 145,
+            "text": "`bench/compression/alt-a/ccr-tool.py`. The turn that first adds the tool also"
+          }
+        },
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 3095,
+            "text": "- [Changelog](./CHANGELOG.md)"
+          }
+        },
+        {
+          "host": "ci.yml",
+          "at": {
+            "line": 16,
+            "text": "<a href=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml\"><img src=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml/badge.svg?branch=master\" alt=\"CI\"></a>"
+          }
+        },
+        {
+          "host": "claude.md",
+          "at": {
+            "line": 1336,
+            "text": "! CLAUDE.md:2 has an embedded timestamp, invalidating everything after it"
+          }
+        },
+        {
+          "host": "codex-mcp-installed.png",
+          "at": {
+            "line": 1735,
+            "text": "![Codex MCP list showing token-optimizer installed and enabled](./docs/assets/codex-mcp-installed.png)"
+          }
+        },
+        {
+          "host": "codex.cmd",
+          "at": {
+            "line": 1723,
+            "text": "codex.cmd mcp add token-optimizer -- npx -y @ooples/token-optimizer-mcp@latest"
+          }
+        },
+        {
+          "host": "codex.mjs",
+          "at": {
+            "line": 829,
+            "text": "Reproduce with `ALT_A_MODE=token node bench/live/codex.mjs`, then"
+          }
+        },
+        {
+          "host": "config.json",
+          "at": {
+            "line": 1958,
+            "text": "\"$schema\": \"https://opencode.ai/config.json\","
+          }
+        },
+        {
+          "host": "config.toml",
+          "at": {
+            "line": 1726,
+            "text": "This writes the server to `~/.codex/config.toml`. Codex CLI, the Codex IDE extension, and the Codex app on the same host share that configuration."
+          }
+        },
+        {
+          "host": "contributing.md",
+          "at": {
+            "line": 3093,
+            "text": "- [Contributing](./docs/CONTRIBUTING.md)"
+          }
+        },
+        {
+          "host": "copilot-instructions.md",
+          "at": {
+            "line": 1893,
+            "text": "Keep [`integrations/AGENTS.md`](./integrations/AGENTS.md) as the repository's `AGENTS.md`, or adapt the same guidance into `.github/copilot-instructions.md`."
+          }
+        },
+        {
+          "host": "current-session.txt",
+          "at": {
+            "line": 2757,
+            "text": "**Location**: `~/.claude-global/hooks/data/current-session.txt`"
+          }
+        },
+        {
+          "host": "dbnettests.bceonrelu",
+          "at": {
+            "line": 1314,
+            "text": "FAILED  DBNetTests.BceOnRelu -- expected 0.0 got NaN"
+          }
+        },
+        {
+          "host": "dispatcher.log",
+          "at": {
+            "line": 3055,
+            "text": "1. **Check the hook logs**: `~/.claude-global/hooks/logs/dispatcher.log`"
+          }
+        },
+        {
+          "host": "dispatcher.sh",
+          "at": {
+            "line": 2906,
+            "text": "[ -f ~/.claude-global/hooks/dispatcher.sh ] && echo \"Exists\" || echo \"Missing\""
+          }
+        },
+        {
+          "host": "docs.github.com",
+          "at": {
+            "line": 1911,
+            "text": "Restart Copilot CLI after changing hook files. See GitHub's official [MCP setup guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers) and [hooks reference](h…"
+          }
+        },
+        {
+          "host": "file.ts",
+          "at": {
+            "line": 2233,
+            "text": "smart_read({ path: '/path/to/file.ts' });"
+          }
+        },
+        {
+          "host": "gemini.md",
+          "at": {
+            "line": 1923,
+            "text": "Alternatively, install this repository as a Gemini extension so the MCP configuration and `GEMINI.md` guidance are packaged together:"
+          }
+        },
+        {
+          "host": "geminicli.com",
+          "at": {
+            "line": 1948,
+            "text": "…CLI after installing, updating, or reconfiguring the extension. See the official [Gemini MCP guide](https://geminicli.com/docs/tools/mcp-server/), [extension guide](https://geminicli.com/docs/extensio…"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 16,
+            "text": "<a href=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml\"><img src=\"https://github.com/ooples/token-optimizer-mcp/actions/workflows/ci.yml/badge.svg?branch=master\" alt=\"CI\"></a>"
+          }
+        },
+        {
+          "host": "graph-balance-live.png",
+          "at": {
+            "line": 610,
+            "text": "<img alt=\"Direct graph savings, remembering cost, holdouts, and an honest collecting causal study\" src=\"./docs/media/live/graph-balance-live.png\" width=\"1000\">"
+          }
+        },
+        {
+          "host": "graph-explorer-live.png",
+          "at": {
+            "line": 620,
+            "text": "<img alt=\"Interactive 3D knowledge graph spanning eleven local projects\" src=\"./docs/media/live/graph-explorer-live.png\" width=\"1000\">"
+          }
+        },
+        {
+          "host": "head-to-head.json",
+          "at": {
+            "line": 59,
+            "text": "`bench/compression/alt-a/results/head-to-head.json`. Written by"
+          }
+        },
+        {
+          "host": "head-to-head.mjs",
+          "at": {
+            "line": 168,
+            "text": "node bench/compression/head-to-head.mjs <out-dir>"
+          }
+        },
+        {
+          "host": "hook-report.json",
+          "at": {
+            "line": 677,
+            "text": "npm run diagnostics -- --include-events --limit 100 --output hook-report.json"
+          }
+        },
+        {
+          "host": "hook-summary.json",
+          "at": {
+            "line": 676,
+            "text": "npm run diagnostics -- --hours 72 --output hook-summary.json"
+          }
+        },
+        {
+          "host": "hooks-installation.md",
+          "at": {
+            "line": 1853,
+            "text": "…_OPTIMIZER_AUTO_INSTALL=1` before installing. Open a new shell to activate managed CLI commands, or use `token-optimizer-run` directly. See the [hook installation guide](./docs/HOOKS-INSTALLATION.md)."
+          }
+        },
+        {
+          "host": "hooks.json",
+          "at": {
+            "line": 1741,
+            "text": "…e hook is also available under [`integrations/codex/hooks`](./integrations/codex/hooks); merge its `hooks.json` into `~/.codex/hooks.json`, copy the script to `~/.codex/hooks/`, and review it once wit…"
+          }
+        },
+        {
+          "host": "hooks.md",
+          "at": {
+            "line": 1760,
+            "text": "See the current [Codex hooks documentation](https://learn.chatgpt.com/docs/hooks.md) for hook trust, matching, and tool-coverage details."
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 15,
+            "text": "<a href=\"https://www.npmjs.com/package/@ooples/token-optimizer-mcp\"><img src=\"https://img.shields.io/npm/v/%40ooples%2Ftoken-optimizer-mcp?logo=npm\" alt=\"npm version\"></a>"
+          }
+        },
+        {
+          "host": "index.js",
+          "at": {
+            "line": 3083,
+            "text": "codex mcp add token-optimizer-local -- node /absolute/path/to/token-optimizer-mcp/dist/server/index.js"
+          }
+        },
+        {
+          "host": "install-hooks.sh",
+          "at": {
+            "line": 2918,
+            "text": "bash install-hooks.sh"
+          }
+        },
+        {
+          "host": "io.github.ooples",
+          "at": {
+            "line": 1,
+            "text": "[![MCP Toplist](https://mcptoplist.com/badge/io.github.ooples%2Ftoken-optimizer-mcp.svg)](https://mcptoplist.com/server/io.github.ooples%2Ftoken-optimizer-mcp)"
+          }
+        },
+        {
+          "host": "large-file.ts",
+          "at": {
+            "line": 2039,
+            "text": "\"path\": \"/absolute/path/to/large-file.ts\""
+          }
+        },
+        {
+          "host": "learn.chatgpt.com",
+          "at": {
+            "line": 1760,
+            "text": "See the current [Codex hooks documentation](https://learn.chatgpt.com/docs/hooks.md) for hook trust, matching, and tool-coverage details."
+          }
+        },
+        {
+          "host": "license-mit-blue.svg",
+          "at": {
+            "line": 17,
+            "text": "<a href=\"./LICENSE\"><img src=\"https://img.shields.io/badge/license-MIT-blue.svg\" alt=\"MIT license\"></a>"
+          }
+        },
+        {
+          "host": "logo-400.png",
+          "at": {
+            "line": 4,
+            "text": "<img src=\"docs/assets/logo-400.png\" alt=\"Token Optimizer\" width=\"96\" height=\"96\">"
+          }
+        },
+        {
+          "host": "mcp-config.json",
+          "at": {
+            "line": 1865,
+            "text": "If your Copilot CLI does not expose `copilot mcp` yet, save this as `~/.copilot/mcp-config.json`:"
+          }
+        },
+        {
+          "host": "mcp-smoke.mjs",
+          "at": {
+            "line": 3077,
+            "text": "node scripts/mcp-smoke.mjs"
+          }
+        },
+        {
+          "host": "mcptoplist.com",
+          "at": {
+            "line": 1,
+            "text": "[![MCP Toplist](https://mcptoplist.com/badge/io.github.ooples%2Ftoken-optimizer-mcp.svg)](https://mcptoplist.com/server/io.github.ooples%2Ftoken-optimizer-mcp)"
+          }
+        },
+        {
+          "host": "message.id",
+          "at": {
+            "line": 464,
+            "text": "assistant rows that share a `message.id`, and each row repeats the usage"
+          }
+        },
+        {
+          "host": "multimodal-model-dropdown.png",
+          "at": {
+            "line": 1619,
+            "text": "…./docs/media/orcarouter/text-model-dropdown.png) | ![The model listbox after switching to images, holding only models that declare image input](./docs/media/orcarouter/multimodal-model-dropdown.png) |"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 18,
+            "text": "<a href=\"https://nodejs.org/\"><img src=\"https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white\" alt=\"Node.js 22+\"></a>"
+          }
+        },
+        {
+          "host": "nodejs.org",
+          "at": {
+            "line": 18,
+            "text": "<a href=\"https://nodejs.org/\"><img src=\"https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white\" alt=\"Node.js 22+\"></a>"
+          }
+        },
+        {
+          "host": "opencode.ai",
+          "at": {
+            "line": 1958,
+            "text": "\"$schema\": \"https://opencode.ai/config.json\","
+          }
+        },
+        {
+          "host": "opencode.json",
+          "at": {
+            "line": 1954,
+            "text": "Create or update `opencode.json` in your project:"
+          }
+        },
+        {
+          "host": "overview-live.png",
+          "at": {
+            "line": 30,
+            "text": "… alt=\"Live Token Optimizer dashboard separating verified net MCP transport savings, excluded reports, per-agent attribution, and graph evidence\" src=\"./docs/media/live/overview-live.png\" width=\"1000\">"
+          }
+        },
+        {
+          "host": "proof.mjs",
+          "at": {
+            "line": 176,
+            "text": "comparator can be checked without their clone. `node bench/compression/proof.mjs`:"
+          }
+        },
+        {
+          "host": "readme-alt-a.check.mjs",
+          "at": {
+            "line": 61,
+            "text": "`node bench/compression/readme-alt-a.check.mjs`; do not hand-edit."
+          }
+        },
+        {
+          "host": "readme-alt-a.render.mjs",
+          "at": {
+            "line": 60,
+            "text": "`node bench/compression/readme-alt-a.render.mjs` and guarded by"
+          }
+        },
+        {
+          "host": "readme-prose.check.mjs",
+          "at": {
+            "line": 715,
+            "text": "registry in bench/compression/readme-prose.check.mjs saying where it comes"
+          }
+        },
+        {
+          "host": "readme-table.check.mjs",
+          "at": {
+            "line": 180,
+            "text": "`node bench/compression/readme-table.check.mjs`; do not hand-edit. -->"
+          }
+        },
+        {
+          "host": "readme.md",
+          "at": {
+            "line": 662,
+            "text": "[live evaluation suite](evals/README.md)."
+          }
+        },
+        {
+          "host": "report-codex.mjs",
+          "at": {
+            "line": 822,
+            "text": "`bench/live/report-codex.mjs` deliberately declines to price them. Three short"
+          }
+        },
+        {
+          "host": "resolve-theirs.py",
+          "at": {
+            "line": 167,
+            "text": "python bench/compression/alt-a/resolve-theirs.py <alt-a-clone> <out-dir>"
+          }
+        },
+        {
+          "host": "run-theirs.py",
+          "at": {
+            "line": 165,
+            "text": "python bench/compression/alt-a/run-theirs.py <alt-a-clone> <out-dir>"
+          }
+        },
+        {
+          "host": "schema.d.ts",
+          "at": {
+            "line": 1361,
+            "text": "generated/schema.d.ts: read in 9/9 sessions, never the source of a finding"
+          }
+        },
+        {
+          "host": "security.md",
+          "at": {
+            "line": 3094,
+            "text": "- [Security policy](./SECURITY.md)"
+          }
+        },
+        {
+          "host": "session-replay.mjs",
+          "at": {
+            "line": 250,
+            "text": "`node bench/compression/session-replay.mjs` replays real recorded conversations"
+          }
+        },
+        {
+          "host": "settings.json",
+          "at": {
+            "line": 938,
+            "text": "Claude Code's own `settings.json`, which is the one thing a session we did not"
+          }
+        },
+        {
+          "host": "spill-path.ts",
+          "at": {
+            "line": 149,
+            "text": "writes (`<home>/.tok/<pid>/<15 digits>`, src/compress/spill-path.ts) rather than"
+          }
+        },
+        {
+          "host": "text-model-dropdown.png",
+          "at": {
+            "line": 1619,
+            "text": "| ![The model listbox open on the live chat catalog](./docs/media/orcarouter/text-model-dropdown.png) | ![The model listbox after switching to images, holding only models that declare image input](./d…"
+          }
+        },
+        {
+          "host": "token-optimizer-compact-window.json",
+          "at": {
+            "line": 1114,
+            "text": "- The record of this and of default routing now sits beside the settings file it describes (`token-optimizer-compact-window.json`, `token-optimizer-routing.json`), not in the optimizer home. A record …"
+          }
+        },
+        {
+          "host": "token-optimizer-mcp.git",
+          "at": {
+            "line": 3072,
+            "text": "git clone https://github.com/ooples/token-optimizer-mcp.git"
+          }
+        },
+        {
+          "host": "token-optimizer-routing.json",
+          "at": {
+            "line": 1114,
+            "text": "…ult routing now sits beside the settings file it describes (`token-optimizer-compact-window.json`, `token-optimizer-routing.json`), not in the optimizer home. A record a 7.6.0 install left in `~/.toke…"
+          }
+        },
+        {
+          "host": "token-optimizer.js",
+          "at": {
+            "line": 1986,
+            "text": "cp integrations/opencode/.opencode/plugins/token-optimizer.js .opencode/plugins/"
+          }
+        },
+        {
+          "host": "tool.execute.before",
+          "at": {
+            "line": 1996,
+            "text": "…en Optimizer usage state in OpenCode's compaction prompt. Under `TOKEN_OPTIMIZER_MODE=enforce` its `tool.execute.before` hook rejects full-file reads over 25 KB and steers the agent to `smart_read`; t…"
+          }
+        },
+        {
+          "host": "tools.md",
+          "at": {
+            "line": 2111,
+            "text": "See [`docs/TOOLS.md`](./docs/TOOLS.md) for detailed tool inputs and examples."
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 15,
+            "text": "<a href=\"https://www.npmjs.com/package/@ooples/token-optimizer-mcp\"><img src=\"https://img.shields.io/npm/v/%40ooples%2Ftoken-optimizer-mcp?logo=npm\" alt=\"npm version\"></a>"
+          }
+        },
+        {
+          "host": "www.orcarouter.ai",
+          "at": {
+            "line": 1534,
+            "text": "[OrcaRouter](https://www.orcarouter.ai) is an OpenAI-compatible AI gateway that"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:env:ANTHROPIC_API_KEY",
+      "kind": "credential",
+      "security": true,
+      "says": "Read the environment variable ANTHROPIC_API_KEY, a planted credential it never declared.",
+      "evidence": [
+        "read deliberately at at createSummarizerFromEnv (file:///srv/brydge-measure/ooples--token-optimizer-mcp-1793455364626/install/node_modules/@ooples/token-optimizer-mcp/dist/core/summarization.js:211:21)"
+      ]
+    },
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at Object.getEnvironmentVariable (/srv/brydge-measure/ooples--token-optimizer-mcp-1793455364626/install/node_modules/typescript/lib/typescript.js:8345:27) read 10 variables"
+      ]
+    },
+    {
+      "id": "credential:note:looked",
+      "kind": "credential",
+      "security": false,
+      "says": "Looked for credential-like variables we did not plant: TOKEN_OPTIMIZER_CACHE_DIR, TOKEN_OPTIMIZER_EPISODE_ID, TOKEN_OPTIMIZER_ANALYTICS_DB, TOKEN_OPTIMIZER_MODEL, ORCAROUTER_API_KEY, TOKEN_OPTIMIZER_HOME, TOKEN_OPTIMIZER_TOOL_PROFILE, TOKEN_OPTIMIZER_EXPERIMENT_ARM, TOKEN_OPTIMIZER_LOG_DIR, TOKEN_OPTIMIZER_STATE_DIR, TOKEN_OPTIMIZER_VERSION, TOKEN_OPTIMIZER_ROLLOUT_CHANNEL, TOKEN_OPTIMIZER_FEATURES, TOKEN_OPTIMIZER_DISABLE_FEATURES, TOKEN_OPTIMIZER_AUTO_REPAIR, TOKEN_OPTIMIZER_PROXY_DEFER_TOOLS, TOKEN_OPTIMIZER_PROXY_DROP_THINKING, TOKEN_OPTIMIZER_PROXY_KNOWLEDGE, TOKEN_OPTIMIZER_PROXY_NET_SAVING, TOKEN_OPTIMIZER_OUTPUT_SHAPER, TOKEN_OPTIMIZER_GRAPH_SHARED, TOKEN_OPTIMIZER_CACHE_STRICT, TOKEN_OPTIMIZER_PROXY_SUBSTITUTE, TOKEN_OPTIMIZER_PROXY_TOOL_CODE, TOKEN_OPTIMIZER_TELEMETRY, TOKEN_OPTIMIZER_BENCH_STAMP_SEED, TOKEN_OPTIMIZER_BEACON, TOKEN_OPTIMIZER_MODE, TOKEN_OPTIMIZER_PROXY, TOKEN_OPTIMIZER_SETTINGS, TOKEN_OPTIMIZER_DEFAULT_ROUTING, TOKEN_OPTIMIZER_COMPACT_WINDOW, TOKEN_OPTIMIZER_METRICS_BYTES, TOKEN_OPTIMIZER_METRICS_WINDOW, TOKEN_OPTIMIZER_UNROOTED_DIR, TOKEN_OPTIMIZER_WIKI_DIR. Reported for completeness; not counted as a credential read.",
+      "evidence": [
+        "no planted secret was behind these names"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @ooples/token-optimizer-mcp@7.7.1",
+        "integrity sha512-S53xHzwmLGWUTYNCGJ/CV/Vr9/7BzhUwCNcrdmi3edYFyedfJ7+7x7lXCLw1B790tfXOmlBoLw7pemS8XX90SQ==",
+        "tarball https://registry.npmjs.org/@ooples/token-optimizer-mcp/-/token-optimizer-mcp-7.7.1.tgz"
+      ]
+    }
+  ]
+}

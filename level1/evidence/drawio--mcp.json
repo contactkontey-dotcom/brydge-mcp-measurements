@@ -1,0 +1,528 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@drawio/mcp@1.10.1",
+  "measuredAt": "2026-10-31T13:53:31.915Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "drawio--mcp",
+  "package": {
+    "name": "@drawio/mcp",
+    "version": "1.10.1",
+    "tarball": "https://registry.npmjs.org/@drawio/mcp/-/mcp-1.10.1.tgz",
+    "integrity": "sha512-dPNCVwHFITUFEylCQRfwrzC9gwiVq3F6zrE4Chw5/sBS0yumC24eT4n2njktsFUXmEfS82Xj4QGLz/1efRrTzg==",
+    "repository": "git+https://github.com/jgraph/drawio-mcp.git",
+    "homepage": "https://github.com/jgraph/drawio-mcp#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "12011e88a828e8e212f08c008b3c5c4ebefc98bb75a2d39431e5a59e50d663ba",
+    "lines": 264,
+    "bytes": 12679
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "app.diagrams.net",
+        "at": {
+          "line": 154,
+          "text": "To open diagrams in a self-hosted draw.io instance, set the `DRAWIO_BASE_URL` environment variable to your instance URL (default: `https://app.diagrams.net/`):"
+        }
+      },
+      {
+        "host": "config.json",
+        "at": {
+          "line": 129,
+          "text": "\"$schema\": \"https://opencode.ai/config.json\","
+        }
+      },
+      {
+        "host": "cursor.com",
+        "at": {
+          "line": 104,
+          "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=drawio&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBkcmF3aW8vbWNwIl19)"
+        }
+      },
+      {
+        "host": "draw.io",
+        "at": {
+          "line": 1,
+          "text": "# Draw.io MCP Tool Server"
+        }
+      },
+      {
+        "host": "drawio-mcp.git",
+        "at": {
+          "line": 36,
+          "text": "git clone https://github.com/jgraph/drawio-mcp.git"
+        }
+      },
+      {
+        "host": "drawio.example.com",
+        "at": {
+          "line": 163,
+          "text": "\"DRAWIO_BASE_URL\": \"https://drawio.example.com/\""
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 5,
+          "text": "This package is part of the [drawio-mcp](https://github.com/jgraph/drawio-mcp) repository, which also includes:"
+        }
+      },
+      {
+        "host": "mcp-install-dark.svg",
+        "at": {
+          "line": 104,
+          "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=drawio&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBkcmF3aW8vbWNwIl19)"
+        }
+      },
+      {
+        "host": "mcp.draw.io",
+        "at": {
+          "line": 7,
+          "text": "- **[MCP App Server](https://github.com/jgraph/drawio-mcp/tree/main/mcp-app-server)** — Renders diagrams inline in AI chat interfaces. Hosted at `https://mcp.draw.io/mcp` — no install required."
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 83,
+          "text": "Add to `.vscode/mcp.json` in your workspace (or run **MCP: Open User Configuration** for a global config):"
+        }
+      },
+      {
+        "host": "mermaid-reference.md",
+        "at": {
+          "line": 214,
+          "text": "Returns a full diagram generation reference: [`shared/mermaid-reference.md`](../shared/mermaid-reference.md), which the model reads before its first Mermaid diagram, or [`shared/xml-reference.md`](../…"
+        }
+      },
+      {
+        "host": "mermaid.js",
+        "at": {
+          "line": 3,
+          "text": "The official [draw.io](https://www.draw.io) MCP server that opens diagrams directly in the draw.io editor. Supports XML, CSV, and Mermaid.js formats with lightbox and dark mode options."
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 100,
+          "text": "> **Tip:** VS Code 1.109 and later also supports the [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) extension, so the hosted [MCP App Server](../mcp-app-server) at `https://mcp.draw.…"
+        }
+      },
+      {
+        "host": "opencode.ai",
+        "at": {
+          "line": 129,
+          "text": "\"$schema\": \"https://opencode.ai/config.json\","
+        }
+      },
+      {
+        "host": "opencode.json",
+        "at": {
+          "line": 125,
+          "text": "Add the server under the `mcp` key of `opencode.json` in your project root (or `~/.config/opencode/opencode.json` for every project):"
+        }
+      },
+      {
+        "host": "readme.md",
+        "at": {
+          "line": 142,
+          "text": "> **Tip:** OpenCode also loads the `drawio` *skill* (native `.drawio` files, PNG/SVG/PDF export) without any plugin wrapper — see the [plugins README](../plugins/README.md#opencode-no-plugin-needed)."
+        }
+      },
+      {
+        "host": "settings.json",
+        "at": {
+          "line": 68,
+          "text": "Or manually in `.claude/settings.json`:"
+        }
+      },
+      {
+        "host": "www.draw.io",
+        "at": {
+          "line": 3,
+          "text": "The official [draw.io](https://www.draw.io) MCP server that opens diagrams directly in the draw.io editor. Supports XML, CSV, and Mermaid.js formats with lightbox and dark mode options."
+        }
+      },
+      {
+        "host": "xml-essentials.md",
+        "at": {
+          "line": 214,
+          "text": "…l` only needs for layers, tags, metadata, tables, cross-functional grids and dark-mode colors — its description already carries the condensed [`shared/xml-essentials.md`](../shared/xml-essentials.md)."
+        }
+      },
+      {
+        "host": "xml-reference.md",
+        "at": {
+          "line": 214,
+          "text": "…./shared/mermaid-reference.md), which the model reads before its first Mermaid diagram, or [`shared/xml-reference.md`](../shared/xml-reference.md), which `open_drawio_xml` only needs for layers, tags,…"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "claude_desktop_config",
+        "at": {
+          "line": 48,
+          "text": "**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`"
+        }
+      },
+      {
+        "name": "get_drawio_reference",
+        "at": {
+          "line": 212,
+          "text": "### `get_drawio_reference`"
+        }
+      },
+      {
+        "name": "get_page",
+        "at": {
+          "line": 229,
+          "text": "### `list_pages` / `get_page` / `set_page`"
+        }
+      },
+      {
+        "name": "list_pages",
+        "at": {
+          "line": 229,
+          "text": "### `list_pages` / `get_page` / `set_page`"
+        }
+      },
+      {
+        "name": "open_drawio_csv",
+        "at": {
+          "line": 189,
+          "text": "### `open_drawio_csv`"
+        }
+      },
+      {
+        "name": "open_drawio_mermaid",
+        "at": {
+          "line": 199,
+          "text": "### `open_drawio_mermaid`"
+        }
+      },
+      {
+        "name": "open_drawio_xml",
+        "at": {
+          "line": 172,
+          "text": "### `open_drawio_xml`"
+        }
+      },
+      {
+        "name": "search_shapes",
+        "at": {
+          "line": 220,
+          "text": "### `search_shapes`"
+        }
+      },
+      {
+        "name": "set_page",
+        "at": {
+          "line": 229,
+          "text": "### `list_pages` / `get_page` / `set_page`"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "drawio-mcp",
+    "version": "1.10.1"
+  },
+  "observed": {
+    "offered": [
+      "get_drawio_reference",
+      "get_page",
+      "list_pages",
+      "open_drawio_csv",
+      "open_drawio_mermaid",
+      "open_drawio_xml",
+      "search_shapes",
+      "set_page"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "drawio-mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "get_drawio_reference",
+          "at": {
+            "line": 212,
+            "text": "### `get_drawio_reference`"
+          }
+        },
+        {
+          "name": "get_page",
+          "at": {
+            "line": 229,
+            "text": "### `list_pages` / `get_page` / `set_page`"
+          }
+        },
+        {
+          "name": "list_pages",
+          "at": {
+            "line": 229,
+            "text": "### `list_pages` / `get_page` / `set_page`"
+          }
+        },
+        {
+          "name": "open_drawio_csv",
+          "at": {
+            "line": 189,
+            "text": "### `open_drawio_csv`"
+          }
+        },
+        {
+          "name": "open_drawio_mermaid",
+          "at": {
+            "line": 199,
+            "text": "### `open_drawio_mermaid`"
+          }
+        },
+        {
+          "name": "open_drawio_xml",
+          "at": {
+            "line": 172,
+            "text": "### `open_drawio_xml`"
+          }
+        },
+        {
+          "name": "search_shapes",
+          "at": {
+            "line": 220,
+            "text": "### `search_shapes`"
+          }
+        },
+        {
+          "name": "set_page",
+          "at": {
+            "line": 229,
+            "text": "### `list_pages` / `get_page` / `set_page`"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "app.diagrams.net",
+          "at": {
+            "line": 154,
+            "text": "To open diagrams in a self-hosted draw.io instance, set the `DRAWIO_BASE_URL` environment variable to your instance URL (default: `https://app.diagrams.net/`):"
+          }
+        },
+        {
+          "host": "config.json",
+          "at": {
+            "line": 129,
+            "text": "\"$schema\": \"https://opencode.ai/config.json\","
+          }
+        },
+        {
+          "host": "cursor.com",
+          "at": {
+            "line": 104,
+            "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=drawio&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBkcmF3aW8vbWNwIl19)"
+          }
+        },
+        {
+          "host": "draw.io",
+          "at": {
+            "line": 1,
+            "text": "# Draw.io MCP Tool Server"
+          }
+        },
+        {
+          "host": "drawio-mcp.git",
+          "at": {
+            "line": 36,
+            "text": "git clone https://github.com/jgraph/drawio-mcp.git"
+          }
+        },
+        {
+          "host": "drawio.example.com",
+          "at": {
+            "line": 163,
+            "text": "\"DRAWIO_BASE_URL\": \"https://drawio.example.com/\""
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 5,
+            "text": "This package is part of the [drawio-mcp](https://github.com/jgraph/drawio-mcp) repository, which also includes:"
+          }
+        },
+        {
+          "host": "mcp-install-dark.svg",
+          "at": {
+            "line": 104,
+            "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=drawio&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBkcmF3aW8vbWNwIl19)"
+          }
+        },
+        {
+          "host": "mcp.draw.io",
+          "at": {
+            "line": 7,
+            "text": "- **[MCP App Server](https://github.com/jgraph/drawio-mcp/tree/main/mcp-app-server)** — Renders diagrams inline in AI chat interfaces. Hosted at `https://mcp.draw.io/mcp` — no install required."
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 83,
+            "text": "Add to `.vscode/mcp.json` in your workspace (or run **MCP: Open User Configuration** for a global config):"
+          }
+        },
+        {
+          "host": "mermaid-reference.md",
+          "at": {
+            "line": 214,
+            "text": "Returns a full diagram generation reference: [`shared/mermaid-reference.md`](../shared/mermaid-reference.md), which the model reads before its first Mermaid diagram, or [`shared/xml-reference.md`](../…"
+          }
+        },
+        {
+          "host": "mermaid.js",
+          "at": {
+            "line": 3,
+            "text": "The official [draw.io](https://www.draw.io) MCP server that opens diagrams directly in the draw.io editor. Supports XML, CSV, and Mermaid.js formats with lightbox and dark mode options."
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 100,
+            "text": "> **Tip:** VS Code 1.109 and later also supports the [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) extension, so the hosted [MCP App Server](../mcp-app-server) at `https://mcp.draw.…"
+          }
+        },
+        {
+          "host": "opencode.ai",
+          "at": {
+            "line": 129,
+            "text": "\"$schema\": \"https://opencode.ai/config.json\","
+          }
+        },
+        {
+          "host": "opencode.json",
+          "at": {
+            "line": 125,
+            "text": "Add the server under the `mcp` key of `opencode.json` in your project root (or `~/.config/opencode/opencode.json` for every project):"
+          }
+        },
+        {
+          "host": "readme.md",
+          "at": {
+            "line": 142,
+            "text": "> **Tip:** OpenCode also loads the `drawio` *skill* (native `.drawio` files, PNG/SVG/PDF export) without any plugin wrapper — see the [plugins README](../plugins/README.md#opencode-no-plugin-needed)."
+          }
+        },
+        {
+          "host": "settings.json",
+          "at": {
+            "line": 68,
+            "text": "Or manually in `.claude/settings.json`:"
+          }
+        },
+        {
+          "host": "www.draw.io",
+          "at": {
+            "line": 3,
+            "text": "The official [draw.io](https://www.draw.io) MCP server that opens diagrams directly in the draw.io editor. Supports XML, CSV, and Mermaid.js formats with lightbox and dark mode options."
+          }
+        },
+        {
+          "host": "xml-essentials.md",
+          "at": {
+            "line": 214,
+            "text": "…l` only needs for layers, tags, metadata, tables, cross-functional grids and dark-mode colors — its description already carries the condensed [`shared/xml-essentials.md`](../shared/xml-essentials.md)."
+          }
+        },
+        {
+          "host": "xml-reference.md",
+          "at": {
+            "line": 214,
+            "text": "…./shared/mermaid-reference.md), which the model reads before its first Mermaid diagram, or [`shared/xml-reference.md`](../shared/xml-reference.md), which `open_drawio_xml` only needs for layers, tags,…"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @drawio/mcp@1.10.1",
+        "integrity sha512-dPNCVwHFITUFEylCQRfwrzC9gwiVq3F6zrE4Chw5/sBS0yumC24eT4n2njktsFUXmEfS82Xj4QGLz/1efRrTzg==",
+        "tarball https://registry.npmjs.org/@drawio/mcp/-/mcp-1.10.1.tgz"
+      ]
+    }
+  ]
+}

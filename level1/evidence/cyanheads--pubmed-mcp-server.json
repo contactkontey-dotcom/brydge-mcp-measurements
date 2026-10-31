@@ -1,0 +1,803 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@cyanheads/pubmed-mcp-server@2.11.1",
+  "measuredAt": "2026-10-31T13:53:01.226Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "cyanheads--pubmed-mcp-server",
+  "package": {
+    "name": "@cyanheads/pubmed-mcp-server",
+    "version": "2.11.1",
+    "tarball": "https://registry.npmjs.org/@cyanheads/pubmed-mcp-server/-/pubmed-mcp-server-2.11.1.tgz",
+    "integrity": "sha512-WjTL/YlOYoK4urK0xzDejfGkMOK+rFhwN4DJBscgEERfLyI1qZl8YKSTN3TNgQA2IJRJUAK2ZEVnrL61NK+c+Q==",
+    "repository": "git+https://github.com/cyanheads/pubmed-mcp-server.git",
+    "homepage": "https://github.com/cyanheads/pubmed-mcp-server#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "25e0bfb2de3c045ed75e6439dcc590826482edc705aba7150b5625b0c7f6a7e4",
+    "lines": 327,
+    "bytes": 19155
+  },
+  "readmeNotes": [
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 248,
+        "text": "| `OTEL_ENABLED` | Enable [OpenTelemetry](https://github.com/cyanheads/mcp-ts-core/tree/main/docs/telemetry). | `false` |"
+      }
+    }
+  ],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "2.4.0-green.svg",
+        "at": {
+          "line": 10,
+          "text": "…s/packages/container/package/pubmed-mcp-server) [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-^2.4.0-green.svg?style=flat-square)](https://modelcontextprotocol.io/) [![npm](https://img.shields.io…"
+        }
+      },
+      {
+        "host": "202.0-orange.svg",
+        "at": {
+          "line": 10,
+          "text": "…lue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICENSE) [![Docker](https://img.shields.io/badge/Docker-ghcr.…"
+        }
+      },
+      {
+        "host": "7.0.2-3178c6.svg",
+        "at": {
+          "line": 10,
+          "text": "…s.com/package/@cyanheads/pubmed-mcp-server) [![TypeScript](https://img.shields.io/badge/TypeScript-^7.0.2-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io…"
+        }
+      },
+      {
+        "host": "bun-v1.4.4-blueviolet.svg",
+        "at": {
+          "line": 10,
+          "text": "…g.shields.io/badge/TypeScript-^7.0.2-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io/badge/Bun-v1.4.4-blueviolet.svg?style=flat-square)](https://bun.sh/)"
+        }
+      },
+      {
+        "host": "bun.sh",
+        "at": {
+          "line": 10,
+          "text": "…g.shields.io/badge/TypeScript-^7.0.2-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io/badge/Bun-v1.4.4-blueviolet.svg?style=flat-square)](https://bun.sh/)"
+        }
+      },
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 10,
+          "text": "[![Version](https://img.shields.io/badge/Version-2.11.1-blue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICE…"
+        }
+      },
+      {
+        "host": "claude.md",
+        "at": {
+          "line": 308,
+          "text": "See [`CLAUDE.md`](./CLAUDE.md) for development guidelines and architectural rules. The short version:"
+        }
+      },
+      {
+        "host": "clinicaltrials.gov",
+        "at": {
+          "line": 79,
+          "text": "- `dataBanks` lists the record's trial registrations and data deposits (ClinicalTrials.gov NCT IDs, GenBank and PDB accessions, Dryad DOIs) verbatim; search `pubmed_search_articles` for `<accession>[s…"
+        }
+      },
+      {
+        "host": "ctx.log",
+        "at": {
+          "line": 311,
+          "text": "- Use `ctx.log` for logging, `ctx.state` for storage"
+        }
+      },
+      {
+        "host": "ctx.state",
+        "at": {
+          "line": 311,
+          "text": "- Use `ctx.log` for logging, `ctx.state` for storage"
+        }
+      },
+      {
+        "host": "cursor.com",
+        "at": {
+          "line": 16,
+          "text": "…/cyanheads/pubmed-mcp-server/releases/latest/download/pubmed-mcp-server.mcpb) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=pubmed-mcp…"
+        }
+      },
+      {
+        "host": "deferred.ids",
+        "at": {
+          "line": 80,
+          "text": "- `recordType` separates journal articles from Bookshelf chapters and books; opt-in `maxResponseCharacters` defers overflow to `deferred.ids`"
+        }
+      },
+      {
+        "host": "deferred.records",
+        "at": {
+          "line": 105,
+          "text": "…]`, each pair copied from a search hit, with the full abstract, `license`, and `hasFullTextXml`; unresolved ids land in `notFound`; opt-in `maxResponseCharacters` defers overflow to `deferred.records`"
+        }
+      },
+      {
+        "host": "docker-ghcr.io",
+        "at": {
+          "line": 10,
+          "text": "…ense-Apache%202.0-orange.svg?style=flat-square)](./LICENSE) [![Docker](https://img.shields.io/badge/Docker-ghcr.io-2496ED?style=flat-square&logo=docker&logoColor=white)](https://github.com/users/cyanh…"
+        }
+      },
+      {
+        "host": "env.example",
+        "at": {
+          "line": 250,
+          "text": "See [`.env.example`](./.env.example) for every server setting and the common framework overrides."
+        }
+      },
+      {
+        "host": "ghcr.io",
+        "at": {
+          "line": 287,
+          "text": "docker run --rm -p 3010:3010 ghcr.io/cyanheads/pubmed-mcp-server:latest"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 10,
+          "text": "…(https://img.shields.io/badge/Docker-ghcr.io-2496ED?style=flat-square&logo=docker&logoColor=white)](https://github.com/users/cyanheads/packages/container/package/pubmed-mcp-server) [![MCP SDK](https:/…"
+        }
+      },
+      {
+        "host": "icite.od.nih.gov",
+        "at": {
+          "line": 115,
+          "text": "- Source: [NIH iCite](https://icite.od.nih.gov/)"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 10,
+          "text": "[![Version](https://img.shields.io/badge/Version-2.11.1-blue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICE…"
+        }
+      },
+      {
+        "host": "index.ts",
+        "at": {
+          "line": 312,
+          "text": "- Register new tools and resources in the `createApp()` arrays in `src/index.ts`"
+        }
+      },
+      {
+        "host": "mcp-install-dark.svg",
+        "at": {
+          "line": 16,
+          "text": "…/releases/latest/download/pubmed-mcp-server.mcpb) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=pubmed-mcp-server&config=eyJjb21tYW5kI…"
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 10,
+          "text": "…mcp-server) [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-^2.4.0-green.svg?style=flat-square)](https://modelcontextprotocol.io/) [![npm](https://img.shields.io/npm/v/@cyanheads/pubmed-mcp-server?…"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 246,
+          "text": "| `LOGS_DIR` | Directory for log files (Node.js only). | `<app-root>/logs` |"
+        }
+      },
+      {
+        "host": "pubmed-mcp-server.git",
+        "at": {
+          "line": 261,
+          "text": "git clone https://github.com/cyanheads/pubmed-mcp-server.git"
+        }
+      },
+      {
+        "host": "pubmed-mcp-server.mcpb",
+        "at": {
+          "line": 16,
+          "text": "…anthropic&logoColor=white)](https://github.com/cyanheads/pubmed-mcp-server/releases/latest/download/pubmed-mcp-server.mcpb) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](htt…"
+        }
+      },
+      {
+        "host": "pubmed.caseyjhand.com",
+        "at": {
+          "line": 24,
+          "text": "**Public Hosted Server:** [https://pubmed.caseyjhand.com/mcp](https://pubmed.caseyjhand.com/mcp)"
+        }
+      },
+      {
+        "host": "tool.ts",
+        "at": {
+          "line": 296,
+          "text": "| `src/mcp-server/tools` | Tool definitions (`*.tool.ts`). Twelve tools across PubMed, PMC, Europe PMC, and NIH iCite. |"
+        }
+      },
+      {
+        "host": "version-2.11.1-blue.svg",
+        "at": {
+          "line": 10,
+          "text": "[![Version](https://img.shields.io/badge/Version-2.11.1-blue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICE…"
+        }
+      },
+      {
+        "host": "vscode.dev",
+        "at": {
+          "line": 16,
+          "text": "….io/badge/VS_Code-Install_Server-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode:mcp/install?%7B%22name%22%3A%22pubmed-mcp-server%22%2C%22comm…"
+        }
+      },
+      {
+        "host": "www.ncbi.nlm.nih.gov",
+        "at": {
+          "line": 221,
+          "text": "An [NCBI API key](https://www.ncbi.nlm.nih.gov/account/settings/) in `NCBI_API_KEY` raises the rate limit from 3 to 10 requests per second (`-e NCBI_API_KEY=your-key`, or an `env` entry). For Docker o…"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 10,
+          "text": "…ps://img.shields.io/npm/v/@cyanheads/pubmed-mcp-server?style=flat-square&logo=npm&logoColor=white)](https://www.npmjs.com/package/@cyanheads/pubmed-mcp-server) [![TypeScript](https://img.shields.io/ba…"
+        }
+      },
+      {
+        "host": "www.typescriptlang.org",
+        "at": {
+          "line": 10,
+          "text": "…erver) [![TypeScript](https://img.shields.io/badge/TypeScript-^7.0.2-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io/badge/Bun-v1.4.4-blueviolet.svg?styl…"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "all_providers_failed",
+        "at": {
+          "line": 131,
+          "text": "- Falls back to Europe PMC, then OpenAlex, and names the provider that answered; fails as `all_providers_failed` if none can"
+        }
+      },
+      {
+        "name": "cited_by",
+        "at": {
+          "line": 130,
+          "text": "- `similar`, `cited_by`, or `references`, up to 50 per page with offset pagination"
+        }
+      },
+      {
+        "name": "europepmc_invalid_input",
+        "at": {
+          "line": 97,
+          "text": "- Optional `sort` of comma-separated `<field> asc|desc` keys; `relevance` is the default order, and a sort Europe PMC cannot use fails as `europepmc_invalid_input`"
+        }
+      },
+      {
+        "name": "not_found",
+        "at": {
+          "line": 153,
+          "text": "- Each is matched independently and comes back `matched`, `not_found`, or `ambiguous`, with recovery detail"
+        }
+      },
+      {
+        "name": "pubmed_convert_ids",
+        "at": {
+          "line": 49,
+          "text": "| `pubmed_convert_ids` | Convert between DOI, PMID, and PMCID via the PMC ID Converter |"
+        }
+      },
+      {
+        "name": "pubmed_europepmc_fetch",
+        "at": {
+          "line": 42,
+          "text": "| `pubmed_europepmc_fetch` | Fetch complete Europe PMC records, including the untruncated abstract, as `records: [{ source, epmcId }]` |"
+        }
+      },
+      {
+        "name": "pubmed_europepmc_search",
+        "at": {
+          "line": 41,
+          "text": "| `pubmed_europepmc_search` | Search Europe PMC for preprints, patents, Agricola, and open-access records PubMed doesn't carry |"
+        }
+      },
+      {
+        "name": "pubmed_fetch_articles",
+        "at": {
+          "line": 39,
+          "text": "| `pubmed_fetch_articles` | Fetch article metadata by PMID: abstract, authors, journal, MeSH terms, databank accessions such as trial registration IDs, grants, a collective author's investigators on r…"
+        }
+      },
+      {
+        "name": "pubmed_fetch_citation_metrics",
+        "at": {
+          "line": 43,
+          "text": "| `pubmed_fetch_citation_metrics` | Fetch NIH iCite citation metrics by PMID: Relative Citation Ratio, NIH percentile, citation counts and rates |"
+        }
+      },
+      {
+        "name": "pubmed_fetch_fulltext",
+        "at": {
+          "line": 40,
+          "text": "| `pubmed_fetch_fulltext` | Fetch full text by PMID, PMCID, or DOI, falling back from PMC to Europe PMC to Unpaywall |"
+        }
+      },
+      {
+        "name": "pubmed_find_related",
+        "at": {
+          "line": 45,
+          "text": "| `pubmed_find_related` | Find similar articles, citing articles, or references for a PMID |"
+        }
+      },
+      {
+        "name": "pubmed_format_citations",
+        "at": {
+          "line": 44,
+          "text": "| `pubmed_format_citations` | Format citations in APA 7th, MLA 9th, BibTeX, RIS, or Vancouver (ICMJE/NLM), with linked retraction and correction notices |"
+        }
+      },
+      {
+        "name": "pubmed_lookup_citation",
+        "at": {
+          "line": 48,
+          "text": "| `pubmed_lookup_citation` | Resolve partial references, up to 25 at a time, to PMIDs via ECitMatch |"
+        }
+      },
+      {
+        "name": "pubmed_lookup_mesh",
+        "at": {
+          "line": 47,
+          "text": "| `pubmed_lookup_mesh` | Look up MeSH headings with tree numbers, scope notes, and entry terms |"
+        }
+      },
+      {
+        "name": "pubmed_search_articles",
+        "at": {
+          "line": 38,
+          "text": "| `pubmed_search_articles` | Search PubMed with full query syntax, structured filters, date ranges, and optional summaries |"
+        }
+      },
+      {
+        "name": "pubmed_spell_check",
+        "at": {
+          "line": 46,
+          "text": "| `pubmed_spell_check` | Correct a misspelled PubMed query via NCBI ESpell |"
+        }
+      },
+      {
+        "name": "research_plan",
+        "at": {
+          "line": 61,
+          "text": "| `research_plan` | Generate a structured four-phase biomedical research plan |"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "pubmed-mcp-server",
+    "version": "2.11.1",
+    "title": "pubmed-mcp-server"
+  },
+  "observed": {
+    "offered": [
+      "pubmed_convert_ids",
+      "pubmed_europepmc_fetch",
+      "pubmed_europepmc_search",
+      "pubmed_fetch_articles",
+      "pubmed_fetch_citation_metrics",
+      "pubmed_fetch_fulltext",
+      "pubmed_find_related",
+      "pubmed_format_citations",
+      "pubmed_lookup_citation",
+      "pubmed_lookup_mesh",
+      "pubmed_search_articles",
+      "pubmed_spell_check"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "pubmed-mcp-server",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "pubmed_convert_ids",
+          "at": {
+            "line": 49,
+            "text": "| `pubmed_convert_ids` | Convert between DOI, PMID, and PMCID via the PMC ID Converter |"
+          }
+        },
+        {
+          "name": "pubmed_europepmc_fetch",
+          "at": {
+            "line": 42,
+            "text": "| `pubmed_europepmc_fetch` | Fetch complete Europe PMC records, including the untruncated abstract, as `records: [{ source, epmcId }]` |"
+          }
+        },
+        {
+          "name": "pubmed_europepmc_search",
+          "at": {
+            "line": 41,
+            "text": "| `pubmed_europepmc_search` | Search Europe PMC for preprints, patents, Agricola, and open-access records PubMed doesn't carry |"
+          }
+        },
+        {
+          "name": "pubmed_fetch_articles",
+          "at": {
+            "line": 39,
+            "text": "| `pubmed_fetch_articles` | Fetch article metadata by PMID: abstract, authors, journal, MeSH terms, databank accessions such as trial registration IDs, grants, a collective author's investigators on r…"
+          }
+        },
+        {
+          "name": "pubmed_fetch_citation_metrics",
+          "at": {
+            "line": 43,
+            "text": "| `pubmed_fetch_citation_metrics` | Fetch NIH iCite citation metrics by PMID: Relative Citation Ratio, NIH percentile, citation counts and rates |"
+          }
+        },
+        {
+          "name": "pubmed_fetch_fulltext",
+          "at": {
+            "line": 40,
+            "text": "| `pubmed_fetch_fulltext` | Fetch full text by PMID, PMCID, or DOI, falling back from PMC to Europe PMC to Unpaywall |"
+          }
+        },
+        {
+          "name": "pubmed_find_related",
+          "at": {
+            "line": 45,
+            "text": "| `pubmed_find_related` | Find similar articles, citing articles, or references for a PMID |"
+          }
+        },
+        {
+          "name": "pubmed_format_citations",
+          "at": {
+            "line": 44,
+            "text": "| `pubmed_format_citations` | Format citations in APA 7th, MLA 9th, BibTeX, RIS, or Vancouver (ICMJE/NLM), with linked retraction and correction notices |"
+          }
+        },
+        {
+          "name": "pubmed_lookup_citation",
+          "at": {
+            "line": 48,
+            "text": "| `pubmed_lookup_citation` | Resolve partial references, up to 25 at a time, to PMIDs via ECitMatch |"
+          }
+        },
+        {
+          "name": "pubmed_lookup_mesh",
+          "at": {
+            "line": 47,
+            "text": "| `pubmed_lookup_mesh` | Look up MeSH headings with tree numbers, scope notes, and entry terms |"
+          }
+        },
+        {
+          "name": "pubmed_search_articles",
+          "at": {
+            "line": 38,
+            "text": "| `pubmed_search_articles` | Search PubMed with full query syntax, structured filters, date ranges, and optional summaries |"
+          }
+        },
+        {
+          "name": "pubmed_spell_check",
+          "at": {
+            "line": 46,
+            "text": "| `pubmed_spell_check` | Correct a misspelled PubMed query via NCBI ESpell |"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "2.4.0-green.svg",
+          "at": {
+            "line": 10,
+            "text": "…s/packages/container/package/pubmed-mcp-server) [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-^2.4.0-green.svg?style=flat-square)](https://modelcontextprotocol.io/) [![npm](https://img.shields.io…"
+          }
+        },
+        {
+          "host": "202.0-orange.svg",
+          "at": {
+            "line": 10,
+            "text": "…lue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICENSE) [![Docker](https://img.shields.io/badge/Docker-ghcr.…"
+          }
+        },
+        {
+          "host": "7.0.2-3178c6.svg",
+          "at": {
+            "line": 10,
+            "text": "…s.com/package/@cyanheads/pubmed-mcp-server) [![TypeScript](https://img.shields.io/badge/TypeScript-^7.0.2-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io…"
+          }
+        },
+        {
+          "host": "bun-v1.4.4-blueviolet.svg",
+          "at": {
+            "line": 10,
+            "text": "…g.shields.io/badge/TypeScript-^7.0.2-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io/badge/Bun-v1.4.4-blueviolet.svg?style=flat-square)](https://bun.sh/)"
+          }
+        },
+        {
+          "host": "bun.sh",
+          "at": {
+            "line": 10,
+            "text": "…g.shields.io/badge/TypeScript-^7.0.2-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io/badge/Bun-v1.4.4-blueviolet.svg?style=flat-square)](https://bun.sh/)"
+          }
+        },
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 10,
+            "text": "[![Version](https://img.shields.io/badge/Version-2.11.1-blue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICE…"
+          }
+        },
+        {
+          "host": "claude.md",
+          "at": {
+            "line": 308,
+            "text": "See [`CLAUDE.md`](./CLAUDE.md) for development guidelines and architectural rules. The short version:"
+          }
+        },
+        {
+          "host": "clinicaltrials.gov",
+          "at": {
+            "line": 79,
+            "text": "- `dataBanks` lists the record's trial registrations and data deposits (ClinicalTrials.gov NCT IDs, GenBank and PDB accessions, Dryad DOIs) verbatim; search `pubmed_search_articles` for `<accession>[s…"
+          }
+        },
+        {
+          "host": "ctx.log",
+          "at": {
+            "line": 311,
+            "text": "- Use `ctx.log` for logging, `ctx.state` for storage"
+          }
+        },
+        {
+          "host": "ctx.state",
+          "at": {
+            "line": 311,
+            "text": "- Use `ctx.log` for logging, `ctx.state` for storage"
+          }
+        },
+        {
+          "host": "cursor.com",
+          "at": {
+            "line": 16,
+            "text": "…/cyanheads/pubmed-mcp-server/releases/latest/download/pubmed-mcp-server.mcpb) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=pubmed-mcp…"
+          }
+        },
+        {
+          "host": "deferred.ids",
+          "at": {
+            "line": 80,
+            "text": "- `recordType` separates journal articles from Bookshelf chapters and books; opt-in `maxResponseCharacters` defers overflow to `deferred.ids`"
+          }
+        },
+        {
+          "host": "deferred.records",
+          "at": {
+            "line": 105,
+            "text": "…]`, each pair copied from a search hit, with the full abstract, `license`, and `hasFullTextXml`; unresolved ids land in `notFound`; opt-in `maxResponseCharacters` defers overflow to `deferred.records`"
+          }
+        },
+        {
+          "host": "docker-ghcr.io",
+          "at": {
+            "line": 10,
+            "text": "…ense-Apache%202.0-orange.svg?style=flat-square)](./LICENSE) [![Docker](https://img.shields.io/badge/Docker-ghcr.io-2496ED?style=flat-square&logo=docker&logoColor=white)](https://github.com/users/cyanh…"
+          }
+        },
+        {
+          "host": "env.example",
+          "at": {
+            "line": 250,
+            "text": "See [`.env.example`](./.env.example) for every server setting and the common framework overrides."
+          }
+        },
+        {
+          "host": "ghcr.io",
+          "at": {
+            "line": 287,
+            "text": "docker run --rm -p 3010:3010 ghcr.io/cyanheads/pubmed-mcp-server:latest"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 10,
+            "text": "…(https://img.shields.io/badge/Docker-ghcr.io-2496ED?style=flat-square&logo=docker&logoColor=white)](https://github.com/users/cyanheads/packages/container/package/pubmed-mcp-server) [![MCP SDK](https:/…"
+          }
+        },
+        {
+          "host": "icite.od.nih.gov",
+          "at": {
+            "line": 115,
+            "text": "- Source: [NIH iCite](https://icite.od.nih.gov/)"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 10,
+            "text": "[![Version](https://img.shields.io/badge/Version-2.11.1-blue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICE…"
+          }
+        },
+        {
+          "host": "index.ts",
+          "at": {
+            "line": 312,
+            "text": "- Register new tools and resources in the `createApp()` arrays in `src/index.ts`"
+          }
+        },
+        {
+          "host": "mcp-install-dark.svg",
+          "at": {
+            "line": 16,
+            "text": "…/releases/latest/download/pubmed-mcp-server.mcpb) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=pubmed-mcp-server&config=eyJjb21tYW5kI…"
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 10,
+            "text": "…mcp-server) [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-^2.4.0-green.svg?style=flat-square)](https://modelcontextprotocol.io/) [![npm](https://img.shields.io/npm/v/@cyanheads/pubmed-mcp-server?…"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 246,
+            "text": "| `LOGS_DIR` | Directory for log files (Node.js only). | `<app-root>/logs` |"
+          }
+        },
+        {
+          "host": "pubmed-mcp-server.git",
+          "at": {
+            "line": 261,
+            "text": "git clone https://github.com/cyanheads/pubmed-mcp-server.git"
+          }
+        },
+        {
+          "host": "pubmed-mcp-server.mcpb",
+          "at": {
+            "line": 16,
+            "text": "…anthropic&logoColor=white)](https://github.com/cyanheads/pubmed-mcp-server/releases/latest/download/pubmed-mcp-server.mcpb) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](htt…"
+          }
+        },
+        {
+          "host": "pubmed.caseyjhand.com",
+          "at": {
+            "line": 24,
+            "text": "**Public Hosted Server:** [https://pubmed.caseyjhand.com/mcp](https://pubmed.caseyjhand.com/mcp)"
+          }
+        },
+        {
+          "host": "tool.ts",
+          "at": {
+            "line": 296,
+            "text": "| `src/mcp-server/tools` | Tool definitions (`*.tool.ts`). Twelve tools across PubMed, PMC, Europe PMC, and NIH iCite. |"
+          }
+        },
+        {
+          "host": "version-2.11.1-blue.svg",
+          "at": {
+            "line": 10,
+            "text": "[![Version](https://img.shields.io/badge/Version-2.11.1-blue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICE…"
+          }
+        },
+        {
+          "host": "vscode.dev",
+          "at": {
+            "line": 16,
+            "text": "….io/badge/VS_Code-Install_Server-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode:mcp/install?%7B%22name%22%3A%22pubmed-mcp-server%22%2C%22comm…"
+          }
+        },
+        {
+          "host": "www.ncbi.nlm.nih.gov",
+          "at": {
+            "line": 221,
+            "text": "An [NCBI API key](https://www.ncbi.nlm.nih.gov/account/settings/) in `NCBI_API_KEY` raises the rate limit from 3 to 10 requests per second (`-e NCBI_API_KEY=your-key`, or an `env` entry). For Docker o…"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 10,
+            "text": "…ps://img.shields.io/npm/v/@cyanheads/pubmed-mcp-server?style=flat-square&logo=npm&logoColor=white)](https://www.npmjs.com/package/@cyanheads/pubmed-mcp-server) [![TypeScript](https://img.shields.io/ba…"
+          }
+        },
+        {
+          "host": "www.typescriptlang.org",
+          "at": {
+            "line": 10,
+            "text": "…erver) [![TypeScript](https://img.shields.io/badge/TypeScript-^7.0.2-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io/badge/Bun-v1.4.4-blueviolet.svg?styl…"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 2 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at parseEnvConfig (file:///srv/brydge-measure/cyanheads--pubmed-mcp-server-1793454782529/install/node_modules/@cyanheads/mcp-ts-core/dist/config/parseEnvConfig.js:72:48) read 15 variables",
+        "at Function.entries (<anonymous>) read 27 variables"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @cyanheads/pubmed-mcp-server@2.11.1",
+        "integrity sha512-WjTL/YlOYoK4urK0xzDejfGkMOK+rFhwN4DJBscgEERfLyI1qZl8YKSTN3TNgQA2IJRJUAK2ZEVnrL61NK+c+Q==",
+        "tarball https://registry.npmjs.org/@cyanheads/pubmed-mcp-server/-/pubmed-mcp-server-2.11.1.tgz"
+      ]
+    }
+  ]
+}

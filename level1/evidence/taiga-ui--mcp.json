@@ -1,0 +1,454 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@taiga-ui/mcp@0.4.1",
+  "measuredAt": "2026-10-31T14:06:44.850Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "taiga-ui--mcp",
+  "package": {
+    "name": "@taiga-ui/mcp",
+    "version": "0.4.1",
+    "tarball": "https://registry.npmjs.org/@taiga-ui/mcp/-/mcp-0.4.1.tgz",
+    "integrity": "sha512-zidD4raotkDe6He2EipFidFJ4itUhJMJ5ChzsCF2YvmVYnJ+xFKMDYPP93YH0JxZaG3l3H9CUu+yQcLE0iB9VQ==",
+    "repository": "git+https://github.com/taiga-family/taiga-ui-mcp.git",
+    "homepage": "https://github.com/taiga-family/taiga-ui-mcp#README"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "dc56b34675b35c3860b4ee07952da9337edeb4e2a26c0528f4bbb9abf0f9bc79",
+    "lines": 319,
+    "bytes": 11080
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "config.toml",
+        "at": {
+          "line": 45,
+          "text": "npx @taiga-ui/mcp init --client codex # writes .codex/config.toml"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 244,
+          "text": "Taiga UI MCP is a part of [Taiga UI](https://github.com/taiga-family/taiga-ui) libraries family which is backed and used"
+        }
+      },
+      {
+        "host": "github.svg",
+        "at": {
+          "line": 273,
+          "text": "src=\"https://raw.githubusercontent.com/MarsiBarsi/readme-icons/main/github.svg\""
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 4,
+          "text": "[![npm version](https://img.shields.io/npm/v/@taiga-ui/mcp.svg)](https://npmjs.com/package/@taiga-ui/mcp)"
+        }
+      },
+      {
+        "host": "llms-full.txt",
+        "at": {
+          "line": 80,
+          "text": "\"--source-url=https://taiga-ui.dev/llms-full.txt\" // or the /v4 version, if you want"
+        }
+      },
+      {
+        "host": "lobehub.com",
+        "at": {
+          "line": 3,
+          "text": "[![MCP Badge](https://lobehub.com/badge/mcp/taiga-family-taiga-ui-mcp?style=plastic)](https://lobehub.com/mcp/taiga-family-taiga-ui-mcp)"
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 40,
+          "text": "npx @taiga-ui/mcp init --client claude # writes .mcp.json"
+        }
+      },
+      {
+        "host": "mcp.svg",
+        "at": {
+          "line": 4,
+          "text": "[![npm version](https://img.shields.io/npm/v/@taiga-ui/mcp.svg)](https://npmjs.com/package/@taiga-ui/mcp)"
+        }
+      },
+      {
+        "host": "mdlufy.png",
+        "at": {
+          "line": 287,
+          "text": "src=\"https://github.com/mdlufy.png?size=200\""
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 21,
+          "text": "- Node.js 18 or newer"
+        }
+      },
+      {
+        "host": "npmjs.com",
+        "at": {
+          "line": 4,
+          "text": "[![npm version](https://img.shields.io/npm/v/@taiga-ui/mcp.svg)](https://npmjs.com/package/@taiga-ui/mcp)"
+        }
+      },
+      {
+        "host": "opencode.json",
+        "at": {
+          "line": 44,
+          "text": "npx @taiga-ui/mcp init --client opencode # writes opencode.json"
+        }
+      },
+      {
+        "host": "raw.githubusercontent.com",
+        "at": {
+          "line": 266,
+          "text": "src=\"https://raw.githubusercontent.com/MarsiBarsi/readme-icons/main/twitter.svg\""
+        }
+      },
+      {
+        "host": "send.svg",
+        "at": {
+          "line": 280,
+          "text": "src=\"https://raw.githubusercontent.com/MarsiBarsi/readme-icons/main/send.svg\""
+        }
+      },
+      {
+        "host": "t.me",
+        "at": {
+          "line": 276,
+          "text": "href=\"https://t.me/v_potekhin\""
+        }
+      },
+      {
+        "host": "taiga-ui.dev",
+        "at": {
+          "line": 9,
+          "text": "[Taiga UI](https://taiga-ui.dev) components. Seamlessly retrieve Taiga UI components implementations for your AI-powered"
+        }
+      },
+      {
+        "host": "twitter.com",
+        "at": {
+          "line": 262,
+          "text": "href=\"https://twitter.com/v_potekhin\""
+        }
+      },
+      {
+        "host": "twitter.svg",
+        "at": {
+          "line": 266,
+          "text": "src=\"https://raw.githubusercontent.com/MarsiBarsi/readme-icons/main/twitter.svg\""
+        }
+      },
+      {
+        "host": "vladimirpotekhin.png",
+        "at": {
+          "line": 254,
+          "text": "src=\"https://github.com/vladimirpotekhin.png?size=200\""
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "get_component_example",
+        "at": {
+          "line": 16,
+          "text": "via `get_component_example`, and access migration guides with `get_migration_guide`."
+        }
+      },
+      {
+        "name": "get_list_components",
+        "at": {
+          "line": 15,
+          "text": "- **Four MCP tools**. Get structured overview with `get_overview`, discover with `get_list_components`, fetch examples"
+        }
+      },
+      {
+        "name": "get_migration_guide",
+        "at": {
+          "line": 16,
+          "text": "via `get_component_example`, and access migration guides with `get_migration_guide`."
+        }
+      },
+      {
+        "name": "get_overview",
+        "at": {
+          "line": 15,
+          "text": "- **Four MCP tools**. Get structured overview with `get_overview`, discover with `get_list_components`, fetch examples"
+        }
+      },
+      {
+        "name": "mcp_config",
+        "at": {
+          "line": 49,
+          "text": "`~/.codeium/windsurf/mcp_config.json` regardless of `--scope`."
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "taiga-ui-mcp",
+    "version": "0.4.1"
+  },
+  "observed": {
+    "offered": [
+      "get_component_example",
+      "get_list_components",
+      "get_migration_guide",
+      "get_overview"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "setpriv",
+      "taiga-ui-mcp"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "get_component_example",
+          "at": {
+            "line": 16,
+            "text": "via `get_component_example`, and access migration guides with `get_migration_guide`."
+          }
+        },
+        {
+          "name": "get_list_components",
+          "at": {
+            "line": 15,
+            "text": "- **Four MCP tools**. Get structured overview with `get_overview`, discover with `get_list_components`, fetch examples"
+          }
+        },
+        {
+          "name": "get_migration_guide",
+          "at": {
+            "line": 16,
+            "text": "via `get_component_example`, and access migration guides with `get_migration_guide`."
+          }
+        },
+        {
+          "name": "get_overview",
+          "at": {
+            "line": 15,
+            "text": "- **Four MCP tools**. Get structured overview with `get_overview`, discover with `get_list_components`, fetch examples"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "config.toml",
+          "at": {
+            "line": 45,
+            "text": "npx @taiga-ui/mcp init --client codex # writes .codex/config.toml"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 244,
+            "text": "Taiga UI MCP is a part of [Taiga UI](https://github.com/taiga-family/taiga-ui) libraries family which is backed and used"
+          }
+        },
+        {
+          "host": "github.svg",
+          "at": {
+            "line": 273,
+            "text": "src=\"https://raw.githubusercontent.com/MarsiBarsi/readme-icons/main/github.svg\""
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 4,
+            "text": "[![npm version](https://img.shields.io/npm/v/@taiga-ui/mcp.svg)](https://npmjs.com/package/@taiga-ui/mcp)"
+          }
+        },
+        {
+          "host": "llms-full.txt",
+          "at": {
+            "line": 80,
+            "text": "\"--source-url=https://taiga-ui.dev/llms-full.txt\" // or the /v4 version, if you want"
+          }
+        },
+        {
+          "host": "lobehub.com",
+          "at": {
+            "line": 3,
+            "text": "[![MCP Badge](https://lobehub.com/badge/mcp/taiga-family-taiga-ui-mcp?style=plastic)](https://lobehub.com/mcp/taiga-family-taiga-ui-mcp)"
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 40,
+            "text": "npx @taiga-ui/mcp init --client claude # writes .mcp.json"
+          }
+        },
+        {
+          "host": "mcp.svg",
+          "at": {
+            "line": 4,
+            "text": "[![npm version](https://img.shields.io/npm/v/@taiga-ui/mcp.svg)](https://npmjs.com/package/@taiga-ui/mcp)"
+          }
+        },
+        {
+          "host": "mdlufy.png",
+          "at": {
+            "line": 287,
+            "text": "src=\"https://github.com/mdlufy.png?size=200\""
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 21,
+            "text": "- Node.js 18 or newer"
+          }
+        },
+        {
+          "host": "npmjs.com",
+          "at": {
+            "line": 4,
+            "text": "[![npm version](https://img.shields.io/npm/v/@taiga-ui/mcp.svg)](https://npmjs.com/package/@taiga-ui/mcp)"
+          }
+        },
+        {
+          "host": "opencode.json",
+          "at": {
+            "line": 44,
+            "text": "npx @taiga-ui/mcp init --client opencode # writes opencode.json"
+          }
+        },
+        {
+          "host": "raw.githubusercontent.com",
+          "at": {
+            "line": 266,
+            "text": "src=\"https://raw.githubusercontent.com/MarsiBarsi/readme-icons/main/twitter.svg\""
+          }
+        },
+        {
+          "host": "send.svg",
+          "at": {
+            "line": 280,
+            "text": "src=\"https://raw.githubusercontent.com/MarsiBarsi/readme-icons/main/send.svg\""
+          }
+        },
+        {
+          "host": "t.me",
+          "at": {
+            "line": 276,
+            "text": "href=\"https://t.me/v_potekhin\""
+          }
+        },
+        {
+          "host": "taiga-ui.dev",
+          "at": {
+            "line": 9,
+            "text": "[Taiga UI](https://taiga-ui.dev) components. Seamlessly retrieve Taiga UI components implementations for your AI-powered"
+          }
+        },
+        {
+          "host": "twitter.com",
+          "at": {
+            "line": 262,
+            "text": "href=\"https://twitter.com/v_potekhin\""
+          }
+        },
+        {
+          "host": "twitter.svg",
+          "at": {
+            "line": 266,
+            "text": "src=\"https://raw.githubusercontent.com/MarsiBarsi/readme-icons/main/twitter.svg\""
+          }
+        },
+        {
+          "host": "vladimirpotekhin.png",
+          "at": {
+            "line": 254,
+            "text": "src=\"https://github.com/vladimirpotekhin.png?size=200\""
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @taiga-ui/mcp@0.4.1",
+        "integrity sha512-zidD4raotkDe6He2EipFidFJ4itUhJMJ5ChzsCF2YvmVYnJ+xFKMDYPP93YH0JxZaG3l3H9CUu+yQcLE0iB9VQ==",
+        "tarball https://registry.npmjs.org/@taiga-ui/mcp/-/mcp-0.4.1.tgz"
+      ]
+    }
+  ]
+}

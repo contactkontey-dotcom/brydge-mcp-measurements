@@ -1,0 +1,277 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@transcend-io/mcp-server-docs@0.4.16",
+  "measuredAt": "2026-10-31T14:07:53.463Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "transcend-io--mcp-server-docs",
+  "package": {
+    "name": "@transcend-io/mcp-server-docs",
+    "version": "0.4.16",
+    "tarball": "https://registry.npmjs.org/@transcend-io/mcp-server-docs/-/mcp-server-docs-0.4.16.tgz",
+    "integrity": "sha512-7gm5Vk0I7OglTCC31l6qDXkRL1zLyrVCDrFTEmR39wSAfDFxmXupQOd6uHOIghFMfE4N3zNfpNubn47D4gR/Tg==",
+    "repository": "git+https://github.com/transcend-io/tools.git",
+    "homepage": "https://github.com/transcend-io/tools/tree/main/packages/mcp/mcp-server-docs"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "4d2d3697699cd3955b226883745f9f5306488ebfa5ce8bc57e06d47158f5e035",
+    "lines": 79,
+    "bytes": 2631
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "cli.mjs",
+        "at": {
+          "line": 51,
+          "text": "\"args\": [\"packages/mcp/mcp-server-docs/dist/cli.mjs\"]"
+        }
+      },
+      {
+        "host": "contributing.md",
+        "at": {
+          "line": 69,
+          "text": "See [CONTRIBUTING.md](../../../CONTRIBUTING.md#mcp-servers) for workspace layout and `pnpm --filter` workflows."
+        }
+      },
+      {
+        "host": "docs.transcend.io",
+        "at": {
+          "line": 9,
+          "text": "**No authentication required.** This standalone server reads public content from `docs.transcend.io` only. It does not use your Transcend API key or OAuth credentials, even if they are present in the …"
+        }
+      },
+      {
+        "host": "llms.txt",
+        "at": {
+          "line": 73,
+          "text": "- `docs_list` — Browse the Transcend docs sections (`llms.txt`), list one section's articles with `section`, or full-text search titles and article bodies with `query` (ranked snippets; then `docs_fet…"
+        }
+      },
+      {
+        "host": "mcp-run.sh",
+        "at": {
+          "line": 9,
+          "text": "…e your Transcend API key or OAuth credentials, even if they are present in the environment (for example when launched via [`scripts/mcp-run.sh`](../../../scripts/mcp-run.sh) with `secret.env` loaded)."
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 7,
+          "text": "Requires **Node.js ≥ 22.12** (see `engines` in `package.json`)."
+        }
+      },
+      {
+        "host": "package.json",
+        "at": {
+          "line": 7,
+          "text": "Requires **Node.js ≥ 22.12** (see `engines` in `package.json`)."
+        }
+      },
+      {
+        "host": "readme.md",
+        "at": {
+          "line": 78,
+          "text": "Also available as part of the unified [`@transcend-io/mcp`](../mcp/README.md), which includes all domains and **does** require authentication. See the [root README](../../../README.md#mcp-servers) for…"
+        }
+      },
+      {
+        "host": "secret.env",
+        "at": {
+          "line": 9,
+          "text": "…e your Transcend API key or OAuth credentials, even if they are present in the environment (for example when launched via [`scripts/mcp-run.sh`](../../../scripts/mcp-run.sh) with `secret.env` loaded)."
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "docs_fetch",
+        "at": {
+          "line": 73,
+          "text": "…ocs_list` — Browse the Transcend docs sections (`llms.txt`), list one section's articles with `section`, or full-text search titles and article bodies with `query` (ranked snippets; then `docs_fetch`)"
+        }
+      },
+      {
+        "name": "docs_list",
+        "at": {
+          "line": 73,
+          "text": "- `docs_list` — Browse the Transcend docs sections (`llms.txt`), list one section's articles with `section`, or full-text search titles and article bodies with `query` (ranked snippets; then `docs_fet…"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "transcend-mcp-docs",
+    "version": "0.4.16"
+  },
+  "observed": {
+    "offered": [
+      "docs_fetch",
+      "docs_list"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "setpriv",
+      "transcend-mcp-docs"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "docs_fetch",
+          "at": {
+            "line": 73,
+            "text": "…ocs_list` — Browse the Transcend docs sections (`llms.txt`), list one section's articles with `section`, or full-text search titles and article bodies with `query` (ranked snippets; then `docs_fetch`)"
+          }
+        },
+        {
+          "name": "docs_list",
+          "at": {
+            "line": 73,
+            "text": "- `docs_list` — Browse the Transcend docs sections (`llms.txt`), list one section's articles with `section`, or full-text search titles and article bodies with `query` (ranked snippets; then `docs_fet…"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "cli.mjs",
+          "at": {
+            "line": 51,
+            "text": "\"args\": [\"packages/mcp/mcp-server-docs/dist/cli.mjs\"]"
+          }
+        },
+        {
+          "host": "contributing.md",
+          "at": {
+            "line": 69,
+            "text": "See [CONTRIBUTING.md](../../../CONTRIBUTING.md#mcp-servers) for workspace layout and `pnpm --filter` workflows."
+          }
+        },
+        {
+          "host": "docs.transcend.io",
+          "at": {
+            "line": 9,
+            "text": "**No authentication required.** This standalone server reads public content from `docs.transcend.io` only. It does not use your Transcend API key or OAuth credentials, even if they are present in the …"
+          }
+        },
+        {
+          "host": "llms.txt",
+          "at": {
+            "line": 73,
+            "text": "- `docs_list` — Browse the Transcend docs sections (`llms.txt`), list one section's articles with `section`, or full-text search titles and article bodies with `query` (ranked snippets; then `docs_fet…"
+          }
+        },
+        {
+          "host": "mcp-run.sh",
+          "at": {
+            "line": 9,
+            "text": "…e your Transcend API key or OAuth credentials, even if they are present in the environment (for example when launched via [`scripts/mcp-run.sh`](../../../scripts/mcp-run.sh) with `secret.env` loaded)."
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 7,
+            "text": "Requires **Node.js ≥ 22.12** (see `engines` in `package.json`)."
+          }
+        },
+        {
+          "host": "package.json",
+          "at": {
+            "line": 7,
+            "text": "Requires **Node.js ≥ 22.12** (see `engines` in `package.json`)."
+          }
+        },
+        {
+          "host": "readme.md",
+          "at": {
+            "line": 78,
+            "text": "Also available as part of the unified [`@transcend-io/mcp`](../mcp/README.md), which includes all domains and **does** require authentication. See the [root README](../../../README.md#mcp-servers) for…"
+          }
+        },
+        {
+          "host": "secret.env",
+          "at": {
+            "line": 9,
+            "text": "…e your Transcend API key or OAuth credentials, even if they are present in the environment (for example when launched via [`scripts/mcp-run.sh`](../../../scripts/mcp-run.sh) with `secret.env` loaded)."
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @transcend-io/mcp-server-docs@0.4.16",
+        "integrity sha512-7gm5Vk0I7OglTCC31l6qDXkRL1zLyrVCDrFTEmR39wSAfDFxmXupQOd6uHOIghFMfE4N3zNfpNubn47D4gR/Tg==",
+        "tarball https://registry.npmjs.org/@transcend-io/mcp-server-docs/-/mcp-server-docs-0.4.16.tgz"
+      ]
+    }
+  ]
+}

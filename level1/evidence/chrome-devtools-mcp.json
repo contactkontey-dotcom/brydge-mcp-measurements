@@ -2,7 +2,7 @@
   "level": 1,
   "notCalibrationBacked": true,
   "asked": "chrome-devtools-mcp@1.12.0",
-  "measuredAt": "2026-10-30T10:13:12.692Z",
+  "measuredAt": "2026-10-31T14:25:42.299Z",
   "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "standard": {
     "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
@@ -55,7 +55,9 @@
     "name": "chrome-devtools-mcp",
     "version": "1.12.0",
     "tarball": "https://registry.npmjs.org/chrome-devtools-mcp/-/chrome-devtools-mcp-1.12.0.tgz",
-    "integrity": "sha512-lAGpH0zXT1ZdaPefP1KK/MvxwihOlu7VGQ7p4wbhD9OhN17vUC4KWk/ImUYR9DE4s+7r4r0ySV4xr2OkTa7ZMA=="
+    "integrity": "sha512-lAGpH0zXT1ZdaPefP1KK/MvxwihOlu7VGQ7p4wbhD9OhN17vUC4KWk/ImUYR9DE4s+7r4r0ySV4xr2OkTa7ZMA==",
+    "repository": "git+https://github.com/ChromeDevTools/chrome-devtools-mcp.git",
+    "homepage": "https://github.com/ChromeDevTools/chrome-devtools-mcp#readme"
   },
   "readme": {
     "file": "README.md",
@@ -740,7 +742,7 @@
       "says": "Copied the whole environment at 2 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
       "evidence": [
         "at normalizeSpawnArguments (node:child_process:675:43) read 22 variables",
-        "at Object.getEnv (file:///srv/brydge-measure/chrome-devtools-mcp-1793355194081/install/node_modules/chrome-devtools-mcp/build/src/third_party/cli.js:3132:23) read 4 variables"
+        "at Object.getEnv (file:///srv/brydge-measure/chrome-devtools-mcp-1793456744304/install/node_modules/chrome-devtools-mcp/build/src/third_party/cli.js:3132:23) read 4 variables"
       ]
     },
     {

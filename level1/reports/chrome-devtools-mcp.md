@@ -1,6 +1,10 @@
 # chrome-devtools-mcp 1.12.0 — Level 1 measurement
 
-Measured 2026-10-30. Asked for `chrome-devtools-mcp@1.12.0`. Instrument fingerprint `ca9170dfaeae`.
+Measured 2026-10-31. Asked for `chrome-devtools-mcp@1.12.0`. Instrument fingerprint `ca9170dfaeae`.
+
+Published on npm as `chrome-devtools-mcp`. Its own manifest points at https://github.com/ChromeDevTools/chrome-devtools-mcp, which is what the package says about itself and is not checked here.
+
+**This is not a ranking of the most-used servers.** This package was measured because it appeared in a candidate list built from registry searches, and the order of those searches is not a measure of use.
 
 **Level 1, and not calibration-backed.** No tool was called, so this report makes no claim about any tool doing what it says. The calibration that backs the ten curated measurements proves the instrument catches planted claims about what a tool *did*; Level 1 runs no such checks, and reads the package's own documentation by a stated rule rather than by a person, so nothing in that calibration speaks to this page.
 
@@ -152,6 +156,7 @@ It reached for 2 websites. 2 of them are not named anywhere in `README.md`:
 - **Encrypted traffic was not read.** The name it asked for is recorded; the contents are not, and would not be even with a route.
 - **"Declared" means named in the README**, nothing more. Only the README file that shipped in the package was read. A package that documents its tools or its destinations somewhere else — a reference file beside the README, a privacy policy, a wiki, its source — will show every one of them above as not named, which is a fact about this rule and not about the package.
 - **It is not calibration-backed**, for the reason at the top.
+- **It is not a ranking.** No page here says a server is more used, better or worse than another, and the set measured is whatever the candidate searches returned.
 - **The harness is BRYDGE's own**, and BRYDGE has an interest in the question of whether tools do what they say.
 
 Evidence: `README.md` (199 lines, sha256 `4a22b6241998`), package integrity `sha512-lAGpH0zXT1ZdaPefP…`.

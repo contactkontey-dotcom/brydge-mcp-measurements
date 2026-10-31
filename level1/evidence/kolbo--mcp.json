@@ -1,0 +1,4327 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@kolbo/mcp@1.128.0",
+  "measuredAt": "2026-10-31T13:56:58.962Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "kolbo--mcp",
+  "package": {
+    "name": "@kolbo/mcp",
+    "version": "1.128.0",
+    "tarball": "https://registry.npmjs.org/@kolbo/mcp/-/mcp-1.128.0.tgz",
+    "integrity": "sha512-DXMVIWcQEouQQ1Fc1L0dKg6tfddn9W8IzyTpO5jmQsVMU6rsPICTrWnOqsIZqLTd2xgh/karQDKZoQeOl2jr8g==",
+    "repository": "git+https://github.com/Zoharvan12/kolbo-mcp.git",
+    "homepage": "https://docs.kolbo.ai/developer-api/claude-code-skill"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "e02354593456d3e0a8c26f55395e7f54967c0884b3a243a3cb1fbff088d4e587",
+    "lines": 384,
+    "bytes": 34646
+  },
+  "readmeNotes": [
+    {
+      "word": "analytics",
+      "at": {
+        "line": 331,
+        "text": "| `get_project_page_insights` | Visitor analytics for a published project page: visitors, active time, scroll depth, story reach, clicks, copies, sources, countries, most-opened media |"
+      }
+    }
+  ],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "api.kolbo.ai",
+        "at": {
+          "line": 35,
+          "text": "- If you're a browser chat (claude.ai, ChatGPT): add a custom connector with URL https://api.kolbo.ai/mcp under Settings → Connectors, then Connect → log in → Allow."
+        }
+      },
+      {
+        "host": "app.kolbo.ai",
+        "at": {
+          "line": 75,
+          "text": "… click **Allow** (no API key to create). _Prefer an API key? Create one at [app.kolbo.ai/developer](https://app.kolbo.ai/developer) and add `\"env\": { \"KOLBO_API_KEY\": \"kolbo_live_...\" }` to the block …"
+        }
+      },
+      {
+        "host": "claude.ai",
+        "at": {
+          "line": 19,
+          "text": "**✨ Interactive widgets (v1.30+):** in claude.ai, Claude Desktop, and Codex Desktop, generations render as live Kolbo cards — real-time progress with model + settings chips, an inline result gallery /…"
+        }
+      },
+      {
+        "host": "claude.json",
+        "at": {
+          "line": 70,
+          "text": "| **Claude Code** | `~/.claude.json` (or `claude mcp add kolbo -- npx -y @kolbo/mcp@latest`) |"
+        }
+      },
+      {
+        "host": "docs.kolbo.ai",
+        "at": {
+          "line": 9,
+          "text": "…lections. Fonts and backend-generated specimens never go through media upload. See [Personal Fonts](https://docs.kolbo.ai/developer-api/personal-fonts). Availability requires a published client and de…"
+        }
+      },
+      {
+        "host": "flow-mcp.md",
+        "at": {
+          "line": 25,
+          "text": "…pts, settings, groups and connections. Runs use explicit aggregate credit limits and persisted run IDs. Compatible Flow API routes are required. See [Flow MCP workflow and contract](docs/FLOW-MCP.md)."
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 97,
+          "text": "…arked or hand-authored folders are never overwritten. The canonical skill ships inside [Kolbo Code](https://github.com/Zoharvan12/kolbo-code), so however you connect, the behavior matches. See the ful…"
+        }
+      },
+      {
+        "host": "kolbo.ai",
+        "at": {
+          "line": 15,
+          "text": "Use [Kolbo AI](https://kolbo.ai) as native tools in Claude Code and Claude Desktop via MCP (Model Context Protocol)."
+        }
+      },
+      {
+        "host": "kolbo.zip",
+        "at": {
+          "line": 80,
+          "text": "2. [Download the Skill](https://kolbo.ai/skills/kolbo.zip) and upload it (Claude.ai: Settings → Features → Skills; ChatGPT/Codex: Settings → Skills). Codex CLI: unzip into `~/.codex/skills/`."
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 72,
+          "text": "| **Cursor** | `.cursor/mcp.json` |"
+        }
+      },
+      {
+        "host": "settings.json",
+        "at": {
+          "line": 44,
+          "text": "…stall` — it writes the keyless config to the right file for every installed agent. (Don't hand-edit settings.json; the installer is deterministic.) Then tell the user to restart the app. On the first …"
+        }
+      },
+      {
+        "host": "sites.kolbo.ai",
+        "at": {
+          "line": 240,
+          "text": "…h_html_artifact` | Publish an HTML page, SVG, or Mermaid diagram and get a public shareable URL on `sites.kolbo.ai`. Pass `share_token` from a prior publish to update the same URL in place (old conten…"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "acquire_clean_music_track",
+        "at": {
+          "line": 250,
+          "text": "| `acquire_clean_music_track` | Spend one SYNCI vendor credit and return clean MP3/WAV signed URLs. Idempotent with `request_id`. |"
+        }
+      },
+      {
+        "name": "activate_color_palette",
+        "at": {
+          "line": 201,
+          "text": "| `activate_color_palette` | Make a palette the sticky active one |"
+        }
+      },
+      {
+        "name": "add_instrumental",
+        "at": {
+          "line": 150,
+          "text": "| `add_vocals` / `add_instrumental` | Sing over an instrumental, or build a backing track under a vocal (a Kolbo track/stem or your own audio) |"
+        }
+      },
+      {
+        "name": "add_media_to_folder",
+        "at": {
+          "line": 215,
+          "text": "| `add_media_to_folder` | Add up to 500 media items to a folder (idempotent) |"
+        }
+      },
+      {
+        "name": "add_project_context",
+        "at": {
+          "line": 341,
+          "text": "| `add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the syn…"
+        }
+      },
+      {
+        "name": "add_vocals",
+        "at": {
+          "line": 150,
+          "text": "| `add_vocals` / `add_instrumental` | Sing over an instrumental, or build a backing track under a vocal (a Kolbo track/stem or your own audio) |"
+        }
+      },
+      {
+        "name": "adobe_capture_frame",
+        "at": {
+          "line": 294,
+          "text": "| `adobe_capture_frame` | Render a comp/sequence frame to the Kolbo library so the agent can check its work |"
+        }
+      },
+      {
+        "name": "adobe_create_sequence",
+        "at": {
+          "line": 290,
+          "text": "| `adobe_create_sequence` | Create and open a Premiere Pro sequence matching the open sequence's settings, no dialog (Premiere only) |"
+        }
+      },
+      {
+        "name": "adobe_edit_composition",
+        "at": {
+          "line": 292,
+          "text": "| `adobe_edit_composition` | After Effects: one undo step of structured edits - comps, timed and trimmed Kolbo media, titles with stroke, solids, transforms, keyframes, audio fades, layer deletion |"
+        }
+      },
+      {
+        "name": "adobe_get_command_status",
+        "at": {
+          "line": 295,
+          "text": "| `adobe_get_command_status` | Read command status/result/error; `awaiting_approval` means stop and wait for the editor |"
+        }
+      },
+      {
+        "name": "adobe_get_project",
+        "at": {
+          "line": 286,
+          "text": "| `adobe_get_project` | Queue a read-only project inspection (no approval) |"
+        }
+      },
+      {
+        "name": "adobe_get_timeline",
+        "at": {
+          "line": 287,
+          "text": "| `adobe_get_timeline` | Queue a read-only inspection of the active sequence (tracks, clips with start/end, playhead) or composition (layers), bounded by `max_clips` |"
+        }
+      },
+      {
+        "name": "adobe_import_captions",
+        "at": {
+          "line": 291,
+          "text": "| `adobe_import_captions` | Import a Kolbo-hosted SRT onto the active Premiere sequence (Premiere only) |"
+        }
+      },
+      {
+        "name": "adobe_import_media",
+        "at": {
+          "line": 288,
+          "text": "| `adobe_import_media` | Import one Kolbo media id or Kolbo-owned HTTPS URL into the Kolbo.AI / My Media bin for its type |"
+        }
+      },
+      {
+        "name": "adobe_list_sessions",
+        "at": {
+          "line": 285,
+          "text": "| `adobe_list_sessions` | List the caller's Premiere Pro / After Effects windows connected through the Kolbo panel |"
+        }
+      },
+      {
+        "name": "adobe_place_on_timeline",
+        "at": {
+          "line": 289,
+          "text": "| `adobe_place_on_timeline` | Import and place one Kolbo media item at the playhead of the work sequence / active comp (no time or track control in v1) |"
+        }
+      },
+      {
+        "name": "adobe_run_script",
+        "at": {
+          "line": 293,
+          "text": "| `adobe_run_script` | Approval-gated ExtendScript for real motion graphics (shape layers, trim paths, text animators, effects, expressions, cameras); the editor reviews the exact code |"
+        }
+      },
+      {
+        "name": "analyze_color_palette",
+        "at": {
+          "line": 197,
+          "text": "| `analyze_color_palette` | Extract colors from 1-5 image URLs (free, does not save) |"
+        }
+      },
+      {
+        "name": "analyze_script_for_music",
+        "at": {
+          "line": 246,
+          "text": "| `analyze_script_for_music` | Turn a script or scene description into a music search. |"
+        }
+      },
+      {
+        "name": "analyze_script_for_stock",
+        "at": {
+          "line": 262,
+          "text": "| `analyze_script_for_stock` | AI: turn a script into b-roll search terms (`queries[]`, `mediaType`, `keywords`). |"
+        }
+      },
+      {
+        "name": "archive_project",
+        "at": {
+          "line": 329,
+          "text": "| `create_project` / `update_project` / `archive_project` / `unarchive_project` | Project lifecycle (create/rename/describe/archive; deletion stays in-app) |"
+        }
+      },
+      {
+        "name": "audio_effect",
+        "at": {
+          "line": 156,
+          "text": "…, `text_normalization`; DeepDub accent/variance/tempo, MiniMax pitch/volume/intensity/timbre), plus `audio_effect` (phone/radio/megaphone/small_room/hall/distant) + `audio_effect_strength` for any voi…"
+        }
+      },
+      {
+        "name": "audio_effect_strength",
+        "at": {
+          "line": 156,
+          "text": "…tch/volume/intensity/timbre), plus `audio_effect` (phone/radio/megaphone/small_room/hall/distant) + `audio_effect_strength` for any voice at no extra credits. Status returns the same fields for reuse.…"
+        }
+      },
+      {
+        "name": "awaiting_approval",
+        "at": {
+          "line": 278,
+          "text": "…_command_status` | Read bounded command status/result/error plus absolute `expires_at`; records and idempotency claims expire after 24 hours, and `awaiting_approval` means stop and wait for the user |"
+        }
+      },
+      {
+        "name": "blender_apply_operations",
+        "at": {
+          "line": 272,
+          "text": "| `blender_apply_operations` | Apply approved structured object, material, world, camera, light, animation, duplication, or deletion operations |"
+        }
+      },
+      {
+        "name": "blender_capture_viewport",
+        "at": {
+          "line": 271,
+          "text": "| `blender_capture_viewport` | Capture the active viewport to managed cache and optionally Kolbo media |"
+        }
+      },
+      {
+        "name": "blender_execute_python",
+        "at": {
+          "line": 277,
+          "text": "| `blender_execute_python` | Execute explicitly reviewed Python plus a required plain-language purpose with full host authority; approval required unless trusted mode is visibly active |"
+        }
+      },
+      {
+        "name": "blender_file_operation",
+        "at": {
+          "line": 276,
+          "text": "| `blender_file_operation` | Perform sensitive new/open/save/save-as operations with in-Blender approval |"
+        }
+      },
+      {
+        "name": "blender_get_command_status",
+        "at": {
+          "line": 278,
+          "text": "| `blender_get_command_status` | Read bounded command status/result/error plus absolute `expires_at`; records and idempotency claims expire after 24 hours, and `awaiting_approval` means stop and wait …"
+        }
+      },
+      {
+        "name": "blender_get_scene",
+        "at": {
+          "line": 269,
+          "text": "| `blender_get_scene` | Queue a bounded scene summary or full scene inspection |"
+        }
+      },
+      {
+        "name": "blender_import_media",
+        "at": {
+          "line": 273,
+          "text": "| `blender_import_media` | Import a Kolbo media item or exact-allowlisted Kolbo-owned HTTPS media/CDN asset using smart GLB/image/video placement |"
+        }
+      },
+      {
+        "name": "blender_list_sessions",
+        "at": {
+          "line": 268,
+          "text": "| `blender_list_sessions` | List the caller's connected Blender processes before choosing a target session |"
+        }
+      },
+      {
+        "name": "blender_render",
+        "at": {
+          "line": 274,
+          "text": "| `blender_render` | Render a still or an animation capped by Blender at 250 scene frames and 100,000,000 pixel-frames, to managed output and optionally Kolbo media |"
+        }
+      },
+      {
+        "name": "blender_search_docs",
+        "at": {
+          "line": 270,
+          "text": "| `blender_search_docs` | Inspect local Blender RNA and return relevant official API/manual URLs without fetching them |"
+        }
+      },
+      {
+        "name": "blender_undo",
+        "at": {
+          "line": 275,
+          "text": "| `blender_undo` | Undo the most recent Blender change in the selected process |"
+        }
+      },
+      {
+        "name": "browse_music_library",
+        "at": {
+          "line": 247,
+          "text": "| `browse_music_library` | Browse the catalog without a query. |"
+        }
+      },
+      {
+        "name": "bulk_delete_media",
+        "at": {
+          "line": 230,
+          "text": "| `bulk_delete_media` | Soft-delete up to 1000 items in one call |"
+        }
+      },
+      {
+        "name": "bulk_move_media",
+        "at": {
+          "line": 233,
+          "text": "| `bulk_move_media` | Move up to 1000 items to a project (atomic — all-or-nothing) |"
+        }
+      },
+      {
+        "name": "bulk_move_sessions",
+        "at": {
+          "line": 321,
+          "text": "| `bulk_move_sessions` | Move up to 100 sessions into one project in a single call — mixed types allowed, per-session failures reported |"
+        }
+      },
+      {
+        "name": "bulk_permanently_delete_media",
+        "at": {
+          "line": 232,
+          "text": "| `bulk_permanently_delete_media` | Hard-delete up to 1000 (NOT reversible) |"
+        }
+      },
+      {
+        "name": "bulk_restore_media",
+        "at": {
+          "line": 231,
+          "text": "| `bulk_restore_media` | Restore up to 1000 trashed items |"
+        }
+      },
+      {
+        "name": "cancel_download",
+        "at": {
+          "line": 381,
+          "text": "… returned `job_id` (not `get_generation_status`) and wait for `completed` before using `resultUrl`. `cancel_download` cancels an active job. This produces a cloud file and saves it to the account libr…"
+        }
+      },
+      {
+        "name": "chat_get_messages",
+        "at": {
+          "line": 175,
+          "text": "| `chat_get_messages` | Fetch messages in a conversation |"
+        }
+      },
+      {
+        "name": "chat_list_conversations",
+        "at": {
+          "line": 174,
+          "text": "| `chat_list_conversations` | List past chat threads |"
+        }
+      },
+      {
+        "name": "chat_send_message",
+        "at": {
+          "line": 173,
+          "text": "| `chat_send_message` | Multi-turn chat with any Kolbo model. Pass `media_urls` to analyze images, videos, or audio — auto-routes to Gemini for vision. Supports web search and deep think. |"
+        }
+      },
+      {
+        "name": "check_credits",
+        "at": {
+          "line": 346,
+          "text": "| `check_credits` | Check credit balance; widget hosts show total and plan, credit-pack, and redemption breakdown, while text hosts retain the plain-text response |"
+        }
+      },
+      {
+        "name": "claude_desktop_config",
+        "at": {
+          "line": 71,
+          "text": "| **Claude Desktop** | `claude_desktop_config.json` |"
+        }
+      },
+      {
+        "name": "clean_dialogue_leftovers",
+        "at": {
+          "line": 161,
+          "text": "| `clean_dialogue_leftovers` | Strip voices still faintly audible in an M&E layer. 17 credits — escalation only, it trades bed fidelity to remove the leak |"
+        }
+      },
+      {
+        "name": "clear_media_rating",
+        "at": {
+          "line": 224,
+          "text": "| `clear_media_rating` | Remove a thumbs-up/down |"
+        }
+      },
+      {
+        "name": "clone_voice",
+        "at": {
+          "line": 344,
+          "text": "| `clone_voice` / `import_elevenlabs_voice` / `delete_voice` | Custom voices: clone from an audio sample, import by ElevenLabs ID, delete |"
+        }
+      },
+      {
+        "name": "create_agent",
+        "at": {
+          "line": 336,
+          "text": "| `list_agents` / `create_agent` / `update_agent` / `delete_agent` | Same four tools under their original names. Still supported and unchanged; new integrations should use the `*_skill` names |"
+        }
+      },
+      {
+        "name": "create_color_palette",
+        "at": {
+          "line": 198,
+          "text": "| `create_color_palette` | Save a palette (colors from analyze or manual); auto-activates by default |"
+        }
+      },
+      {
+        "name": "create_doc",
+        "at": {
+          "line": 326,
+          "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+        }
+      },
+      {
+        "name": "create_font_upload_ticket",
+        "at": {
+          "line": 7,
+          "text": "…l stdio clients upload one OTF/TTF/WOFF2 (up to 5 MiB) with `upload_font`; remote shell clients use `create_font_upload_ticket`, and browser clients use `font_upload_widget`. Poll `get_font_upload_sta…"
+        }
+      },
+      {
+        "name": "create_media_folder",
+        "at": {
+          "line": 212,
+          "text": "| `create_media_folder` | Create a new folder (name, optional description / color / icon) |"
+        }
+      },
+      {
+        "name": "create_moodboard",
+        "at": {
+          "line": 191,
+          "text": "| `create_moodboard` / `update_moodboard` / `delete_moodboard` | Create / edit in place / delete |"
+        }
+      },
+      {
+        "name": "create_music_persona",
+        "at": {
+          "line": 155,
+          "text": "| `create_music_persona` / `list_music_personas` | Save a track's voice and style, reuse it on generate_music |"
+        }
+      },
+      {
+        "name": "create_project",
+        "at": {
+          "line": 329,
+          "text": "| `create_project` / `update_project` / `archive_project` / `unarchive_project` | Project lifecycle (create/rename/describe/archive; deletion stays in-app) |"
+        }
+      },
+      {
+        "name": "create_skill",
+        "at": {
+          "line": 335,
+          "text": "| `list_skills` / `create_skill` / `update_skill` / `delete_skill` | Skills — reusable named personas for the chat tool; `description` is the system instruction |"
+        }
+      },
+      {
+        "name": "create_upload_ticket",
+        "at": {
+          "line": 208,
+          "text": "| `create_upload_ticket` | Get a short-lived upload ticket and POST local files yourself — no upload card, no user interaction. For agents with shell access (Claude Code, Codex, Cursor, CI) talking to…"
+        }
+      },
+      {
+        "name": "create_video_editor_session",
+        "at": {
+          "line": 337,
+          "text": "| `create_video_editor_session` / `export_video_editor_session` | Build an editable timeline from Kolbo-hosted clips, audio and text, then export it to MP4. No new media is generated; identical snapsh…"
+        }
+      },
+      {
+        "name": "create_visual_dna",
+        "at": {
+          "line": 164,
+          "text": "…visual_dna_ids` and `moodboard_id` for character/style consistency across outputs — you can compose `create_visual_dna` → `generate_image` (with the DNA applied server-side) in a single agent turn. `g…"
+        }
+      },
+      {
+        "name": "create_visual_dna_folder",
+        "at": {
+          "line": 328,
+          "text": "| `list_visual_dna_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (cre…"
+        }
+      },
+      {
+        "name": "deactivate_color_palette",
+        "at": {
+          "line": 202,
+          "text": "| `deactivate_color_palette` | Clear the active palette |"
+        }
+      },
+      {
+        "name": "deep_think",
+        "at": {
+          "line": 366,
+          "text": "…the resolved model; omitted or invalid values use `thinkingDefault`. Existing safeguards and legacy `deep_think` take precedence. Discover allowed levels through `thinkingLevels`; no package update is…"
+        }
+      },
+      {
+        "name": "delete_agent",
+        "at": {
+          "line": 336,
+          "text": "| `list_agents` / `create_agent` / `update_agent` / `delete_agent` | Same four tools under their original names. Still supported and unchanged; new integrations should use the `*_skill` names |"
+        }
+      },
+      {
+        "name": "delete_color_palette",
+        "at": {
+          "line": 200,
+          "text": "| `delete_color_palette` | Delete a palette |"
+        }
+      },
+      {
+        "name": "delete_doc",
+        "at": {
+          "line": 326,
+          "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+        }
+      },
+      {
+        "name": "delete_font",
+        "at": {
+          "line": 7,
+          "text": "…Poll `get_font_upload_status` until ready, then pass the returned family ID in `font_ids` to image creation/editing or image-mode Creative Director. `rename_font` and `delete_font` manage the library."
+        }
+      },
+      {
+        "name": "delete_media",
+        "at": {
+          "line": 226,
+          "text": "| `delete_media` | Soft-delete a media item (30-day trash) |"
+        }
+      },
+      {
+        "name": "delete_media_folder",
+        "at": {
+          "line": 214,
+          "text": "| `delete_media_folder` | Soft-delete a folder (owner only; items remain in library) |"
+        }
+      },
+      {
+        "name": "delete_moodboard",
+        "at": {
+          "line": 191,
+          "text": "| `create_moodboard` / `update_moodboard` / `delete_moodboard` | Create / edit in place / delete |"
+        }
+      },
+      {
+        "name": "delete_project_context",
+        "at": {
+          "line": 341,
+          "text": "| `add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the syn…"
+        }
+      },
+      {
+        "name": "delete_session",
+        "at": {
+          "line": 340,
+          "text": "| `rename_session` / `delete_session` / `restore_session` | Rename a session; soft-delete leftovers after a move; restore from trash |"
+        }
+      },
+      {
+        "name": "delete_skill",
+        "at": {
+          "line": 335,
+          "text": "| `list_skills` / `create_skill` / `update_skill` / `delete_skill` | Skills — reusable named personas for the chat tool; `description` is the system instruction |"
+        }
+      },
+      {
+        "name": "delete_visual_dna",
+        "at": {
+          "line": 184,
+          "text": "| `delete_visual_dna` | Delete a profile |"
+        }
+      },
+      {
+        "name": "delete_visual_dna_folder",
+        "at": {
+          "line": 328,
+          "text": "| `list_visual_dna_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (cre…"
+        }
+      },
+      {
+        "name": "delete_voice",
+        "at": {
+          "line": 344,
+          "text": "| `clone_voice` / `import_elevenlabs_voice` / `delete_voice` | Custom voices: clone from an audio sample, import by ElevenLabs ID, delete |"
+        }
+      },
+      {
+        "name": "dislike_media",
+        "at": {
+          "line": 221,
+          "text": "| `dislike_media` | Dislike (hide) a generated image/video and record why — optional `reason` chip + `reason_text` |"
+        }
+      },
+      {
+        "name": "download_media_from_url",
+        "at": {
+          "line": 381,
+          "text": "`download_media_from_url` starts a server download for a public media page URL. Use `get_download_status` with the returned `job_id` (not `get_generation_status`) and wait for `completed` before using…"
+        }
+      },
+      {
+        "name": "draft_project_story",
+        "at": {
+          "line": 332,
+          "text": "| `get_project_story` / `update_project_story` / `draft_project_story` | Write the published page as a post: headings, text, media, workflow steps (real prompt + model), before/after. AI draft from th…"
+        }
+      },
+      {
+        "name": "eleven_model",
+        "at": {
+          "line": 156,
+          "text": "| `generate_speech` | Text + voice → spoken audio. `eleven_model` (eleven_v4 / eleven_v3 / eleven_multilingual_v2) picks which ElevenLabs model speaks an ElevenLabs voice (stock or own clone; omit = t…"
+        }
+      },
+      {
+        "name": "enforce_language",
+        "at": {
+          "line": 156,
+          "text": "…nguage`, and per-provider voice settings (ElevenLabs stability/similarity/style/speaker boost/seed, `enforce_language`, `output_format` mp3/wav, `text_normalization`; DeepDub accent/variance/tempo, Mi…"
+        }
+      },
+      {
+        "name": "expires_at",
+        "at": {
+          "line": 278,
+          "text": "| `blender_get_command_status` | Read bounded command status/result/error plus absolute `expires_at`; records and idempotency claims expire after 24 hours, and `awaiting_approval` means stop and wait …"
+        }
+      },
+      {
+        "name": "export_music_wav",
+        "at": {
+          "line": 152,
+          "text": "| `export_music_wav` / `make_music_video` | Lossless WAV of a track / visualizer music video |"
+        }
+      },
+      {
+        "name": "export_video_editor_session",
+        "at": {
+          "line": 337,
+          "text": "| `create_video_editor_session` / `export_video_editor_session` | Build an editable timeline from Kolbo-hosted clips, audio and text, then export it to MP4. No new media is generated; identical snapsh…"
+        }
+      },
+      {
+        "name": "favorite_media",
+        "at": {
+          "line": 219,
+          "text": "| `favorite_media` | Mark a media item as favorited (idempotent) — pass `media_id` from `list_media` |"
+        }
+      },
+      {
+        "name": "folder_id",
+        "at": {
+          "line": 210,
+          "text": "| `list_media` | Browse media library — filter by `project_id`, `folder_id`, `type`, `category` (ai / uploaded / edited / favorites / training-lab), `source_type`, `sort`, `search`, pagination |"
+        }
+      },
+      {
+        "name": "font_ids",
+        "at": {
+          "line": 7,
+          "text": "…font_upload_widget`. Poll `get_font_upload_status` until ready, then pass the returned family ID in `font_ids` to image creation/editing or image-mode Creative Director. `rename_font` and `delete_font…"
+        }
+      },
+      {
+        "name": "font_upload_widget",
+        "at": {
+          "line": 7,
+          "text": "…) with `upload_font`; remote shell clients use `create_font_upload_ticket`, and browser clients use `font_upload_widget`. Poll `get_font_upload_status` until ready, then pass the returned family ID in…"
+        }
+      },
+      {
+        "name": "generate_3d",
+        "at": {
+          "line": 158,
+          "text": "| `generate_3d` | Text or reference images → 3D model (GLB/FBX/OBJ/USDZ) |"
+        }
+      },
+      {
+        "name": "generate_character_sheet",
+        "at": {
+          "line": 327,
+          "text": "| `generate_character_sheet` | Generate a multi-angle character sheet from reference images (credits) → pass URL to create_visual_dna or update_visual_dna |"
+        }
+      },
+      {
+        "name": "generate_creative_director",
+        "at": {
+          "line": 148,
+          "text": "| `generate_creative_director` | One brief → N coordinated scenes (image or video) |"
+        }
+      },
+      {
+        "name": "generate_elements",
+        "at": {
+          "line": 145,
+          "text": "| `generate_elements` | Reference images/videos/audio + prompt → animated video |"
+        }
+      },
+      {
+        "name": "generate_first_last_frame",
+        "at": {
+          "line": 146,
+          "text": "| `generate_first_last_frame` | First frame + last frame → interpolated video |"
+        }
+      },
+      {
+        "name": "generate_image",
+        "at": {
+          "line": 13,
+          "text": "`generate_image` and `generate_image_edit` accept `background: \"transparent\"` for models whose `list_models` record reports `supports_transparent_background: true`. Kolbo also appends the exact phrase…"
+        }
+      },
+      {
+        "name": "generate_image_edit",
+        "at": {
+          "line": 13,
+          "text": "`generate_image` and `generate_image_edit` accept `background: \"transparent\"` for models whose `list_models` record reports `supports_transparent_background: true`. Kolbo also appends the exact phrase…"
+        }
+      },
+      {
+        "name": "generate_lipsync",
+        "at": {
+          "line": 147,
+          "text": "| `generate_lipsync` | Source image/video + audio → lipsynced video (Sync-3 adds active-speaker selection, emotion, model mode, temperature) |"
+        }
+      },
+      {
+        "name": "generate_music",
+        "at": {
+          "line": 149,
+          "text": "| `generate_music` | Text (+ optional lyrics) → song. Style, title, negative tags, length, and Suno fine-controls (style weight, weirdness, audio weight, persona / singing voice); on Suno V6 also vari…"
+        }
+      },
+      {
+        "name": "generate_music_midi",
+        "at": {
+          "line": 153,
+          "text": "| `generate_music_midi` | MIDI notes from a finished Suno stem separation |"
+        }
+      },
+      {
+        "name": "generate_sound",
+        "at": {
+          "line": 157,
+          "text": "| `generate_sound` | Text → sound effect. Duration, prompt influence, and per-provider controls (Stable Audio guidance, Kie loop/tempo/key, Seed-Audio voice/speed/volume/pitch + reference audio/image,…"
+        }
+      },
+      {
+        "name": "generate_speech",
+        "at": {
+          "line": 156,
+          "text": "| `generate_speech` | Text + voice → spoken audio. `eleven_model` (eleven_v4 / eleven_v3 / eleven_multilingual_v2) picks which ElevenLabs model speaks an ElevenLabs voice (stock or own clone; omit = t…"
+        }
+      },
+      {
+        "name": "generate_video",
+        "at": {
+          "line": 142,
+          "text": "| `generate_video` | Text → video |"
+        }
+      },
+      {
+        "name": "generate_video_from_image",
+        "at": {
+          "line": 143,
+          "text": "| `generate_video_from_image` | Still image + motion prompt → video |"
+        }
+      },
+      {
+        "name": "generate_video_from_video",
+        "at": {
+          "line": 144,
+          "text": "| `generate_video_from_video` | Input video → restyled video, or burn in subtitles (video-to-video). `prompt` optional — prompt-less models (VEED Subtitles, Act Two, Wan Animate) use `preset` / `sourc…"
+        }
+      },
+      {
+        "name": "generation_id",
+        "at": {
+          "line": 160,
+          "text": "| `separate_audio_stems` | Audio/video URL (or a Kolbo `generation_id`) → Dialogue / Music / Effects / without-dialogue (M&E) layers. Kolbo's own masking pipeline with a speech classifier on top, so a…"
+        }
+      },
+      {
+        "name": "generation_ids",
+        "at": {
+          "line": 347,
+          "text": "| `get_generation_status` | Check one or many generations (`generation_ids`); `wait=true` blocks server-side until done — replaces client polling loops |"
+        }
+      },
+      {
+        "name": "get_creative_director_status",
+        "at": {
+          "line": 338,
+          "text": "| `get_creative_director_status` | Re-check a Creative Director batch by generation_id until all parallel scenes finish (use after a `_timed_out` Director run) |"
+        }
+      },
+      {
+        "name": "get_doc",
+        "at": {
+          "line": 326,
+          "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+        }
+      },
+      {
+        "name": "get_download_status",
+        "at": {
+          "line": 381,
+          "text": "`download_media_from_url` starts a server download for a public media page URL. Use `get_download_status` with the returned `job_id` (not `get_generation_status`) and wait for `completed` before using…"
+        }
+      },
+      {
+        "name": "get_flow_schema",
+        "at": {
+          "line": 25,
+          "text": "…nspect, precisely edit, organize, validate and run saved node workflows in an explicit project. Use `get_flow_schema`, `get_flow_session` and revision-checked `update_flow_session` for prompts, Assist…"
+        }
+      },
+      {
+        "name": "get_flow_session",
+        "at": {
+          "line": 25,
+          "text": "…dit, organize, validate and run saved node workflows in an explicit project. Use `get_flow_schema`, `get_flow_session` and revision-checked `update_flow_session` for prompts, Assistant system prompts,…"
+        }
+      },
+      {
+        "name": "get_font",
+        "at": {
+          "line": 5,
+          "text": "… Mix up to three family IDs across both sources in the same generation; inspect actual styles/scripts with `get_font`. Collection fonts do not need uploading and cannot be renamed or deleted by users."
+        }
+      },
+      {
+        "name": "get_font_upload_status",
+        "at": {
+          "line": 7,
+          "text": "…e shell clients use `create_font_upload_ticket`, and browser clients use `font_upload_widget`. Poll `get_font_upload_status` until ready, then pass the returned family ID in `font_ids` to image creati…"
+        }
+      },
+      {
+        "name": "get_generation_status",
+        "at": {
+          "line": 347,
+          "text": "| `get_generation_status` | Check one or many generations (`generation_ids`); `wait=true` blocks server-side until done — replaces client polling loops |"
+        }
+      },
+      {
+        "name": "get_media",
+        "at": {
+          "line": 225,
+          "text": "| `get_media` | Fetch one media item's full details by id |"
+        }
+      },
+      {
+        "name": "get_media_stats",
+        "at": {
+          "line": 235,
+          "text": "| `get_media_stats` | Counts + storage bytes per type (optionally per project) |"
+        }
+      },
+      {
+        "name": "get_moodboard",
+        "at": {
+          "line": 190,
+          "text": "| `get_moodboard` | Fetch one moodboard with all image URLs |"
+        }
+      },
+      {
+        "name": "get_music_library_facets",
+        "at": {
+          "line": 248,
+          "text": "| `get_music_library_facets` | List genres, moods, instruments, BPM, and duration filters. |"
+        }
+      },
+      {
+        "name": "get_music_track_audio",
+        "at": {
+          "line": 249,
+          "text": "| `get_music_track_audio` | Get watermarked preview URLs for a track. |"
+        }
+      },
+      {
+        "name": "get_music_track_lyrics",
+        "at": {
+          "line": 253,
+          "text": "| `get_music_track_lyrics` | Get lyrics metadata. |"
+        }
+      },
+      {
+        "name": "get_music_track_related",
+        "at": {
+          "line": 252,
+          "text": "| `get_music_track_related` | Get stems/alternate-version metadata (purchasing remains unsupported). |"
+        }
+      },
+      {
+        "name": "get_project",
+        "at": {
+          "line": 319,
+          "text": "| `get_project` | Full project record including the unclipped description — read this before `update_project` |"
+        }
+      },
+      {
+        "name": "get_project_page_insights",
+        "at": {
+          "line": 331,
+          "text": "| `get_project_page_insights` | Visitor analytics for a published project page: visitors, active time, scroll depth, story reach, clicks, copies, sources, countries, most-opened media |"
+        }
+      },
+      {
+        "name": "get_project_profile",
+        "at": {
+          "line": 341,
+          "text": "| `add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the syn…"
+        }
+      },
+      {
+        "name": "get_project_publication",
+        "at": {
+          "line": 330,
+          "text": "| `publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final…"
+        }
+      },
+      {
+        "name": "get_project_story",
+        "at": {
+          "line": 332,
+          "text": "| `get_project_story` / `update_project_story` / `draft_project_story` | Write the published page as a post: headings, text, media, workflow steps (real prompt + model), before/after. AI draft from th…"
+        }
+      },
+      {
+        "name": "get_stock_asset",
+        "at": {
+          "line": 261,
+          "text": "| `get_stock_asset` | Get one asset with all download variants, author, license, and attribution. |"
+        }
+      },
+      {
+        "name": "get_stock_categories",
+        "at": {
+          "line": 260,
+          "text": "| `get_stock_categories` | List dynamic category/topic chips (pass `providerParam` as the `category` filter). |"
+        }
+      },
+      {
+        "name": "get_stock_sources",
+        "at": {
+          "line": 259,
+          "text": "| `get_stock_sources` | List enabled sources + which media types/filters each supports. |"
+        }
+      },
+      {
+        "name": "get_timed_lyrics",
+        "at": {
+          "line": 154,
+          "text": "| `get_timed_lyrics` | Word-by-word karaoke timing for a track |"
+        }
+      },
+      {
+        "name": "get_video_editor_schema",
+        "at": {
+          "line": 372,
+          "text": "| `get_video_editor_schema` | Complete writable settings and operation contract |"
+        }
+      },
+      {
+        "name": "get_video_editor_session",
+        "at": {
+          "line": 374,
+          "text": "| `get_video_editor_session` | Full saved timeline and revision |"
+        }
+      },
+      {
+        "name": "get_visual_dna",
+        "at": {
+          "line": 183,
+          "text": "| `get_visual_dna` | Fetch one profile |"
+        }
+      },
+      {
+        "name": "image_edit",
+        "at": {
+          "line": 141,
+          "text": "| `generate_image_edit` | Existing image(s) + prompt → edited image. Supports `preset_id` from `list_presets type=\"image_edit\"`. |"
+        }
+      },
+      {
+        "name": "import_elevenlabs_voice",
+        "at": {
+          "line": 344,
+          "text": "| `clone_voice` / `import_elevenlabs_voice` / `delete_voice` | Custom voices: clone from an audio sample, import by ElevenLabs ID, delete |"
+        }
+      },
+      {
+        "name": "import_music_track_to_library",
+        "at": {
+          "line": 251,
+          "text": "| `import_music_track_to_library` | Spend one vendor credit and copy a clean MP3/WAV into Kolbo's media library. |"
+        }
+      },
+      {
+        "name": "import_stock_asset",
+        "at": {
+          "line": 263,
+          "text": "| `import_stock_asset` | Copy a stock asset into the media library (CDN copy, stable URL). Free. |"
+        }
+      },
+      {
+        "name": "job_id",
+        "at": {
+          "line": 381,
+          "text": "…` starts a server download for a public media page URL. Use `get_download_status` with the returned `job_id` (not `get_generation_status`) and wait for `completed` before using `resultUrl`. `cancel_do…"
+        }
+      },
+      {
+        "name": "link_project_asset",
+        "at": {
+          "line": 342,
+          "text": "| `list_project_assets` / `link_project_asset` / `unlink_project_asset` / `update_project_asset` | Project cast: tag Visual DNAs / moodboards onto a project, write each DNA's description and purpose n…"
+        }
+      },
+      {
+        "name": "list_agents",
+        "at": {
+          "line": 336,
+          "text": "| `list_agents` / `create_agent` / `update_agent` / `delete_agent` | Same four tools under their original names. Still supported and unchanged; new integrations should use the `*_skill` names |"
+        }
+      },
+      {
+        "name": "list_cinematic_presets",
+        "at": {
+          "line": 317,
+          "text": "| `list_cinematic_presets` | \"Cinema mode\" presets grouped by dimension (camera, lens, focal_length, aperture, angle, shot_type, color_palette, lighting) — pass ids via the `cinematic` arg on `generat…"
+        }
+      },
+      {
+        "name": "list_color_palettes",
+        "at": {
+          "line": 196,
+          "text": "| `list_color_palettes` | List your palettes (+ org) |"
+        }
+      },
+      {
+        "name": "list_docs",
+        "at": {
+          "line": 326,
+          "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+        }
+      },
+      {
+        "name": "list_fonts",
+        "at": {
+          "line": 5,
+          "text": "Browse **My fonts** with `list_fonts({source:\"custom\"})` (the default), or the read-only **Font collection** with `source:\"global\"`. Use `source:\"all\"` to search both. Mix up to three family IDs acros…"
+        }
+      },
+      {
+        "name": "list_media",
+        "at": {
+          "line": 210,
+          "text": "| `list_media` | Browse media library — filter by `project_id`, `folder_id`, `type`, `category` (ai / uploaded / edited / favorites / training-lab), `source_type`, `sort`, `search`, pagination |"
+        }
+      },
+      {
+        "name": "list_media_folders",
+        "at": {
+          "line": 211,
+          "text": "| `list_media_folders` | List the user's media folders (owned + shared) — discover `folder_id` values to pass to `list_media` |"
+        }
+      },
+      {
+        "name": "list_models",
+        "at": {
+          "line": 13,
+          "text": "`generate_image` and `generate_image_edit` accept `background: \"transparent\"` for models whose `list_models` record reports `supports_transparent_background: true`. Kolbo also appends the exact phrase…"
+        }
+      },
+      {
+        "name": "list_moodboards",
+        "at": {
+          "line": 189,
+          "text": "| `list_moodboards` | Browse presets + your moodboards |"
+        }
+      },
+      {
+        "name": "list_music_personas",
+        "at": {
+          "line": 155,
+          "text": "| `create_music_persona` / `list_music_personas` | Save a track's voice and style, reuse it on generate_music |"
+        }
+      },
+      {
+        "name": "list_presets",
+        "at": {
+          "line": 140,
+          "text": "| `generate_image` | Text → image. Supports `preset_id` from `list_presets type=\"image\"`. |"
+        }
+      },
+      {
+        "name": "list_project_assets",
+        "at": {
+          "line": 342,
+          "text": "| `list_project_assets` / `link_project_asset` / `unlink_project_asset` / `update_project_asset` | Project cast: tag Visual DNAs / moodboards onto a project, write each DNA's description and purpose n…"
+        }
+      },
+      {
+        "name": "list_project_context",
+        "at": {
+          "line": 341,
+          "text": "| `add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the syn…"
+        }
+      },
+      {
+        "name": "list_project_transfers",
+        "at": {
+          "line": 334,
+          "text": "| `transfer_project` / `list_project_transfers` / `respond_project_transfer` | Hand a project you own to another Kolbo account (they accept; same ids; cast assets copied; payer history unchanged) |"
+        }
+      },
+      {
+        "name": "list_projects",
+        "at": {
+          "line": 168,
+          "text": "…oject_id` arg that routes the generation into a specific project (owned or shared with edit+). Call `list_projects` to discover IDs. When omitted, generations land in the user's auto-created \"API Gene…"
+        }
+      },
+      {
+        "name": "list_session_generations",
+        "at": {
+          "line": 322,
+          "text": "| `list_session_generations` | A session's generations as complete groups (prompt + all its outputs) — the ids the two organize tools below take |"
+        }
+      },
+      {
+        "name": "list_sessions",
+        "at": {
+          "line": 339,
+          "text": "| `list_sessions` | Enumerate sessions across all types, filterable by project, `type`, and `types[]` |"
+        }
+      },
+      {
+        "name": "list_skills",
+        "at": {
+          "line": 335,
+          "text": "| `list_skills` / `create_skill` / `update_skill` / `delete_skill` | Skills — reusable named personas for the chat tool; `description` is the system instruction |"
+        }
+      },
+      {
+        "name": "list_video_editor_sessions",
+        "at": {
+          "line": 373,
+          "text": "| `list_video_editor_sessions` | Paginated project timelines |"
+        }
+      },
+      {
+        "name": "list_visual_dna_folders",
+        "at": {
+          "line": 328,
+          "text": "| `list_visual_dna_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (cre…"
+        }
+      },
+      {
+        "name": "list_visual_dna_transfers",
+        "at": {
+          "line": 333,
+          "text": "| `transfer_visual_dna` / `list_visual_dna_transfers` / `respond_visual_dna_transfer` | Send Visual DNAs you own to another Kolbo account (they accept a copy with new ids; optionally move instead of c…"
+        }
+      },
+      {
+        "name": "list_visual_dnas",
+        "at": {
+          "line": 182,
+          "text": "| `list_visual_dnas` | List your profiles |"
+        }
+      },
+      {
+        "name": "list_voices",
+        "at": {
+          "line": 315,
+          "text": "| `list_voices` | TTS voices (presets + cloned) |"
+        }
+      },
+      {
+        "name": "make_music_video",
+        "at": {
+          "line": 152,
+          "text": "| `export_music_wav` / `make_music_video` | Lossless WAV of a track / visualizer music video |"
+        }
+      },
+      {
+        "name": "max_clips",
+        "at": {
+          "line": 287,
+          "text": "| `adobe_get_timeline` | Queue a read-only inspection of the active sequence (tracks, clips with start/end, playhead) or composition (layers), bounded by `max_clips` |"
+        }
+      },
+      {
+        "name": "media_id",
+        "at": {
+          "line": 219,
+          "text": "| `favorite_media` | Mark a media item as favorited (idempotent) — pass `media_id` from `list_media` |"
+        }
+      },
+      {
+        "name": "media_upload_widget",
+        "at": {
+          "line": 207,
+          "text": "| `media_upload_widget` | Open an in-chat upload card so claude.ai users can upload LOCAL files (image / video / audio / document) — chat attachments are unreachable from remote MCP, so this is the wa…"
+        }
+      },
+      {
+        "name": "media_urls",
+        "at": {
+          "line": 173,
+          "text": "| `chat_send_message` | Multi-turn chat with any Kolbo model. Pass `media_urls` to analyze images, videos, or audio — auto-routes to Gemini for vision. Supports web search and deep think. |"
+        }
+      },
+      {
+        "name": "moodboard_id",
+        "at": {
+          "line": 164,
+          "text": "Every image/video/creative-director tool accepts `visual_dna_ids` and `moodboard_id` for character/style consistency across outputs — you can compose `create_visual_dna` → `generate_image` (with the D…"
+        }
+      },
+      {
+        "name": "moodboard_ids",
+        "at": {
+          "line": 164,
+          "text": "…tputs — you can compose `create_visual_dna` → `generate_image` (with the DNA applied server-side) in a single agent turn. `generate_creative_director` also accepts `moodboard_ids` plural for blending."
+        }
+      },
+      {
+        "name": "move_folder_contents",
+        "at": {
+          "line": 234,
+          "text": "| `move_folder_contents` | Move every item in a folder to a project |"
+        }
+      },
+      {
+        "name": "move_generations_to_session",
+        "at": {
+          "line": 323,
+          "text": "| `move_generations_to_session` | Move selected generations (and only THEIR output media) into another existing session |"
+        }
+      },
+      {
+        "name": "move_media",
+        "at": {
+          "line": 168,
+          "text": "…-created \"API Generations\" project. `project_id` is per-call, NOT sticky — pass it on every call once the user names a working project. Misplaced work is recoverable via `move_media` / `move_session`."
+        }
+      },
+      {
+        "name": "move_session",
+        "at": {
+          "line": 168,
+          "text": "…-created \"API Generations\" project. `project_id` is per-call, NOT sticky — pass it on every call once the user names a working project. Misplaced work is recoverable via `move_media` / `move_session`."
+        }
+      },
+      {
+        "name": "move_visual_dna_to_folder",
+        "at": {
+          "line": 328,
+          "text": "…a_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (create/rename/recolo…"
+        }
+      },
+      {
+        "name": "operation_id",
+        "at": {
+          "line": 325,
+          "text": "| `undo_session_organization` | Reverse a move/split within 15 minutes, using the `operation_id` it returned |"
+        }
+      },
+      {
+        "name": "output_format",
+        "at": {
+          "line": 13,
+          "text": "…the structured setting requests the native alpha channel through the configured provider route. Use `output_format: \"png\"` or `\"webp\"` (PNG is selected automatically when omitted). Prompt wording alon…"
+        }
+      },
+      {
+        "name": "permanently_delete_media",
+        "at": {
+          "line": 228,
+          "text": "| `permanently_delete_media` | Hard-delete (NOT reversible — confirm with user first) |"
+        }
+      },
+      {
+        "name": "preset_id",
+        "at": {
+          "line": 140,
+          "text": "| `generate_image` | Text → image. Supports `preset_id` from `list_presets type=\"image\"`. |"
+        }
+      },
+      {
+        "name": "project_id",
+        "at": {
+          "line": 168,
+          "text": "Every generation tool also accepts an optional `project_id` arg that routes the generation into a specific project (owned or shared with edit+). Call `list_projects` to discover IDs. When omitted, gen…"
+        }
+      },
+      {
+        "name": "publish_html_artifact",
+        "at": {
+          "line": 240,
+          "text": "| `publish_html_artifact` | Publish an HTML page, SVG, or Mermaid diagram and get a public shareable URL on `sites.kolbo.ai`. Pass `share_token` from a prior publish to update the same URL in place (o…"
+        }
+      },
+      {
+        "name": "publish_project",
+        "at": {
+          "line": 330,
+          "text": "| `publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final…"
+        }
+      },
+      {
+        "name": "rate_media",
+        "at": {
+          "line": 223,
+          "text": "| `rate_media` | Thumbs-up/down with an optional reason, without hiding |"
+        }
+      },
+      {
+        "name": "reason_text",
+        "at": {
+          "line": 221,
+          "text": "| `dislike_media` | Dislike (hide) a generated image/video and record why — optional `reason` chip + `reason_text` |"
+        }
+      },
+      {
+        "name": "regenerate_project_profile",
+        "at": {
+          "line": 341,
+          "text": "…`add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the synth…"
+        }
+      },
+      {
+        "name": "remove_media_from_folder",
+        "at": {
+          "line": 216,
+          "text": "| `remove_media_from_folder` | Remove media items from a folder |"
+        }
+      },
+      {
+        "name": "remove_project_hero_video",
+        "at": {
+          "line": 330,
+          "text": "…`publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final v…"
+        }
+      },
+      {
+        "name": "rename_font",
+        "at": {
+          "line": 7,
+          "text": "…Poll `get_font_upload_status` until ready, then pass the returned family ID in `font_ids` to image creation/editing or image-mode Creative Director. `rename_font` and `delete_font` manage the library."
+        }
+      },
+      {
+        "name": "rename_session",
+        "at": {
+          "line": 340,
+          "text": "| `rename_session` / `delete_session` / `restore_session` | Rename a session; soft-delete leftovers after a move; restore from trash |"
+        }
+      },
+      {
+        "name": "replace_music_section",
+        "at": {
+          "line": 151,
+          "text": "| `replace_music_section` | Regenerate 10 s to half of a Suno track and keep the rest |"
+        }
+      },
+      {
+        "name": "request_id",
+        "at": {
+          "line": 250,
+          "text": "| `acquire_clean_music_track` | Spend one SYNCI vendor credit and return clean MP3/WAV signed URLs. Idempotent with `request_id`. |"
+        }
+      },
+      {
+        "name": "resolve_capture_frame",
+        "at": {
+          "line": 308,
+          "text": "| `resolve_capture_frame` | Export a timeline frame to the Kolbo library so the agent can check its work |"
+        }
+      },
+      {
+        "name": "resolve_edit_timeline",
+        "at": {
+          "line": 306,
+          "text": "| `resolve_edit_timeline` | Structured edits: new timelines, timed and trimmed Kolbo clips on chosen tracks, transitions, audio fades, Fusion titles, markers, clip deletion |"
+        }
+      },
+      {
+        "name": "resolve_get_command_status",
+        "at": {
+          "line": 309,
+          "text": "| `resolve_get_command_status` | Read command status/result/error; `awaiting_approval` means stop and wait for the editor |"
+        }
+      },
+      {
+        "name": "resolve_get_project",
+        "at": {
+          "line": 303,
+          "text": "| `resolve_get_project` | Queue a read-only project inspection: timelines, frame rate, resolution, playhead (no approval) |"
+        }
+      },
+      {
+        "name": "resolve_get_timeline",
+        "at": {
+          "line": 304,
+          "text": "| `resolve_get_timeline` | Queue a read-only inspection of the current timeline: clips per track with start/end, markers, playhead |"
+        }
+      },
+      {
+        "name": "resolve_import_media",
+        "at": {
+          "line": 305,
+          "text": "| `resolve_import_media` | Import one Kolbo media id or Kolbo-owned HTTPS URL into the Kolbo.AI Media Pool bin |"
+        }
+      },
+      {
+        "name": "resolve_list_sessions",
+        "at": {
+          "line": 302,
+          "text": "| `resolve_list_sessions` | List the caller's DaVinci Resolve windows connected through the Kolbo plugin |"
+        }
+      },
+      {
+        "name": "resolve_run_script",
+        "at": {
+          "line": 307,
+          "text": "| `resolve_run_script` | Approval-gated JavaScript against Resolve's scripting API (colour, Fusion, render jobs); the editor reviews the exact code |"
+        }
+      },
+      {
+        "name": "respond_project_transfer",
+        "at": {
+          "line": 334,
+          "text": "| `transfer_project` / `list_project_transfers` / `respond_project_transfer` | Hand a project you own to another Kolbo account (they accept; same ids; cast assets copied; payer history unchanged) |"
+        }
+      },
+      {
+        "name": "respond_visual_dna_transfer",
+        "at": {
+          "line": 333,
+          "text": "| `transfer_visual_dna` / `list_visual_dna_transfers` / `respond_visual_dna_transfer` | Send Visual DNAs you own to another Kolbo account (they accept a copy with new ids; optionally move instead of c…"
+        }
+      },
+      {
+        "name": "restore_media",
+        "at": {
+          "line": 227,
+          "text": "| `restore_media` | Restore a trashed item |"
+        }
+      },
+      {
+        "name": "restore_session",
+        "at": {
+          "line": 340,
+          "text": "| `rename_session` / `delete_session` / `restore_session` | Rename a session; soft-delete leftovers after a move; restore from trash |"
+        }
+      },
+      {
+        "name": "routing_mode",
+        "at": {
+          "line": 366,
+          "text": "…package update is required when the server changes a model capability. For the Auto model, optional `routing_mode` accepts `fast`, `balanced`, or `smart`; omitted uses the server default of `balanced`…"
+        }
+      },
+      {
+        "name": "search_music_library",
+        "at": {
+          "line": 245,
+          "text": "| `search_music_library` | Search the licensed catalog; results contain watermarked previews only. |"
+        }
+      },
+      {
+        "name": "search_stock_media",
+        "at": {
+          "line": 258,
+          "text": "| `search_stock_media` | Search photos/videos/illustrations/vectors/3D/music across providers. `source=\"all\"` returns one interleaved feed. Find ready-made assets / b-roll (distinct from `generate_ima…"
+        }
+      },
+      {
+        "name": "separate_ambience",
+        "at": {
+          "line": 162,
+          "text": "| `separate_ambience` | Pull room tone / atmosphere out of the Effects (or Music) bed as its own layer. 17 credits |"
+        }
+      },
+      {
+        "name": "separate_audio_stems",
+        "at": {
+          "line": 160,
+          "text": "| `separate_audio_stems` | Audio/video URL (or a Kolbo `generation_id`) → Dialogue / Music / Effects / without-dialogue (M&E) layers. Kolbo's own masking pipeline with a speech classifier on top, so a…"
+        }
+      },
+      {
+        "name": "session_data",
+        "at": {
+          "line": 377,
+          "text": "`create_video_editor_session` also accepts optional advanced `session_data` instead of clips/audio/texts. Read the schema and saved revision before editing. Changes affect saved state; reload an alrea…"
+        }
+      },
+      {
+        "name": "share_doc",
+        "at": {
+          "line": 326,
+          "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+        }
+      },
+      {
+        "name": "share_media_folder",
+        "at": {
+          "line": 217,
+          "text": "| `share_media_folder` | Share a folder by user email (owner only) |"
+        }
+      },
+      {
+        "name": "share_token",
+        "at": {
+          "line": 240,
+          "text": "…lish an HTML page, SVG, or Mermaid diagram and get a public shareable URL on `sites.kolbo.ai`. Pass `share_token` from a prior publish to update the same URL in place (old content kept in version hist…"
+        }
+      },
+      {
+        "name": "skip_color_palette",
+        "at": {
+          "line": 193,
+          "text": "**Color DNA** — sticky, account-wide: the ACTIVE palette strict-grades every generation until deactivated. Opt a single generation out with `skip_color_palette`."
+        }
+      },
+      {
+        "name": "source_base64",
+        "at": {
+          "line": 209,
+          "text": "| `upload_media` | Upload a local file (path or URL), or inline `source_base64` + `filename`, → stable Kolbo CDN URL for reuse |"
+        }
+      },
+      {
+        "name": "source_language",
+        "at": {
+          "line": 144,
+          "text": "…ideo). `prompt` optional — prompt-less models (VEED Subtitles, Act Two, Wan Animate) use `preset` / `source_language` / `translation_language`, plus `srt_content` / `srt_file_url` / `vocabulary` / `cu…"
+        }
+      },
+      {
+        "name": "source_type",
+        "at": {
+          "line": 210,
+          "text": "| `list_media` | Browse media library — filter by `project_id`, `folder_id`, `type`, `category` (ai / uploaded / edited / favorites / training-lab), `source_type`, `sort`, `search`, pagination |"
+        }
+      },
+      {
+        "name": "split_session",
+        "at": {
+          "line": 324,
+          "text": "| `split_session` | Carve selected generations out into a brand-new named session, atomically |"
+        }
+      },
+      {
+        "name": "srt_content",
+        "at": {
+          "line": 144,
+          "text": "…l — prompt-less models (VEED Subtitles, Act Two, Wan Animate) use `preset` / `source_language` / `translation_language`, plus `srt_content` / `srt_file_url` / `vocabulary` / `customization` for VEED |"
+        }
+      },
+      {
+        "name": "srt_file_url",
+        "at": {
+          "line": 144,
+          "text": "…l — prompt-less models (VEED Subtitles, Act Two, Wan Animate) use `preset` / `source_language` / `translation_language`, plus `srt_content` / `srt_file_url` / `vocabulary` / `customization` for VEED |"
+        }
+      },
+      {
+        "name": "style_instructions",
+        "at": {
+          "line": 156,
+          "text": "…amed voice-direction presets (`style_instructions_preset_id`: warm/dramatic/whisper/…) or free-form `style_instructions`, preset styles + emotions (DeepDub / MiniMax / Cartesia), speed, accent/`langua…"
+        }
+      },
+      {
+        "name": "style_instructions_preset_id",
+        "at": {
+          "line": 156,
+          "text": "…ice; `turbo` needs v4). Full expressive/style control: Google/Gemini named voice-direction presets (`style_instructions_preset_id`: warm/dramatic/whisper/…) or free-form `style_instructions`, preset s…"
+        }
+      },
+      {
+        "name": "submit_project_to_catalog",
+        "at": {
+          "line": 330,
+          "text": "| `publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final…"
+        }
+      },
+      {
+        "name": "supported_resolutions",
+        "at": {
+          "line": 166,
+          "text": "…p\"` / `\"1080p\"` / `\"1440p\"` / `\"2160p\"`. Values are model-dependent — call `list_models` and read the chosen model's `supported_resolutions` and `resolutionMultipliers`. Omit to use the model default."
+        }
+      },
+      {
+        "name": "supports_custom_fonts",
+        "at": {
+          "line": 9,
+          "text": "Only models reporting `supports_custom_fonts: true` accept these selections. Fonts and backend-generated specimens never go through media upload. See [Personal Fonts](https://docs.kolbo.ai/developer-a…"
+        }
+      },
+      {
+        "name": "supports_transparent_background",
+        "at": {
+          "line": 13,
+          "text": "…nerate_image_edit` accept `background: \"transparent\"` for models whose `list_models` record reports `supports_transparent_background: true`. Kolbo also appends the exact phrase `no background` once to…"
+        }
+      },
+      {
+        "name": "text_normalization",
+        "at": {
+          "line": 156,
+          "text": "…venLabs stability/similarity/style/speaker boost/seed, `enforce_language`, `output_format` mp3/wav, `text_normalization`; DeepDub accent/variance/tempo, MiniMax pitch/volume/intensity/timbre), plus `a…"
+        }
+      },
+      {
+        "name": "thinking_level",
+        "at": {
+          "line": 366,
+          "text": "`chat_send_message` accepts optional `thinking_level`, using an ID from `list_models` with `type: \"text\"`. The server validates it against the resolved model; omitted or invalid values use `thinkingDe…"
+        }
+      },
+      {
+        "name": "transcribe_audio",
+        "at": {
+          "line": 159,
+          "text": "| `transcribe_audio` | Audio/video URL or file → text + SRT subtitles. Language, speaker diarization, audio-event tagging, and SRT formatting (words/line, lines/subtitle, caption stretch) |"
+        }
+      },
+      {
+        "name": "transfer_project",
+        "at": {
+          "line": 334,
+          "text": "| `transfer_project` / `list_project_transfers` / `respond_project_transfer` | Hand a project you own to another Kolbo account (they accept; same ids; cast assets copied; payer history unchanged) |"
+        }
+      },
+      {
+        "name": "transfer_visual_dna",
+        "at": {
+          "line": 333,
+          "text": "| `transfer_visual_dna` / `list_visual_dna_transfers` / `respond_visual_dna_transfer` | Send Visual DNAs you own to another Kolbo account (they accept a copy with new ids; optionally move instead of c…"
+        }
+      },
+      {
+        "name": "translation_language",
+        "at": {
+          "line": 144,
+          "text": "…onal — prompt-less models (VEED Subtitles, Act Two, Wan Animate) use `preset` / `source_language` / `translation_language`, plus `srt_content` / `srt_file_url` / `vocabulary` / `customization` for VEE…"
+        }
+      },
+      {
+        "name": "trim_video",
+        "at": {
+          "line": 345,
+          "text": "| `trim_video` | Frame-accurate server-side trim of a Kolbo-hosted video (async job, tool waits) |"
+        }
+      },
+      {
+        "name": "unarchive_project",
+        "at": {
+          "line": 329,
+          "text": "| `create_project` / `update_project` / `archive_project` / `unarchive_project` | Project lifecycle (create/rename/describe/archive; deletion stays in-app) |"
+        }
+      },
+      {
+        "name": "undislike_media",
+        "at": {
+          "line": 222,
+          "text": "| `undislike_media` | Remove a dislike (un-hide) and its thumbs-down |"
+        }
+      },
+      {
+        "name": "undo_session_organization",
+        "at": {
+          "line": 325,
+          "text": "| `undo_session_organization` | Reverse a move/split within 15 minutes, using the `operation_id` it returned |"
+        }
+      },
+      {
+        "name": "unfavorite_media",
+        "at": {
+          "line": 220,
+          "text": "| `unfavorite_media` | Remove a media item from favorites (idempotent) — pass `media_id` from `list_media` |"
+        }
+      },
+      {
+        "name": "unlink_project_asset",
+        "at": {
+          "line": 342,
+          "text": "| `list_project_assets` / `link_project_asset` / `unlink_project_asset` / `update_project_asset` | Project cast: tag Visual DNAs / moodboards onto a project, write each DNA's description and purpose n…"
+        }
+      },
+      {
+        "name": "unpublish_project",
+        "at": {
+          "line": 330,
+          "text": "| `publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final…"
+        }
+      },
+      {
+        "name": "unshare_media_folder",
+        "at": {
+          "line": 218,
+          "text": "| `unshare_media_folder` | Revoke a user's access to a folder (owner only) |"
+        }
+      },
+      {
+        "name": "update_agent",
+        "at": {
+          "line": 336,
+          "text": "| `list_agents` / `create_agent` / `update_agent` / `delete_agent` | Same four tools under their original names. Still supported and unchanged; new integrations should use the `*_skill` names |"
+        }
+      },
+      {
+        "name": "update_color_palette",
+        "at": {
+          "line": 199,
+          "text": "| `update_color_palette` | Rename / replace colors |"
+        }
+      },
+      {
+        "name": "update_doc",
+        "at": {
+          "line": 326,
+          "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+        }
+      },
+      {
+        "name": "update_flow_session",
+        "at": {
+          "line": 25,
+          "text": "…de workflows in an explicit project. Use `get_flow_schema`, `get_flow_session` and revision-checked `update_flow_session` for prompts, Assistant system prompts, settings, groups and connections. Runs …"
+        }
+      },
+      {
+        "name": "update_media_folder",
+        "at": {
+          "line": 213,
+          "text": "| `update_media_folder` | Rename / recolor / re-icon a folder (owner only) |"
+        }
+      },
+      {
+        "name": "update_moodboard",
+        "at": {
+          "line": 191,
+          "text": "| `create_moodboard` / `update_moodboard` / `delete_moodboard` | Create / edit in place / delete |"
+        }
+      },
+      {
+        "name": "update_project",
+        "at": {
+          "line": 319,
+          "text": "| `get_project` | Full project record including the unclipped description — read this before `update_project` |"
+        }
+      },
+      {
+        "name": "update_project_asset",
+        "at": {
+          "line": 342,
+          "text": "| `list_project_assets` / `link_project_asset` / `unlink_project_asset` / `update_project_asset` | Project cast: tag Visual DNAs / moodboards onto a project, write each DNA's description and purpose n…"
+        }
+      },
+      {
+        "name": "update_project_story",
+        "at": {
+          "line": 332,
+          "text": "| `get_project_story` / `update_project_story` / `draft_project_story` | Write the published page as a post: headings, text, media, workflow steps (real prompt + model), before/after. AI draft from th…"
+        }
+      },
+      {
+        "name": "update_skill",
+        "at": {
+          "line": 335,
+          "text": "| `list_skills` / `create_skill` / `update_skill` / `delete_skill` | Skills — reusable named personas for the chat tool; `description` is the system instruction |"
+        }
+      },
+      {
+        "name": "update_video_editor_session",
+        "at": {
+          "line": 375,
+          "text": "| `update_video_editor_session` | Atomic rename, settings, tracks, clips, trims, speed, captions and effects |"
+        }
+      },
+      {
+        "name": "update_visual_dna",
+        "at": {
+          "line": 181,
+          "text": "| `update_visual_dna` | Edit name, description, stills, sheet, or type in place (never delete+recreate) |"
+        }
+      },
+      {
+        "name": "update_visual_dna_folder",
+        "at": {
+          "line": 328,
+          "text": "| `list_visual_dna_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (cre…"
+        }
+      },
+      {
+        "name": "upload_font",
+        "at": {
+          "line": 7,
+          "text": "… / `get_font` to discover My Fonts. Local stdio clients upload one OTF/TTF/WOFF2 (up to 5 MiB) with `upload_font`; remote shell clients use `create_font_upload_ticket`, and browser clients use `font_u…"
+        }
+      },
+      {
+        "name": "upload_media",
+        "at": {
+          "line": 209,
+          "text": "| `upload_media` | Upload a local file (path or URL), or inline `source_base64` + `filename`, → stable Kolbo CDN URL for reuse |"
+        }
+      },
+      {
+        "name": "visual_dna_ids",
+        "at": {
+          "line": 164,
+          "text": "Every image/video/creative-director tool accepts `visual_dna_ids` and `moodboard_id` for character/style consistency across outputs — you can compose `create_visual_dna` → `generate_image` (with the D…"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "kolbo",
+    "title": "Kolbo",
+    "version": "1.0.0",
+    "websiteUrl": "https://kolbo.ai",
+    "icons": [
+      {
+        "src": "https://api.kolbo.ai/assets/kolbo-ai.png",
+        "mimeType": "image/png",
+        "sizes": [
+          "512x512"
+        ]
+      }
+    ]
+  },
+  "observed": {
+    "offered": [
+      "acquire_clean_music_track",
+      "activate_color_palette",
+      "add_instrumental",
+      "add_media_to_folder",
+      "add_project_context",
+      "add_review_version",
+      "add_vocals",
+      "adobe_capture_frame",
+      "adobe_create_sequence",
+      "adobe_edit_composition",
+      "adobe_get_command_status",
+      "adobe_get_project",
+      "adobe_get_timeline",
+      "adobe_import_captions",
+      "adobe_import_media",
+      "adobe_list_sessions",
+      "adobe_place_on_timeline",
+      "adobe_run_script",
+      "analyze_color_palette",
+      "analyze_script_for_music",
+      "analyze_script_for_stock",
+      "analyze_video",
+      "analyze_video_evidence",
+      "archive_project",
+      "blender_apply_operations",
+      "blender_capture_viewport",
+      "blender_execute_python",
+      "blender_file_operation",
+      "blender_get_command_status",
+      "blender_get_scene",
+      "blender_import_media",
+      "blender_list_sessions",
+      "blender_render",
+      "blender_search_docs",
+      "blender_undo",
+      "browse_music_library",
+      "bulk_delete_media",
+      "bulk_move_media",
+      "bulk_move_sessions",
+      "bulk_permanently_delete_media",
+      "bulk_restore_media",
+      "cancel_download",
+      "cancel_flow_run",
+      "cancel_generation",
+      "cancel_trend_run",
+      "cancel_video_inspection",
+      "chat_get_messages",
+      "chat_list_conversations",
+      "chat_send_message",
+      "check_credits",
+      "clean_dialogue_leftovers",
+      "clear_media_rating",
+      "clone_voice",
+      "cover_music",
+      "create_agent",
+      "create_color_palette",
+      "create_doc",
+      "create_flow_session",
+      "create_font_upload_ticket",
+      "create_media_folder",
+      "create_moodboard",
+      "create_morphious_style",
+      "create_music_composition_plan",
+      "create_music_persona",
+      "create_music_reference_audio",
+      "create_project",
+      "create_review_asset",
+      "create_review_collection",
+      "create_review_comment",
+      "create_review_share_link",
+      "create_skill",
+      "create_upload_ticket",
+      "create_video_editor_session",
+      "create_visual_dna",
+      "create_visual_dna_folder",
+      "deactivate_color_palette",
+      "delete_agent",
+      "delete_color_palette",
+      "delete_doc",
+      "delete_font",
+      "delete_media",
+      "delete_media_folder",
+      "delete_moodboard",
+      "delete_morphious_style",
+      "delete_project_context",
+      "delete_review_asset",
+      "delete_review_collection",
+      "delete_review_comment",
+      "delete_session",
+      "delete_skill",
+      "delete_visual_dna",
+      "delete_visual_dna_folder",
+      "delete_voice",
+      "dislike_media",
+      "download_media_from_url",
+      "draft_project_story",
+      "duplicate_flow_session",
+      "duplicate_project",
+      "edit_image",
+      "edit_music_section",
+      "edit_review_comment",
+      "edit_video",
+      "estimate_flow_run",
+      "estimate_trend_run",
+      "export_music_wav",
+      "export_video_editor_session",
+      "extend_music",
+      "favorite_media",
+      "font_upload_widget",
+      "generate_3d",
+      "generate_character_sheet",
+      "generate_creative_director",
+      "generate_elements",
+      "generate_first_last_frame",
+      "generate_image",
+      "generate_image_edit",
+      "generate_lipsync",
+      "generate_music",
+      "generate_music_midi",
+      "generate_sound",
+      "generate_speech",
+      "generate_video",
+      "generate_video_from_image",
+      "generate_video_from_video",
+      "get_creative_director_status",
+      "get_doc",
+      "get_download_status",
+      "get_flow_run",
+      "get_flow_schema",
+      "get_flow_session",
+      "get_font",
+      "get_font_upload_status",
+      "get_generation_status",
+      "get_media",
+      "get_media_stats",
+      "get_moodboard",
+      "get_music_library_facets",
+      "get_music_track_audio",
+      "get_music_track_lyrics",
+      "get_music_track_related",
+      "get_project",
+      "get_project_page_insights",
+      "get_project_profile",
+      "get_project_publication",
+      "get_project_story",
+      "get_review_asset",
+      "get_review_storage_usage",
+      "get_session_usage",
+      "get_stock_asset",
+      "get_stock_categories",
+      "get_stock_collections",
+      "get_stock_sources",
+      "get_timed_lyrics",
+      "get_trend",
+      "get_trend_run",
+      "get_video_editor_schema",
+      "get_video_editor_session",
+      "get_video_inspection",
+      "get_visual_dna",
+      "import_elevenlabs_voice",
+      "import_music_audio",
+      "import_music_track_to_library",
+      "import_stock_asset",
+      "inspect_video",
+      "link_project_asset",
+      "list_agents",
+      "list_cinematic_presets",
+      "list_color_palettes",
+      "list_docs",
+      "list_flow_runs",
+      "list_flow_sessions",
+      "list_fonts",
+      "list_media",
+      "list_media_folders",
+      "list_models",
+      "list_moodboards",
+      "list_morphious_styles",
+      "list_music_personas",
+      "list_presets",
+      "list_project_assets",
+      "list_project_context",
+      "list_project_transfers",
+      "list_projects",
+      "list_review_assets",
+      "list_review_collections",
+      "list_review_comments",
+      "list_review_share_links",
+      "list_session_generations",
+      "list_sessions",
+      "list_skills",
+      "list_trend_runs",
+      "list_trends",
+      "list_video_editor_sessions",
+      "list_visual_dna_folders",
+      "list_visual_dna_transfers",
+      "list_visual_dnas",
+      "list_voices",
+      "make_music_video",
+      "media_upload_widget",
+      "move_flow_session",
+      "move_folder_contents",
+      "move_generations_to_session",
+      "move_media",
+      "move_session",
+      "move_visual_dna_to_folder",
+      "permanently_delete_media",
+      "prepare_video_inspection",
+      "publish_html_artifact",
+      "publish_project",
+      "rate_media",
+      "regenerate_project_profile",
+      "remove_media_from_folder",
+      "remove_project_hero_video",
+      "rename_font",
+      "rename_session",
+      "replace_music_section",
+      "reply_review_comment",
+      "resolve_capture_frame",
+      "resolve_edit_timeline",
+      "resolve_get_command_status",
+      "resolve_get_project",
+      "resolve_get_timeline",
+      "resolve_import_media",
+      "resolve_list_sessions",
+      "resolve_review_comment",
+      "resolve_run_script",
+      "respond_project_transfer",
+      "respond_visual_dna_transfer",
+      "restore_flow_session",
+      "restore_media",
+      "restore_session",
+      "retry_flow_run",
+      "revoke_review_share_link",
+      "run_flow_session",
+      "run_trend",
+      "search_music_library",
+      "search_stock_media",
+      "separate_ambience",
+      "separate_audio_stems",
+      "set_review_status",
+      "share_doc",
+      "share_media_folder",
+      "show_plans",
+      "split_session",
+      "submit_project_to_catalog",
+      "transcribe_audio",
+      "transcribe_video_evidence",
+      "transfer_project",
+      "transfer_visual_dna",
+      "trash_flow_session",
+      "trim_video",
+      "unarchive_project",
+      "undislike_media",
+      "undo_flow_edit",
+      "undo_session_organization",
+      "unfavorite_media",
+      "unlink_project_asset",
+      "unpublish_project",
+      "unresolve_review_comment",
+      "unshare_media_folder",
+      "update_agent",
+      "update_color_palette",
+      "update_doc",
+      "update_flow_session",
+      "update_media_folder",
+      "update_moodboard",
+      "update_project",
+      "update_project_asset",
+      "update_project_story",
+      "update_review_asset",
+      "update_review_collection",
+      "update_skill",
+      "update_video_editor_session",
+      "update_visual_dna",
+      "update_visual_dna_folder",
+      "upload_font",
+      "upload_media",
+      "validate_flow_session"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "kolbo-mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "acquire_clean_music_track",
+          "at": {
+            "line": 250,
+            "text": "| `acquire_clean_music_track` | Spend one SYNCI vendor credit and return clean MP3/WAV signed URLs. Idempotent with `request_id`. |"
+          }
+        },
+        {
+          "name": "activate_color_palette",
+          "at": {
+            "line": 201,
+            "text": "| `activate_color_palette` | Make a palette the sticky active one |"
+          }
+        },
+        {
+          "name": "add_instrumental",
+          "at": {
+            "line": 150,
+            "text": "| `add_vocals` / `add_instrumental` | Sing over an instrumental, or build a backing track under a vocal (a Kolbo track/stem or your own audio) |"
+          }
+        },
+        {
+          "name": "add_media_to_folder",
+          "at": {
+            "line": 215,
+            "text": "| `add_media_to_folder` | Add up to 500 media items to a folder (idempotent) |"
+          }
+        },
+        {
+          "name": "add_project_context",
+          "at": {
+            "line": 341,
+            "text": "| `add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the syn…"
+          }
+        },
+        {
+          "name": "add_vocals",
+          "at": {
+            "line": 150,
+            "text": "| `add_vocals` / `add_instrumental` | Sing over an instrumental, or build a backing track under a vocal (a Kolbo track/stem or your own audio) |"
+          }
+        },
+        {
+          "name": "adobe_capture_frame",
+          "at": {
+            "line": 294,
+            "text": "| `adobe_capture_frame` | Render a comp/sequence frame to the Kolbo library so the agent can check its work |"
+          }
+        },
+        {
+          "name": "adobe_create_sequence",
+          "at": {
+            "line": 290,
+            "text": "| `adobe_create_sequence` | Create and open a Premiere Pro sequence matching the open sequence's settings, no dialog (Premiere only) |"
+          }
+        },
+        {
+          "name": "adobe_edit_composition",
+          "at": {
+            "line": 292,
+            "text": "| `adobe_edit_composition` | After Effects: one undo step of structured edits - comps, timed and trimmed Kolbo media, titles with stroke, solids, transforms, keyframes, audio fades, layer deletion |"
+          }
+        },
+        {
+          "name": "adobe_get_command_status",
+          "at": {
+            "line": 295,
+            "text": "| `adobe_get_command_status` | Read command status/result/error; `awaiting_approval` means stop and wait for the editor |"
+          }
+        },
+        {
+          "name": "adobe_get_project",
+          "at": {
+            "line": 286,
+            "text": "| `adobe_get_project` | Queue a read-only project inspection (no approval) |"
+          }
+        },
+        {
+          "name": "adobe_get_timeline",
+          "at": {
+            "line": 287,
+            "text": "| `adobe_get_timeline` | Queue a read-only inspection of the active sequence (tracks, clips with start/end, playhead) or composition (layers), bounded by `max_clips` |"
+          }
+        },
+        {
+          "name": "adobe_import_captions",
+          "at": {
+            "line": 291,
+            "text": "| `adobe_import_captions` | Import a Kolbo-hosted SRT onto the active Premiere sequence (Premiere only) |"
+          }
+        },
+        {
+          "name": "adobe_import_media",
+          "at": {
+            "line": 288,
+            "text": "| `adobe_import_media` | Import one Kolbo media id or Kolbo-owned HTTPS URL into the Kolbo.AI / My Media bin for its type |"
+          }
+        },
+        {
+          "name": "adobe_list_sessions",
+          "at": {
+            "line": 285,
+            "text": "| `adobe_list_sessions` | List the caller's Premiere Pro / After Effects windows connected through the Kolbo panel |"
+          }
+        },
+        {
+          "name": "adobe_place_on_timeline",
+          "at": {
+            "line": 289,
+            "text": "| `adobe_place_on_timeline` | Import and place one Kolbo media item at the playhead of the work sequence / active comp (no time or track control in v1) |"
+          }
+        },
+        {
+          "name": "adobe_run_script",
+          "at": {
+            "line": 293,
+            "text": "| `adobe_run_script` | Approval-gated ExtendScript for real motion graphics (shape layers, trim paths, text animators, effects, expressions, cameras); the editor reviews the exact code |"
+          }
+        },
+        {
+          "name": "analyze_color_palette",
+          "at": {
+            "line": 197,
+            "text": "| `analyze_color_palette` | Extract colors from 1-5 image URLs (free, does not save) |"
+          }
+        },
+        {
+          "name": "analyze_script_for_music",
+          "at": {
+            "line": 246,
+            "text": "| `analyze_script_for_music` | Turn a script or scene description into a music search. |"
+          }
+        },
+        {
+          "name": "analyze_script_for_stock",
+          "at": {
+            "line": 262,
+            "text": "| `analyze_script_for_stock` | AI: turn a script into b-roll search terms (`queries[]`, `mediaType`, `keywords`). |"
+          }
+        },
+        {
+          "name": "archive_project",
+          "at": {
+            "line": 329,
+            "text": "| `create_project` / `update_project` / `archive_project` / `unarchive_project` | Project lifecycle (create/rename/describe/archive; deletion stays in-app) |"
+          }
+        },
+        {
+          "name": "blender_apply_operations",
+          "at": {
+            "line": 272,
+            "text": "| `blender_apply_operations` | Apply approved structured object, material, world, camera, light, animation, duplication, or deletion operations |"
+          }
+        },
+        {
+          "name": "blender_capture_viewport",
+          "at": {
+            "line": 271,
+            "text": "| `blender_capture_viewport` | Capture the active viewport to managed cache and optionally Kolbo media |"
+          }
+        },
+        {
+          "name": "blender_execute_python",
+          "at": {
+            "line": 277,
+            "text": "| `blender_execute_python` | Execute explicitly reviewed Python plus a required plain-language purpose with full host authority; approval required unless trusted mode is visibly active |"
+          }
+        },
+        {
+          "name": "blender_file_operation",
+          "at": {
+            "line": 276,
+            "text": "| `blender_file_operation` | Perform sensitive new/open/save/save-as operations with in-Blender approval |"
+          }
+        },
+        {
+          "name": "blender_get_command_status",
+          "at": {
+            "line": 278,
+            "text": "| `blender_get_command_status` | Read bounded command status/result/error plus absolute `expires_at`; records and idempotency claims expire after 24 hours, and `awaiting_approval` means stop and wait …"
+          }
+        },
+        {
+          "name": "blender_get_scene",
+          "at": {
+            "line": 269,
+            "text": "| `blender_get_scene` | Queue a bounded scene summary or full scene inspection |"
+          }
+        },
+        {
+          "name": "blender_import_media",
+          "at": {
+            "line": 273,
+            "text": "| `blender_import_media` | Import a Kolbo media item or exact-allowlisted Kolbo-owned HTTPS media/CDN asset using smart GLB/image/video placement |"
+          }
+        },
+        {
+          "name": "blender_list_sessions",
+          "at": {
+            "line": 268,
+            "text": "| `blender_list_sessions` | List the caller's connected Blender processes before choosing a target session |"
+          }
+        },
+        {
+          "name": "blender_render",
+          "at": {
+            "line": 274,
+            "text": "| `blender_render` | Render a still or an animation capped by Blender at 250 scene frames and 100,000,000 pixel-frames, to managed output and optionally Kolbo media |"
+          }
+        },
+        {
+          "name": "blender_search_docs",
+          "at": {
+            "line": 270,
+            "text": "| `blender_search_docs` | Inspect local Blender RNA and return relevant official API/manual URLs without fetching them |"
+          }
+        },
+        {
+          "name": "blender_undo",
+          "at": {
+            "line": 275,
+            "text": "| `blender_undo` | Undo the most recent Blender change in the selected process |"
+          }
+        },
+        {
+          "name": "browse_music_library",
+          "at": {
+            "line": 247,
+            "text": "| `browse_music_library` | Browse the catalog without a query. |"
+          }
+        },
+        {
+          "name": "bulk_delete_media",
+          "at": {
+            "line": 230,
+            "text": "| `bulk_delete_media` | Soft-delete up to 1000 items in one call |"
+          }
+        },
+        {
+          "name": "bulk_move_media",
+          "at": {
+            "line": 233,
+            "text": "| `bulk_move_media` | Move up to 1000 items to a project (atomic — all-or-nothing) |"
+          }
+        },
+        {
+          "name": "bulk_move_sessions",
+          "at": {
+            "line": 321,
+            "text": "| `bulk_move_sessions` | Move up to 100 sessions into one project in a single call — mixed types allowed, per-session failures reported |"
+          }
+        },
+        {
+          "name": "bulk_permanently_delete_media",
+          "at": {
+            "line": 232,
+            "text": "| `bulk_permanently_delete_media` | Hard-delete up to 1000 (NOT reversible) |"
+          }
+        },
+        {
+          "name": "bulk_restore_media",
+          "at": {
+            "line": 231,
+            "text": "| `bulk_restore_media` | Restore up to 1000 trashed items |"
+          }
+        },
+        {
+          "name": "cancel_download",
+          "at": {
+            "line": 381,
+            "text": "…returned `job_id` (not `get_generation_status`) and wait for `completed` before using `resultUrl`. `cancel_download` cancels an active job. This produces a cloud file and saves it to the account libra…"
+          }
+        },
+        {
+          "name": "chat_get_messages",
+          "at": {
+            "line": 175,
+            "text": "| `chat_get_messages` | Fetch messages in a conversation |"
+          }
+        },
+        {
+          "name": "chat_list_conversations",
+          "at": {
+            "line": 174,
+            "text": "| `chat_list_conversations` | List past chat threads |"
+          }
+        },
+        {
+          "name": "chat_send_message",
+          "at": {
+            "line": 173,
+            "text": "| `chat_send_message` | Multi-turn chat with any Kolbo model. Pass `media_urls` to analyze images, videos, or audio — auto-routes to Gemini for vision. Supports web search and deep think. |"
+          }
+        },
+        {
+          "name": "check_credits",
+          "at": {
+            "line": 346,
+            "text": "| `check_credits` | Check credit balance; widget hosts show total and plan, credit-pack, and redemption breakdown, while text hosts retain the plain-text response |"
+          }
+        },
+        {
+          "name": "clean_dialogue_leftovers",
+          "at": {
+            "line": 161,
+            "text": "| `clean_dialogue_leftovers` | Strip voices still faintly audible in an M&E layer. 17 credits — escalation only, it trades bed fidelity to remove the leak |"
+          }
+        },
+        {
+          "name": "clear_media_rating",
+          "at": {
+            "line": 224,
+            "text": "| `clear_media_rating` | Remove a thumbs-up/down |"
+          }
+        },
+        {
+          "name": "clone_voice",
+          "at": {
+            "line": 344,
+            "text": "| `clone_voice` / `import_elevenlabs_voice` / `delete_voice` | Custom voices: clone from an audio sample, import by ElevenLabs ID, delete |"
+          }
+        },
+        {
+          "name": "create_agent",
+          "at": {
+            "line": 336,
+            "text": "| `list_agents` / `create_agent` / `update_agent` / `delete_agent` | Same four tools under their original names. Still supported and unchanged; new integrations should use the `*_skill` names |"
+          }
+        },
+        {
+          "name": "create_color_palette",
+          "at": {
+            "line": 198,
+            "text": "| `create_color_palette` | Save a palette (colors from analyze or manual); auto-activates by default |"
+          }
+        },
+        {
+          "name": "create_doc",
+          "at": {
+            "line": 326,
+            "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+          }
+        },
+        {
+          "name": "create_font_upload_ticket",
+          "at": {
+            "line": 7,
+            "text": "… stdio clients upload one OTF/TTF/WOFF2 (up to 5 MiB) with `upload_font`; remote shell clients use `create_font_upload_ticket`, and browser clients use `font_upload_widget`. Poll `get_font_upload_stat…"
+          }
+        },
+        {
+          "name": "create_media_folder",
+          "at": {
+            "line": 212,
+            "text": "| `create_media_folder` | Create a new folder (name, optional description / color / icon) |"
+          }
+        },
+        {
+          "name": "create_moodboard",
+          "at": {
+            "line": 191,
+            "text": "| `create_moodboard` / `update_moodboard` / `delete_moodboard` | Create / edit in place / delete |"
+          }
+        },
+        {
+          "name": "create_music_persona",
+          "at": {
+            "line": 155,
+            "text": "| `create_music_persona` / `list_music_personas` | Save a track's voice and style, reuse it on generate_music |"
+          }
+        },
+        {
+          "name": "create_project",
+          "at": {
+            "line": 329,
+            "text": "| `create_project` / `update_project` / `archive_project` / `unarchive_project` | Project lifecycle (create/rename/describe/archive; deletion stays in-app) |"
+          }
+        },
+        {
+          "name": "create_skill",
+          "at": {
+            "line": 335,
+            "text": "| `list_skills` / `create_skill` / `update_skill` / `delete_skill` | Skills — reusable named personas for the chat tool; `description` is the system instruction |"
+          }
+        },
+        {
+          "name": "create_upload_ticket",
+          "at": {
+            "line": 208,
+            "text": "| `create_upload_ticket` | Get a short-lived upload ticket and POST local files yourself — no upload card, no user interaction. For agents with shell access (Claude Code, Codex, Cursor, CI) talking to…"
+          }
+        },
+        {
+          "name": "create_video_editor_session",
+          "at": {
+            "line": 337,
+            "text": "| `create_video_editor_session` / `export_video_editor_session` | Build an editable timeline from Kolbo-hosted clips, audio and text, then export it to MP4. No new media is generated; identical snapsh…"
+          }
+        },
+        {
+          "name": "create_visual_dna",
+          "at": {
+            "line": 164,
+            "text": "…isual_dna_ids` and `moodboard_id` for character/style consistency across outputs — you can compose `create_visual_dna` → `generate_image` (with the DNA applied server-side) in a single agent turn. `ge…"
+          }
+        },
+        {
+          "name": "create_visual_dna_folder",
+          "at": {
+            "line": 328,
+            "text": "| `list_visual_dna_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (cre…"
+          }
+        },
+        {
+          "name": "deactivate_color_palette",
+          "at": {
+            "line": 202,
+            "text": "| `deactivate_color_palette` | Clear the active palette |"
+          }
+        },
+        {
+          "name": "delete_agent",
+          "at": {
+            "line": 336,
+            "text": "| `list_agents` / `create_agent` / `update_agent` / `delete_agent` | Same four tools under their original names. Still supported and unchanged; new integrations should use the `*_skill` names |"
+          }
+        },
+        {
+          "name": "delete_color_palette",
+          "at": {
+            "line": 200,
+            "text": "| `delete_color_palette` | Delete a palette |"
+          }
+        },
+        {
+          "name": "delete_doc",
+          "at": {
+            "line": 326,
+            "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+          }
+        },
+        {
+          "name": "delete_font",
+          "at": {
+            "line": 7,
+            "text": "…Poll `get_font_upload_status` until ready, then pass the returned family ID in `font_ids` to image creation/editing or image-mode Creative Director. `rename_font` and `delete_font` manage the library."
+          }
+        },
+        {
+          "name": "delete_media",
+          "at": {
+            "line": 226,
+            "text": "| `delete_media` | Soft-delete a media item (30-day trash) |"
+          }
+        },
+        {
+          "name": "delete_media_folder",
+          "at": {
+            "line": 214,
+            "text": "| `delete_media_folder` | Soft-delete a folder (owner only; items remain in library) |"
+          }
+        },
+        {
+          "name": "delete_moodboard",
+          "at": {
+            "line": 191,
+            "text": "| `create_moodboard` / `update_moodboard` / `delete_moodboard` | Create / edit in place / delete |"
+          }
+        },
+        {
+          "name": "delete_project_context",
+          "at": {
+            "line": 341,
+            "text": "| `add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the syn…"
+          }
+        },
+        {
+          "name": "delete_session",
+          "at": {
+            "line": 340,
+            "text": "| `rename_session` / `delete_session` / `restore_session` | Rename a session; soft-delete leftovers after a move; restore from trash |"
+          }
+        },
+        {
+          "name": "delete_skill",
+          "at": {
+            "line": 335,
+            "text": "| `list_skills` / `create_skill` / `update_skill` / `delete_skill` | Skills — reusable named personas for the chat tool; `description` is the system instruction |"
+          }
+        },
+        {
+          "name": "delete_visual_dna",
+          "at": {
+            "line": 184,
+            "text": "| `delete_visual_dna` | Delete a profile |"
+          }
+        },
+        {
+          "name": "delete_visual_dna_folder",
+          "at": {
+            "line": 328,
+            "text": "| `list_visual_dna_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (cre…"
+          }
+        },
+        {
+          "name": "delete_voice",
+          "at": {
+            "line": 344,
+            "text": "| `clone_voice` / `import_elevenlabs_voice` / `delete_voice` | Custom voices: clone from an audio sample, import by ElevenLabs ID, delete |"
+          }
+        },
+        {
+          "name": "dislike_media",
+          "at": {
+            "line": 221,
+            "text": "| `dislike_media` | Dislike (hide) a generated image/video and record why — optional `reason` chip + `reason_text` |"
+          }
+        },
+        {
+          "name": "download_media_from_url",
+          "at": {
+            "line": 381,
+            "text": "`download_media_from_url` starts a server download for a public media page URL. Use `get_download_status` with the returned `job_id` (not `get_generation_status`) and wait for `completed` before using…"
+          }
+        },
+        {
+          "name": "draft_project_story",
+          "at": {
+            "line": 332,
+            "text": "| `get_project_story` / `update_project_story` / `draft_project_story` | Write the published page as a post: headings, text, media, workflow steps (real prompt + model), before/after. AI draft from th…"
+          }
+        },
+        {
+          "name": "export_music_wav",
+          "at": {
+            "line": 152,
+            "text": "| `export_music_wav` / `make_music_video` | Lossless WAV of a track / visualizer music video |"
+          }
+        },
+        {
+          "name": "export_video_editor_session",
+          "at": {
+            "line": 337,
+            "text": "| `create_video_editor_session` / `export_video_editor_session` | Build an editable timeline from Kolbo-hosted clips, audio and text, then export it to MP4. No new media is generated; identical snapsh…"
+          }
+        },
+        {
+          "name": "favorite_media",
+          "at": {
+            "line": 219,
+            "text": "| `favorite_media` | Mark a media item as favorited (idempotent) — pass `media_id` from `list_media` |"
+          }
+        },
+        {
+          "name": "font_upload_widget",
+          "at": {
+            "line": 7,
+            "text": "… with `upload_font`; remote shell clients use `create_font_upload_ticket`, and browser clients use `font_upload_widget`. Poll `get_font_upload_status` until ready, then pass the returned family ID in …"
+          }
+        },
+        {
+          "name": "generate_3d",
+          "at": {
+            "line": 158,
+            "text": "| `generate_3d` | Text or reference images → 3D model (GLB/FBX/OBJ/USDZ) |"
+          }
+        },
+        {
+          "name": "generate_character_sheet",
+          "at": {
+            "line": 327,
+            "text": "| `generate_character_sheet` | Generate a multi-angle character sheet from reference images (credits) → pass URL to create_visual_dna or update_visual_dna |"
+          }
+        },
+        {
+          "name": "generate_creative_director",
+          "at": {
+            "line": 148,
+            "text": "| `generate_creative_director` | One brief → N coordinated scenes (image or video) |"
+          }
+        },
+        {
+          "name": "generate_elements",
+          "at": {
+            "line": 145,
+            "text": "| `generate_elements` | Reference images/videos/audio + prompt → animated video |"
+          }
+        },
+        {
+          "name": "generate_first_last_frame",
+          "at": {
+            "line": 146,
+            "text": "| `generate_first_last_frame` | First frame + last frame → interpolated video |"
+          }
+        },
+        {
+          "name": "generate_image",
+          "at": {
+            "line": 13,
+            "text": "`generate_image` and `generate_image_edit` accept `background: \"transparent\"` for models whose `list_models` record reports `supports_transparent_background: true`. Kolbo also appends the exact phrase…"
+          }
+        },
+        {
+          "name": "generate_image_edit",
+          "at": {
+            "line": 13,
+            "text": "`generate_image` and `generate_image_edit` accept `background: \"transparent\"` for models whose `list_models` record reports `supports_transparent_background: true`. Kolbo also appends the exact phrase…"
+          }
+        },
+        {
+          "name": "generate_lipsync",
+          "at": {
+            "line": 147,
+            "text": "| `generate_lipsync` | Source image/video + audio → lipsynced video (Sync-3 adds active-speaker selection, emotion, model mode, temperature) |"
+          }
+        },
+        {
+          "name": "generate_music",
+          "at": {
+            "line": 149,
+            "text": "| `generate_music` | Text (+ optional lyrics) → song. Style, title, negative tags, length, and Suno fine-controls (style weight, weirdness, audio weight, persona / singing voice); on Suno V6 also vari…"
+          }
+        },
+        {
+          "name": "generate_music_midi",
+          "at": {
+            "line": 153,
+            "text": "| `generate_music_midi` | MIDI notes from a finished Suno stem separation |"
+          }
+        },
+        {
+          "name": "generate_sound",
+          "at": {
+            "line": 157,
+            "text": "| `generate_sound` | Text → sound effect. Duration, prompt influence, and per-provider controls (Stable Audio guidance, Kie loop/tempo/key, Seed-Audio voice/speed/volume/pitch + reference audio/image,…"
+          }
+        },
+        {
+          "name": "generate_speech",
+          "at": {
+            "line": 156,
+            "text": "| `generate_speech` | Text + voice → spoken audio. `eleven_model` (eleven_v4 / eleven_v3 / eleven_multilingual_v2) picks which ElevenLabs model speaks an ElevenLabs voice (stock or own clone; omit = t…"
+          }
+        },
+        {
+          "name": "generate_video",
+          "at": {
+            "line": 142,
+            "text": "| `generate_video` | Text → video |"
+          }
+        },
+        {
+          "name": "generate_video_from_image",
+          "at": {
+            "line": 143,
+            "text": "| `generate_video_from_image` | Still image + motion prompt → video |"
+          }
+        },
+        {
+          "name": "generate_video_from_video",
+          "at": {
+            "line": 144,
+            "text": "| `generate_video_from_video` | Input video → restyled video, or burn in subtitles (video-to-video). `prompt` optional — prompt-less models (VEED Subtitles, Act Two, Wan Animate) use `preset` / `sourc…"
+          }
+        },
+        {
+          "name": "get_creative_director_status",
+          "at": {
+            "line": 338,
+            "text": "| `get_creative_director_status` | Re-check a Creative Director batch by generation_id until all parallel scenes finish (use after a `_timed_out` Director run) |"
+          }
+        },
+        {
+          "name": "get_doc",
+          "at": {
+            "line": 326,
+            "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+          }
+        },
+        {
+          "name": "get_download_status",
+          "at": {
+            "line": 381,
+            "text": "`download_media_from_url` starts a server download for a public media page URL. Use `get_download_status` with the returned `job_id` (not `get_generation_status`) and wait for `completed` before using…"
+          }
+        },
+        {
+          "name": "get_flow_schema",
+          "at": {
+            "line": 25,
+            "text": "…spect, precisely edit, organize, validate and run saved node workflows in an explicit project. Use `get_flow_schema`, `get_flow_session` and revision-checked `update_flow_session` for prompts, Assista…"
+          }
+        },
+        {
+          "name": "get_flow_session",
+          "at": {
+            "line": 25,
+            "text": "…it, organize, validate and run saved node workflows in an explicit project. Use `get_flow_schema`, `get_flow_session` and revision-checked `update_flow_session` for prompts, Assistant system prompts, …"
+          }
+        },
+        {
+          "name": "get_font",
+          "at": {
+            "line": 5,
+            "text": "… Mix up to three family IDs across both sources in the same generation; inspect actual styles/scripts with `get_font`. Collection fonts do not need uploading and cannot be renamed or deleted by users."
+          }
+        },
+        {
+          "name": "get_font_upload_status",
+          "at": {
+            "line": 7,
+            "text": "… shell clients use `create_font_upload_ticket`, and browser clients use `font_upload_widget`. Poll `get_font_upload_status` until ready, then pass the returned family ID in `font_ids` to image creatio…"
+          }
+        },
+        {
+          "name": "get_generation_status",
+          "at": {
+            "line": 347,
+            "text": "| `get_generation_status` | Check one or many generations (`generation_ids`); `wait=true` blocks server-side until done — replaces client polling loops |"
+          }
+        },
+        {
+          "name": "get_media",
+          "at": {
+            "line": 225,
+            "text": "| `get_media` | Fetch one media item's full details by id |"
+          }
+        },
+        {
+          "name": "get_media_stats",
+          "at": {
+            "line": 235,
+            "text": "| `get_media_stats` | Counts + storage bytes per type (optionally per project) |"
+          }
+        },
+        {
+          "name": "get_moodboard",
+          "at": {
+            "line": 190,
+            "text": "| `get_moodboard` | Fetch one moodboard with all image URLs |"
+          }
+        },
+        {
+          "name": "get_music_library_facets",
+          "at": {
+            "line": 248,
+            "text": "| `get_music_library_facets` | List genres, moods, instruments, BPM, and duration filters. |"
+          }
+        },
+        {
+          "name": "get_music_track_audio",
+          "at": {
+            "line": 249,
+            "text": "| `get_music_track_audio` | Get watermarked preview URLs for a track. |"
+          }
+        },
+        {
+          "name": "get_music_track_lyrics",
+          "at": {
+            "line": 253,
+            "text": "| `get_music_track_lyrics` | Get lyrics metadata. |"
+          }
+        },
+        {
+          "name": "get_music_track_related",
+          "at": {
+            "line": 252,
+            "text": "| `get_music_track_related` | Get stems/alternate-version metadata (purchasing remains unsupported). |"
+          }
+        },
+        {
+          "name": "get_project",
+          "at": {
+            "line": 319,
+            "text": "| `get_project` | Full project record including the unclipped description — read this before `update_project` |"
+          }
+        },
+        {
+          "name": "get_project_page_insights",
+          "at": {
+            "line": 331,
+            "text": "| `get_project_page_insights` | Visitor analytics for a published project page: visitors, active time, scroll depth, story reach, clicks, copies, sources, countries, most-opened media |"
+          }
+        },
+        {
+          "name": "get_project_profile",
+          "at": {
+            "line": 341,
+            "text": "| `add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the syn…"
+          }
+        },
+        {
+          "name": "get_project_publication",
+          "at": {
+            "line": 330,
+            "text": "| `publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final…"
+          }
+        },
+        {
+          "name": "get_project_story",
+          "at": {
+            "line": 332,
+            "text": "| `get_project_story` / `update_project_story` / `draft_project_story` | Write the published page as a post: headings, text, media, workflow steps (real prompt + model), before/after. AI draft from th…"
+          }
+        },
+        {
+          "name": "get_stock_asset",
+          "at": {
+            "line": 261,
+            "text": "| `get_stock_asset` | Get one asset with all download variants, author, license, and attribution. |"
+          }
+        },
+        {
+          "name": "get_stock_categories",
+          "at": {
+            "line": 260,
+            "text": "| `get_stock_categories` | List dynamic category/topic chips (pass `providerParam` as the `category` filter). |"
+          }
+        },
+        {
+          "name": "get_stock_sources",
+          "at": {
+            "line": 259,
+            "text": "| `get_stock_sources` | List enabled sources + which media types/filters each supports. |"
+          }
+        },
+        {
+          "name": "get_timed_lyrics",
+          "at": {
+            "line": 154,
+            "text": "| `get_timed_lyrics` | Word-by-word karaoke timing for a track |"
+          }
+        },
+        {
+          "name": "get_video_editor_schema",
+          "at": {
+            "line": 372,
+            "text": "| `get_video_editor_schema` | Complete writable settings and operation contract |"
+          }
+        },
+        {
+          "name": "get_video_editor_session",
+          "at": {
+            "line": 374,
+            "text": "| `get_video_editor_session` | Full saved timeline and revision |"
+          }
+        },
+        {
+          "name": "get_visual_dna",
+          "at": {
+            "line": 183,
+            "text": "| `get_visual_dna` | Fetch one profile |"
+          }
+        },
+        {
+          "name": "import_elevenlabs_voice",
+          "at": {
+            "line": 344,
+            "text": "| `clone_voice` / `import_elevenlabs_voice` / `delete_voice` | Custom voices: clone from an audio sample, import by ElevenLabs ID, delete |"
+          }
+        },
+        {
+          "name": "import_music_track_to_library",
+          "at": {
+            "line": 251,
+            "text": "| `import_music_track_to_library` | Spend one vendor credit and copy a clean MP3/WAV into Kolbo's media library. |"
+          }
+        },
+        {
+          "name": "import_stock_asset",
+          "at": {
+            "line": 263,
+            "text": "| `import_stock_asset` | Copy a stock asset into the media library (CDN copy, stable URL). Free. |"
+          }
+        },
+        {
+          "name": "link_project_asset",
+          "at": {
+            "line": 342,
+            "text": "| `list_project_assets` / `link_project_asset` / `unlink_project_asset` / `update_project_asset` | Project cast: tag Visual DNAs / moodboards onto a project, write each DNA's description and purpose n…"
+          }
+        },
+        {
+          "name": "list_agents",
+          "at": {
+            "line": 336,
+            "text": "| `list_agents` / `create_agent` / `update_agent` / `delete_agent` | Same four tools under their original names. Still supported and unchanged; new integrations should use the `*_skill` names |"
+          }
+        },
+        {
+          "name": "list_cinematic_presets",
+          "at": {
+            "line": 317,
+            "text": "| `list_cinematic_presets` | \"Cinema mode\" presets grouped by dimension (camera, lens, focal_length, aperture, angle, shot_type, color_palette, lighting) — pass ids via the `cinematic` arg on `generat…"
+          }
+        },
+        {
+          "name": "list_color_palettes",
+          "at": {
+            "line": 196,
+            "text": "| `list_color_palettes` | List your palettes (+ org) |"
+          }
+        },
+        {
+          "name": "list_docs",
+          "at": {
+            "line": 326,
+            "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+          }
+        },
+        {
+          "name": "list_fonts",
+          "at": {
+            "line": 5,
+            "text": "Browse **My fonts** with `list_fonts({source:\"custom\"})` (the default), or the read-only **Font collection** with `source:\"global\"`. Use `source:\"all\"` to search both. Mix up to three family IDs acros…"
+          }
+        },
+        {
+          "name": "list_media",
+          "at": {
+            "line": 210,
+            "text": "| `list_media` | Browse media library — filter by `project_id`, `folder_id`, `type`, `category` (ai / uploaded / edited / favorites / training-lab), `source_type`, `sort`, `search`, pagination |"
+          }
+        },
+        {
+          "name": "list_media_folders",
+          "at": {
+            "line": 211,
+            "text": "| `list_media_folders` | List the user's media folders (owned + shared) — discover `folder_id` values to pass to `list_media` |"
+          }
+        },
+        {
+          "name": "list_models",
+          "at": {
+            "line": 13,
+            "text": "`generate_image` and `generate_image_edit` accept `background: \"transparent\"` for models whose `list_models` record reports `supports_transparent_background: true`. Kolbo also appends the exact phrase…"
+          }
+        },
+        {
+          "name": "list_moodboards",
+          "at": {
+            "line": 189,
+            "text": "| `list_moodboards` | Browse presets + your moodboards |"
+          }
+        },
+        {
+          "name": "list_music_personas",
+          "at": {
+            "line": 155,
+            "text": "| `create_music_persona` / `list_music_personas` | Save a track's voice and style, reuse it on generate_music |"
+          }
+        },
+        {
+          "name": "list_presets",
+          "at": {
+            "line": 140,
+            "text": "| `generate_image` | Text → image. Supports `preset_id` from `list_presets type=\"image\"`. |"
+          }
+        },
+        {
+          "name": "list_project_assets",
+          "at": {
+            "line": 342,
+            "text": "| `list_project_assets` / `link_project_asset` / `unlink_project_asset` / `update_project_asset` | Project cast: tag Visual DNAs / moodboards onto a project, write each DNA's description and purpose n…"
+          }
+        },
+        {
+          "name": "list_project_context",
+          "at": {
+            "line": 341,
+            "text": "| `add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the syn…"
+          }
+        },
+        {
+          "name": "list_project_transfers",
+          "at": {
+            "line": 334,
+            "text": "| `transfer_project` / `list_project_transfers` / `respond_project_transfer` | Hand a project you own to another Kolbo account (they accept; same ids; cast assets copied; payer history unchanged) |"
+          }
+        },
+        {
+          "name": "list_projects",
+          "at": {
+            "line": 168,
+            "text": "…ject_id` arg that routes the generation into a specific project (owned or shared with edit+). Call `list_projects` to discover IDs. When omitted, generations land in the user's auto-created \"API Gener…"
+          }
+        },
+        {
+          "name": "list_session_generations",
+          "at": {
+            "line": 322,
+            "text": "| `list_session_generations` | A session's generations as complete groups (prompt + all its outputs) — the ids the two organize tools below take |"
+          }
+        },
+        {
+          "name": "list_sessions",
+          "at": {
+            "line": 339,
+            "text": "| `list_sessions` | Enumerate sessions across all types, filterable by project, `type`, and `types[]` |"
+          }
+        },
+        {
+          "name": "list_skills",
+          "at": {
+            "line": 335,
+            "text": "| `list_skills` / `create_skill` / `update_skill` / `delete_skill` | Skills — reusable named personas for the chat tool; `description` is the system instruction |"
+          }
+        },
+        {
+          "name": "list_video_editor_sessions",
+          "at": {
+            "line": 373,
+            "text": "| `list_video_editor_sessions` | Paginated project timelines |"
+          }
+        },
+        {
+          "name": "list_visual_dna_folders",
+          "at": {
+            "line": 328,
+            "text": "| `list_visual_dna_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (cre…"
+          }
+        },
+        {
+          "name": "list_visual_dna_transfers",
+          "at": {
+            "line": 333,
+            "text": "| `transfer_visual_dna` / `list_visual_dna_transfers` / `respond_visual_dna_transfer` | Send Visual DNAs you own to another Kolbo account (they accept a copy with new ids; optionally move instead of c…"
+          }
+        },
+        {
+          "name": "list_visual_dnas",
+          "at": {
+            "line": 182,
+            "text": "| `list_visual_dnas` | List your profiles |"
+          }
+        },
+        {
+          "name": "list_voices",
+          "at": {
+            "line": 315,
+            "text": "| `list_voices` | TTS voices (presets + cloned) |"
+          }
+        },
+        {
+          "name": "make_music_video",
+          "at": {
+            "line": 152,
+            "text": "| `export_music_wav` / `make_music_video` | Lossless WAV of a track / visualizer music video |"
+          }
+        },
+        {
+          "name": "media_upload_widget",
+          "at": {
+            "line": 207,
+            "text": "| `media_upload_widget` | Open an in-chat upload card so claude.ai users can upload LOCAL files (image / video / audio / document) — chat attachments are unreachable from remote MCP, so this is the wa…"
+          }
+        },
+        {
+          "name": "move_folder_contents",
+          "at": {
+            "line": 234,
+            "text": "| `move_folder_contents` | Move every item in a folder to a project |"
+          }
+        },
+        {
+          "name": "move_generations_to_session",
+          "at": {
+            "line": 323,
+            "text": "| `move_generations_to_session` | Move selected generations (and only THEIR output media) into another existing session |"
+          }
+        },
+        {
+          "name": "move_media",
+          "at": {
+            "line": 168,
+            "text": "…-created \"API Generations\" project. `project_id` is per-call, NOT sticky — pass it on every call once the user names a working project. Misplaced work is recoverable via `move_media` / `move_session`."
+          }
+        },
+        {
+          "name": "move_session",
+          "at": {
+            "line": 168,
+            "text": "…-created \"API Generations\" project. `project_id` is per-call, NOT sticky — pass it on every call once the user names a working project. Misplaced work is recoverable via `move_media` / `move_session`."
+          }
+        },
+        {
+          "name": "move_visual_dna_to_folder",
+          "at": {
+            "line": 328,
+            "text": "…_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (create/rename/recolor…"
+          }
+        },
+        {
+          "name": "permanently_delete_media",
+          "at": {
+            "line": 228,
+            "text": "| `permanently_delete_media` | Hard-delete (NOT reversible — confirm with user first) |"
+          }
+        },
+        {
+          "name": "publish_html_artifact",
+          "at": {
+            "line": 240,
+            "text": "| `publish_html_artifact` | Publish an HTML page, SVG, or Mermaid diagram and get a public shareable URL on `sites.kolbo.ai`. Pass `share_token` from a prior publish to update the same URL in place (o…"
+          }
+        },
+        {
+          "name": "publish_project",
+          "at": {
+            "line": 330,
+            "text": "| `publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final…"
+          }
+        },
+        {
+          "name": "rate_media",
+          "at": {
+            "line": 223,
+            "text": "| `rate_media` | Thumbs-up/down with an optional reason, without hiding |"
+          }
+        },
+        {
+          "name": "regenerate_project_profile",
+          "at": {
+            "line": 341,
+            "text": "…add_project_context` / `list_project_context` / `delete_project_context` / `get_project_profile` / `regenerate_project_profile` | Project knowledge base (RAG): feed scripts/URLs/notes, read the synthe…"
+          }
+        },
+        {
+          "name": "remove_media_from_folder",
+          "at": {
+            "line": 216,
+            "text": "| `remove_media_from_folder` | Remove media items from a folder |"
+          }
+        },
+        {
+          "name": "remove_project_hero_video",
+          "at": {
+            "line": 330,
+            "text": "…publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final vi…"
+          }
+        },
+        {
+          "name": "rename_font",
+          "at": {
+            "line": 7,
+            "text": "…Poll `get_font_upload_status` until ready, then pass the returned family ID in `font_ids` to image creation/editing or image-mode Creative Director. `rename_font` and `delete_font` manage the library."
+          }
+        },
+        {
+          "name": "rename_session",
+          "at": {
+            "line": 340,
+            "text": "| `rename_session` / `delete_session` / `restore_session` | Rename a session; soft-delete leftovers after a move; restore from trash |"
+          }
+        },
+        {
+          "name": "replace_music_section",
+          "at": {
+            "line": 151,
+            "text": "| `replace_music_section` | Regenerate 10 s to half of a Suno track and keep the rest |"
+          }
+        },
+        {
+          "name": "resolve_capture_frame",
+          "at": {
+            "line": 308,
+            "text": "| `resolve_capture_frame` | Export a timeline frame to the Kolbo library so the agent can check its work |"
+          }
+        },
+        {
+          "name": "resolve_edit_timeline",
+          "at": {
+            "line": 306,
+            "text": "| `resolve_edit_timeline` | Structured edits: new timelines, timed and trimmed Kolbo clips on chosen tracks, transitions, audio fades, Fusion titles, markers, clip deletion |"
+          }
+        },
+        {
+          "name": "resolve_get_command_status",
+          "at": {
+            "line": 309,
+            "text": "| `resolve_get_command_status` | Read command status/result/error; `awaiting_approval` means stop and wait for the editor |"
+          }
+        },
+        {
+          "name": "resolve_get_project",
+          "at": {
+            "line": 303,
+            "text": "| `resolve_get_project` | Queue a read-only project inspection: timelines, frame rate, resolution, playhead (no approval) |"
+          }
+        },
+        {
+          "name": "resolve_get_timeline",
+          "at": {
+            "line": 304,
+            "text": "| `resolve_get_timeline` | Queue a read-only inspection of the current timeline: clips per track with start/end, markers, playhead |"
+          }
+        },
+        {
+          "name": "resolve_import_media",
+          "at": {
+            "line": 305,
+            "text": "| `resolve_import_media` | Import one Kolbo media id or Kolbo-owned HTTPS URL into the Kolbo.AI Media Pool bin |"
+          }
+        },
+        {
+          "name": "resolve_list_sessions",
+          "at": {
+            "line": 302,
+            "text": "| `resolve_list_sessions` | List the caller's DaVinci Resolve windows connected through the Kolbo plugin |"
+          }
+        },
+        {
+          "name": "resolve_run_script",
+          "at": {
+            "line": 307,
+            "text": "| `resolve_run_script` | Approval-gated JavaScript against Resolve's scripting API (colour, Fusion, render jobs); the editor reviews the exact code |"
+          }
+        },
+        {
+          "name": "respond_project_transfer",
+          "at": {
+            "line": 334,
+            "text": "| `transfer_project` / `list_project_transfers` / `respond_project_transfer` | Hand a project you own to another Kolbo account (they accept; same ids; cast assets copied; payer history unchanged) |"
+          }
+        },
+        {
+          "name": "respond_visual_dna_transfer",
+          "at": {
+            "line": 333,
+            "text": "| `transfer_visual_dna` / `list_visual_dna_transfers` / `respond_visual_dna_transfer` | Send Visual DNAs you own to another Kolbo account (they accept a copy with new ids; optionally move instead of c…"
+          }
+        },
+        {
+          "name": "restore_media",
+          "at": {
+            "line": 227,
+            "text": "| `restore_media` | Restore a trashed item |"
+          }
+        },
+        {
+          "name": "restore_session",
+          "at": {
+            "line": 340,
+            "text": "| `rename_session` / `delete_session` / `restore_session` | Rename a session; soft-delete leftovers after a move; restore from trash |"
+          }
+        },
+        {
+          "name": "search_music_library",
+          "at": {
+            "line": 245,
+            "text": "| `search_music_library` | Search the licensed catalog; results contain watermarked previews only. |"
+          }
+        },
+        {
+          "name": "search_stock_media",
+          "at": {
+            "line": 258,
+            "text": "| `search_stock_media` | Search photos/videos/illustrations/vectors/3D/music across providers. `source=\"all\"` returns one interleaved feed. Find ready-made assets / b-roll (distinct from `generate_ima…"
+          }
+        },
+        {
+          "name": "separate_ambience",
+          "at": {
+            "line": 162,
+            "text": "| `separate_ambience` | Pull room tone / atmosphere out of the Effects (or Music) bed as its own layer. 17 credits |"
+          }
+        },
+        {
+          "name": "separate_audio_stems",
+          "at": {
+            "line": 160,
+            "text": "| `separate_audio_stems` | Audio/video URL (or a Kolbo `generation_id`) → Dialogue / Music / Effects / without-dialogue (M&E) layers. Kolbo's own masking pipeline with a speech classifier on top, so a…"
+          }
+        },
+        {
+          "name": "share_doc",
+          "at": {
+            "line": 326,
+            "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+          }
+        },
+        {
+          "name": "share_media_folder",
+          "at": {
+            "line": 217,
+            "text": "| `share_media_folder` | Share a folder by user email (owner only) |"
+          }
+        },
+        {
+          "name": "split_session",
+          "at": {
+            "line": 324,
+            "text": "| `split_session` | Carve selected generations out into a brand-new named session, atomically |"
+          }
+        },
+        {
+          "name": "submit_project_to_catalog",
+          "at": {
+            "line": 330,
+            "text": "| `publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final…"
+          }
+        },
+        {
+          "name": "transcribe_audio",
+          "at": {
+            "line": 159,
+            "text": "| `transcribe_audio` | Audio/video URL or file → text + SRT subtitles. Language, speaker diarization, audio-event tagging, and SRT formatting (words/line, lines/subtitle, caption stretch) |"
+          }
+        },
+        {
+          "name": "transfer_project",
+          "at": {
+            "line": 334,
+            "text": "| `transfer_project` / `list_project_transfers` / `respond_project_transfer` | Hand a project you own to another Kolbo account (they accept; same ids; cast assets copied; payer history unchanged) |"
+          }
+        },
+        {
+          "name": "transfer_visual_dna",
+          "at": {
+            "line": 333,
+            "text": "| `transfer_visual_dna` / `list_visual_dna_transfers` / `respond_visual_dna_transfer` | Send Visual DNAs you own to another Kolbo account (they accept a copy with new ids; optionally move instead of c…"
+          }
+        },
+        {
+          "name": "trim_video",
+          "at": {
+            "line": 345,
+            "text": "| `trim_video` | Frame-accurate server-side trim of a Kolbo-hosted video (async job, tool waits) |"
+          }
+        },
+        {
+          "name": "unarchive_project",
+          "at": {
+            "line": 329,
+            "text": "| `create_project` / `update_project` / `archive_project` / `unarchive_project` | Project lifecycle (create/rename/describe/archive; deletion stays in-app) |"
+          }
+        },
+        {
+          "name": "undislike_media",
+          "at": {
+            "line": 222,
+            "text": "| `undislike_media` | Remove a dislike (un-hide) and its thumbs-down |"
+          }
+        },
+        {
+          "name": "undo_session_organization",
+          "at": {
+            "line": 325,
+            "text": "| `undo_session_organization` | Reverse a move/split within 15 minutes, using the `operation_id` it returned |"
+          }
+        },
+        {
+          "name": "unfavorite_media",
+          "at": {
+            "line": 220,
+            "text": "| `unfavorite_media` | Remove a media item from favorites (idempotent) — pass `media_id` from `list_media` |"
+          }
+        },
+        {
+          "name": "unlink_project_asset",
+          "at": {
+            "line": 342,
+            "text": "| `list_project_assets` / `link_project_asset` / `unlink_project_asset` / `update_project_asset` | Project cast: tag Visual DNAs / moodboards onto a project, write each DNA's description and purpose n…"
+          }
+        },
+        {
+          "name": "unpublish_project",
+          "at": {
+            "line": 330,
+            "text": "| `publish_project` / `get_project_publication` / `unpublish_project` / `submit_project_to_catalog` / `remove_project_hero_video` | Publish a project as a public showcase link, with write-up and final…"
+          }
+        },
+        {
+          "name": "unshare_media_folder",
+          "at": {
+            "line": 218,
+            "text": "| `unshare_media_folder` | Revoke a user's access to a folder (owner only) |"
+          }
+        },
+        {
+          "name": "update_agent",
+          "at": {
+            "line": 336,
+            "text": "| `list_agents` / `create_agent` / `update_agent` / `delete_agent` | Same four tools under their original names. Still supported and unchanged; new integrations should use the `*_skill` names |"
+          }
+        },
+        {
+          "name": "update_color_palette",
+          "at": {
+            "line": 199,
+            "text": "| `update_color_palette` | Rename / replace colors |"
+          }
+        },
+        {
+          "name": "update_doc",
+          "at": {
+            "line": 326,
+            "text": "| `create_doc` / `list_docs` / `get_doc` / `update_doc` / `share_doc` / `delete_doc` | AI Docs (Magic Pad): author project-scoped HTML documents, edit them, get public share links |"
+          }
+        },
+        {
+          "name": "update_flow_session",
+          "at": {
+            "line": 25,
+            "text": "…e workflows in an explicit project. Use `get_flow_schema`, `get_flow_session` and revision-checked `update_flow_session` for prompts, Assistant system prompts, settings, groups and connections. Runs u…"
+          }
+        },
+        {
+          "name": "update_media_folder",
+          "at": {
+            "line": 213,
+            "text": "| `update_media_folder` | Rename / recolor / re-icon a folder (owner only) |"
+          }
+        },
+        {
+          "name": "update_moodboard",
+          "at": {
+            "line": 191,
+            "text": "| `create_moodboard` / `update_moodboard` / `delete_moodboard` | Create / edit in place / delete |"
+          }
+        },
+        {
+          "name": "update_project",
+          "at": {
+            "line": 319,
+            "text": "| `get_project` | Full project record including the unclipped description — read this before `update_project` |"
+          }
+        },
+        {
+          "name": "update_project_asset",
+          "at": {
+            "line": 342,
+            "text": "| `list_project_assets` / `link_project_asset` / `unlink_project_asset` / `update_project_asset` | Project cast: tag Visual DNAs / moodboards onto a project, write each DNA's description and purpose n…"
+          }
+        },
+        {
+          "name": "update_project_story",
+          "at": {
+            "line": 332,
+            "text": "| `get_project_story` / `update_project_story` / `draft_project_story` | Write the published page as a post: headings, text, media, workflow steps (real prompt + model), before/after. AI draft from th…"
+          }
+        },
+        {
+          "name": "update_skill",
+          "at": {
+            "line": 335,
+            "text": "| `list_skills` / `create_skill` / `update_skill` / `delete_skill` | Skills — reusable named personas for the chat tool; `description` is the system instruction |"
+          }
+        },
+        {
+          "name": "update_video_editor_session",
+          "at": {
+            "line": 375,
+            "text": "| `update_video_editor_session` | Atomic rename, settings, tracks, clips, trims, speed, captions and effects |"
+          }
+        },
+        {
+          "name": "update_visual_dna",
+          "at": {
+            "line": 181,
+            "text": "| `update_visual_dna` | Edit name, description, stills, sheet, or type in place (never delete+recreate) |"
+          }
+        },
+        {
+          "name": "update_visual_dna_folder",
+          "at": {
+            "line": 328,
+            "text": "| `list_visual_dna_folders` / `create_visual_dna_folder` / `update_visual_dna_folder` / `delete_visual_dna_folder` / `move_visual_dna_to_folder` | Organize Visual DNA characters into user folders (cre…"
+          }
+        },
+        {
+          "name": "upload_font",
+          "at": {
+            "line": 7,
+            "text": "…/ `get_font` to discover My Fonts. Local stdio clients upload one OTF/TTF/WOFF2 (up to 5 MiB) with `upload_font`; remote shell clients use `create_font_upload_ticket`, and browser clients use `font_up…"
+          }
+        },
+        {
+          "name": "upload_media",
+          "at": {
+            "line": 209,
+            "text": "| `upload_media` | Upload a local file (path or URL), or inline `source_base64` + `filename`, → stable Kolbo CDN URL for reuse |"
+          }
+        }
+      ],
+      "undocumented": [
+        {
+          "name": "add_review_version",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"add_review_version\""
+          ]
+        },
+        {
+          "name": "analyze_video",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"analyze_video\""
+          ]
+        },
+        {
+          "name": "analyze_video_evidence",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"analyze_video_evidence\""
+          ]
+        },
+        {
+          "name": "cancel_flow_run",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"cancel_flow_run\""
+          ]
+        },
+        {
+          "name": "cancel_generation",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"cancel_generation\""
+          ]
+        },
+        {
+          "name": "cancel_trend_run",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"cancel_trend_run\""
+          ]
+        },
+        {
+          "name": "cancel_video_inspection",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"cancel_video_inspection\""
+          ]
+        },
+        {
+          "name": "cover_music",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"cover_music\""
+          ]
+        },
+        {
+          "name": "create_flow_session",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"create_flow_session\""
+          ]
+        },
+        {
+          "name": "create_morphious_style",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"create_morphious_style\""
+          ]
+        },
+        {
+          "name": "create_music_composition_plan",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"create_music_composition_plan\""
+          ]
+        },
+        {
+          "name": "create_music_reference_audio",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"create_music_reference_audio\""
+          ]
+        },
+        {
+          "name": "create_review_asset",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"create_review_asset\""
+          ]
+        },
+        {
+          "name": "create_review_collection",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"create_review_collection\""
+          ]
+        },
+        {
+          "name": "create_review_comment",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"create_review_comment\""
+          ]
+        },
+        {
+          "name": "create_review_share_link",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"create_review_share_link\""
+          ]
+        },
+        {
+          "name": "delete_morphious_style",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"delete_morphious_style\""
+          ]
+        },
+        {
+          "name": "delete_review_asset",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"delete_review_asset\""
+          ]
+        },
+        {
+          "name": "delete_review_collection",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"delete_review_collection\""
+          ]
+        },
+        {
+          "name": "delete_review_comment",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"delete_review_comment\""
+          ]
+        },
+        {
+          "name": "duplicate_flow_session",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"duplicate_flow_session\""
+          ]
+        },
+        {
+          "name": "duplicate_project",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"duplicate_project\""
+          ]
+        },
+        {
+          "name": "edit_image",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"edit_image\""
+          ]
+        },
+        {
+          "name": "edit_music_section",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"edit_music_section\""
+          ]
+        },
+        {
+          "name": "edit_review_comment",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"edit_review_comment\""
+          ]
+        },
+        {
+          "name": "edit_video",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"edit_video\""
+          ]
+        },
+        {
+          "name": "estimate_flow_run",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"estimate_flow_run\""
+          ]
+        },
+        {
+          "name": "estimate_trend_run",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"estimate_trend_run\""
+          ]
+        },
+        {
+          "name": "extend_music",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"extend_music\""
+          ]
+        },
+        {
+          "name": "get_flow_run",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"get_flow_run\""
+          ]
+        },
+        {
+          "name": "get_review_asset",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"get_review_asset\""
+          ]
+        },
+        {
+          "name": "get_review_storage_usage",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"get_review_storage_usage\""
+          ]
+        },
+        {
+          "name": "get_session_usage",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"get_session_usage\""
+          ]
+        },
+        {
+          "name": "get_stock_collections",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"get_stock_collections\""
+          ]
+        },
+        {
+          "name": "get_trend",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"get_trend\""
+          ]
+        },
+        {
+          "name": "get_trend_run",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"get_trend_run\""
+          ]
+        },
+        {
+          "name": "get_video_inspection",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"get_video_inspection\""
+          ]
+        },
+        {
+          "name": "import_music_audio",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"import_music_audio\""
+          ]
+        },
+        {
+          "name": "inspect_video",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"inspect_video\""
+          ]
+        },
+        {
+          "name": "list_flow_runs",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"list_flow_runs\""
+          ]
+        },
+        {
+          "name": "list_flow_sessions",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"list_flow_sessions\""
+          ]
+        },
+        {
+          "name": "list_morphious_styles",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"list_morphious_styles\""
+          ]
+        },
+        {
+          "name": "list_review_assets",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"list_review_assets\""
+          ]
+        },
+        {
+          "name": "list_review_collections",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"list_review_collections\""
+          ]
+        },
+        {
+          "name": "list_review_comments",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"list_review_comments\""
+          ]
+        },
+        {
+          "name": "list_review_share_links",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"list_review_share_links\""
+          ]
+        },
+        {
+          "name": "list_trend_runs",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"list_trend_runs\""
+          ]
+        },
+        {
+          "name": "list_trends",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"list_trends\""
+          ]
+        },
+        {
+          "name": "move_flow_session",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"move_flow_session\""
+          ]
+        },
+        {
+          "name": "prepare_video_inspection",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"prepare_video_inspection\""
+          ]
+        },
+        {
+          "name": "reply_review_comment",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"reply_review_comment\""
+          ]
+        },
+        {
+          "name": "resolve_review_comment",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"resolve_review_comment\""
+          ]
+        },
+        {
+          "name": "restore_flow_session",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"restore_flow_session\""
+          ]
+        },
+        {
+          "name": "retry_flow_run",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"retry_flow_run\""
+          ]
+        },
+        {
+          "name": "revoke_review_share_link",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"revoke_review_share_link\""
+          ]
+        },
+        {
+          "name": "run_flow_session",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"run_flow_session\""
+          ]
+        },
+        {
+          "name": "run_trend",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"run_trend\""
+          ]
+        },
+        {
+          "name": "set_review_status",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"set_review_status\""
+          ]
+        },
+        {
+          "name": "show_plans",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"show_plans\""
+          ]
+        },
+        {
+          "name": "transcribe_video_evidence",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"transcribe_video_evidence\""
+          ]
+        },
+        {
+          "name": "trash_flow_session",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"trash_flow_session\""
+          ]
+        },
+        {
+          "name": "undo_flow_edit",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"undo_flow_edit\""
+          ]
+        },
+        {
+          "name": "unresolve_review_comment",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"unresolve_review_comment\""
+          ]
+        },
+        {
+          "name": "update_review_asset",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"update_review_asset\""
+          ]
+        },
+        {
+          "name": "update_review_collection",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"update_review_collection\""
+          ]
+        },
+        {
+          "name": "validate_flow_session",
+          "evidence": [
+            "offered in tools/list by @kolbo/mcp@1.128.0",
+            "absent from README.md (384 lines, sha256 e02354593456…): no whole-word match for \"validate_flow_session\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "api.kolbo.ai",
+          "at": {
+            "line": 35,
+            "text": "- If you're a browser chat (claude.ai, ChatGPT): add a custom connector with URL https://api.kolbo.ai/mcp under Settings → Connectors, then Connect → log in → Allow."
+          }
+        },
+        {
+          "host": "app.kolbo.ai",
+          "at": {
+            "line": 75,
+            "text": "… click **Allow** (no API key to create). _Prefer an API key? Create one at [app.kolbo.ai/developer](https://app.kolbo.ai/developer) and add `\"env\": { \"KOLBO_API_KEY\": \"kolbo_live_...\" }` to the block …"
+          }
+        },
+        {
+          "host": "claude.ai",
+          "at": {
+            "line": 19,
+            "text": "**✨ Interactive widgets (v1.30+):** in claude.ai, Claude Desktop, and Codex Desktop, generations render as live Kolbo cards — real-time progress with model + settings chips, an inline result gallery /…"
+          }
+        },
+        {
+          "host": "claude.json",
+          "at": {
+            "line": 70,
+            "text": "| **Claude Code** | `~/.claude.json` (or `claude mcp add kolbo -- npx -y @kolbo/mcp@latest`) |"
+          }
+        },
+        {
+          "host": "docs.kolbo.ai",
+          "at": {
+            "line": 9,
+            "text": "…lections. Fonts and backend-generated specimens never go through media upload. See [Personal Fonts](https://docs.kolbo.ai/developer-api/personal-fonts). Availability requires a published client and de…"
+          }
+        },
+        {
+          "host": "flow-mcp.md",
+          "at": {
+            "line": 25,
+            "text": "…pts, settings, groups and connections. Runs use explicit aggregate credit limits and persisted run IDs. Compatible Flow API routes are required. See [Flow MCP workflow and contract](docs/FLOW-MCP.md)."
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 97,
+            "text": "…arked or hand-authored folders are never overwritten. The canonical skill ships inside [Kolbo Code](https://github.com/Zoharvan12/kolbo-code), so however you connect, the behavior matches. See the ful…"
+          }
+        },
+        {
+          "host": "kolbo.ai",
+          "at": {
+            "line": 15,
+            "text": "Use [Kolbo AI](https://kolbo.ai) as native tools in Claude Code and Claude Desktop via MCP (Model Context Protocol)."
+          }
+        },
+        {
+          "host": "kolbo.zip",
+          "at": {
+            "line": 80,
+            "text": "2. [Download the Skill](https://kolbo.ai/skills/kolbo.zip) and upload it (Claude.ai: Settings → Features → Skills; ChatGPT/Codex: Settings → Skills). Codex CLI: unzip into `~/.codex/skills/`."
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 72,
+            "text": "| **Cursor** | `.cursor/mcp.json` |"
+          }
+        },
+        {
+          "host": "settings.json",
+          "at": {
+            "line": 44,
+            "text": "…stall` — it writes the keyless config to the right file for every installed agent. (Don't hand-edit settings.json; the installer is deterministic.) Then tell the user to restart the app. On the first …"
+          }
+        },
+        {
+          "host": "sites.kolbo.ai",
+          "at": {
+            "line": 240,
+            "text": "…h_html_artifact` | Publish an HTML page, SVG, or Mermaid diagram and get a public shareable URL on `sites.kolbo.ai`. Pass `share_token` from a prior publish to update the same URL in place (old conten…"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:note:looked",
+      "kind": "credential",
+      "security": false,
+      "says": "Looked for credential-like variables we did not plant: KOLBO_API_KEY. Reported for completeness; not counted as a credential read.",
+      "evidence": [
+        "no planted secret was behind these names"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @kolbo/mcp@1.128.0",
+        "integrity sha512-DXMVIWcQEouQQ1Fc1L0dKg6tfddn9W8IzyTpO5jmQsVMU6rsPICTrWnOqsIZqLTd2xgh/karQDKZoQeOl2jr8g==",
+        "tarball https://registry.npmjs.org/@kolbo/mcp/-/mcp-1.128.0.tgz"
+      ]
+    }
+  ]
+}

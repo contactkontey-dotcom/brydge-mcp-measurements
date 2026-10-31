@@ -1,0 +1,336 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@primer/mcp@1.1.2",
+  "measuredAt": "2026-10-31T14:03:22.372Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "primer--mcp",
+  "package": {
+    "name": "@primer/mcp",
+    "version": "1.1.2",
+    "tarball": "https://registry.npmjs.org/@primer/mcp/-/mcp-1.1.2.tgz",
+    "integrity": "sha512-NRAV2hmn09PMU6//7Ju4T1+qBPat84UOIGTaYLmP1m5zfXldHTy2b9Xs0XojRnesUKDkuhczSs1W6mtXdbvDkA==",
+    "repository": "git+https://github.com/primer/react.git",
+    "homepage": "https://github.com/primer/react#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "5d7bc6ad844c7b4e4c633342fdc9c1225c4fe7ae34e457255eca8f5cba6e9176",
+    "lines": 46,
+    "bytes": 1868
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "contributing.md",
+        "at": {
+          "line": 45,
+          "text": "…rating with folks inside and outside of GitHub and welcome contributions! If you're interested, check out our [contributing docs](contributor-docs/CONTRIBUTING.md) for more info on how to get started."
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 9,
+          "text": "[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Primer…"
+        }
+      },
+      {
+        "host": "insiders.vscode.dev",
+        "at": {
+          "line": 9,
+          "text": "…ds.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Primer&config=%7B%22type%22%3A%22stdio%22%2C%2…"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 11,
+          "text": "Node.js 20 or newer is required."
+        }
+      }
+    ],
+    "identifiers": []
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "Primer",
+    "version": "1.1.2"
+  },
+  "observed": {
+    "offered": [
+      "find_tokens",
+      "get_color_usage",
+      "get_component",
+      "get_component_accessibility_guidelines",
+      "get_component_batch",
+      "get_component_examples",
+      "get_component_usage_guidelines",
+      "get_design_token_specs",
+      "get_icon",
+      "get_pattern",
+      "get_token_group_bundle",
+      "get_token_usage_patterns",
+      "get_typography_usage",
+      "init",
+      "lint_css",
+      "list_components",
+      "list_icons",
+      "list_patterns",
+      "primer_coding_guidelines",
+      "review_alt_text"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [],
+      "undocumented": [
+        {
+          "name": "find_tokens",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"find_tokens\""
+          ]
+        },
+        {
+          "name": "get_color_usage",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_color_usage\""
+          ]
+        },
+        {
+          "name": "get_component",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_component\""
+          ]
+        },
+        {
+          "name": "get_component_accessibility_guidelines",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_component_accessibility_guidelines\""
+          ]
+        },
+        {
+          "name": "get_component_batch",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_component_batch\""
+          ]
+        },
+        {
+          "name": "get_component_examples",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_component_examples\""
+          ]
+        },
+        {
+          "name": "get_component_usage_guidelines",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_component_usage_guidelines\""
+          ]
+        },
+        {
+          "name": "get_design_token_specs",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_design_token_specs\""
+          ]
+        },
+        {
+          "name": "get_icon",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_icon\""
+          ]
+        },
+        {
+          "name": "get_pattern",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_pattern\""
+          ]
+        },
+        {
+          "name": "get_token_group_bundle",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_token_group_bundle\""
+          ]
+        },
+        {
+          "name": "get_token_usage_patterns",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_token_usage_patterns\""
+          ]
+        },
+        {
+          "name": "get_typography_usage",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"get_typography_usage\""
+          ]
+        },
+        {
+          "name": "init",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"init\""
+          ]
+        },
+        {
+          "name": "lint_css",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"lint_css\""
+          ]
+        },
+        {
+          "name": "list_components",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"list_components\""
+          ]
+        },
+        {
+          "name": "list_icons",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"list_icons\""
+          ]
+        },
+        {
+          "name": "list_patterns",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"list_patterns\""
+          ]
+        },
+        {
+          "name": "primer_coding_guidelines",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"primer_coding_guidelines\""
+          ]
+        },
+        {
+          "name": "review_alt_text",
+          "evidence": [
+            "offered in tools/list by @primer/mcp@1.1.2",
+            "absent from README.md (46 lines, sha256 5d7bc6ad844c…): no whole-word match for \"review_alt_text\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "contributing.md",
+          "at": {
+            "line": 45,
+            "text": "…rating with folks inside and outside of GitHub and welcome contributions! If you're interested, check out our [contributing docs](contributor-docs/CONTRIBUTING.md) for more info on how to get started."
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 9,
+            "text": "[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Primer…"
+          }
+        },
+        {
+          "host": "insiders.vscode.dev",
+          "at": {
+            "line": 9,
+            "text": "…ds.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Primer&config=%7B%22type%22%3A%22stdio%22%2C%2…"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 11,
+            "text": "Node.js 20 or newer is required."
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @primer/mcp@1.1.2",
+        "integrity sha512-NRAV2hmn09PMU6//7Ju4T1+qBPat84UOIGTaYLmP1m5zfXldHTy2b9Xs0XojRnesUKDkuhczSs1W6mtXdbvDkA==",
+        "tarball https://registry.npmjs.org/@primer/mcp/-/mcp-1.1.2.tgz"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,632 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@jpisnice/shadcn-ui-mcp-server@3.0.0",
+  "measuredAt": "2026-10-31T13:56:20.848Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "jpisnice--shadcn-ui-mcp-server",
+  "package": {
+    "name": "@jpisnice/shadcn-ui-mcp-server",
+    "version": "3.0.0",
+    "tarball": "https://registry.npmjs.org/@jpisnice/shadcn-ui-mcp-server/-/shadcn-ui-mcp-server-3.0.0.tgz",
+    "integrity": "sha512-XaZwCdGc2pkB+FSZr46rWnZU6FGYfccxk/ZQ2nx9Ngqf4yIxhCmOLa7+id/nsUM6I8KV8jZFlDLPazRFxmreYg==",
+    "repository": "git+https://github.com/Jpisnice/shadcn-ui-mcp-server.git",
+    "homepage": "https://github.com/Jpisnice/shadcn-ui-mcp-server#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "c78bd43bfe468a1515c92c756b1a049f10812dad109e76c047b976aff73fbb25",
+    "lines": 307,
+    "bytes": 12232
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "2fshadcn-ui-mcp-server.svg",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://badge.fury.io/js/@jpisnice%2Fshadcn-ui-mcp-server.svg)](https://badge.fury.io/js/@jpisnice%2Fshadcn-ui-mcp-server)"
+        }
+      },
+      {
+        "host": "anthropic.com",
+        "at": {
+          "line": 300,
+          "text": "- **[Anthropic](https://anthropic.com)** - For the Model Context Protocol specification"
+        }
+      },
+      {
+        "host": "archestra.ai",
+        "at": {
+          "line": 7,
+          "text": "[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/Jpisnice/shadcn-ui-mcp-server)](https://archestra.ai/mcp-catalog/jpisnice__shadcn-ui-mcp-server)"
+        }
+      },
+      {
+        "host": "badge.fury.io",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://badge.fury.io/js/@jpisnice%2Fshadcn-ui-mcp-server.svg)](https://badge.fury.io/js/@jpisnice%2Fshadcn-ui-mcp-server)"
+        }
+      },
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 284,
+          "text": "- 📝 [Changelog](CHANGELOG.md)"
+        }
+      },
+      {
+        "host": "claude-code.md",
+        "at": {
+          "line": 214,
+          "text": "See [Claude Code Integration Guide](docs/integration/claude-code.md) for framework-specific commands (React, Svelte, Vue, React Native)."
+        }
+      },
+      {
+        "host": "claude-desktop.md",
+        "at": {
+          "line": 178,
+          "text": "- **Claude Desktop**: [docs/integration/claude-desktop.md](docs/integration/claude-desktop.md)"
+        }
+      },
+      {
+        "host": "code.claude.com",
+        "at": {
+          "line": 216,
+          "text": "> **Reference:** [Claude Code MCP Documentation](https://code.claude.com/docs/en/mcp)"
+        }
+      },
+      {
+        "host": "continue.dev",
+        "at": {
+          "line": 179,
+          "text": "- **Continue.dev**: [docs/integration/continue.md](docs/integration/continue.md)"
+        }
+      },
+      {
+        "host": "continue.md",
+        "at": {
+          "line": 179,
+          "text": "- **Continue.dev**: [docs/integration/continue.md](docs/integration/continue.md)"
+        }
+      },
+      {
+        "host": "contributing.md",
+        "at": {
+          "line": 274,
+          "text": "See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed packaging instructions."
+        }
+      },
+      {
+        "host": "cursor.md",
+        "at": {
+          "line": 177,
+          "text": "- **Cursor**: [docs/integration/cursor.md](docs/integration/cursor.md)"
+        }
+      },
+      {
+        "host": "github-token.md",
+        "at": {
+          "line": 44,
+          "text": "**🎯 Get your GitHub token in 2 minutes**: [docs/getting-started/github-token.md](docs/getting-started/github-token.md)"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 50,
+          "text": "1. Download `shadcn-ui-mcp-server.mcpb` from [Releases](https://github.com/Jpisnice/shadcn-ui-mcp-server/releases)"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 4,
+          "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)"
+        }
+      },
+      {
+        "host": "index.js",
+        "at": {
+          "line": 66,
+          "text": "node build/index.js --mode http --port 7423"
+        }
+      },
+      {
+        "host": "license-mit-yellow.svg",
+        "at": {
+          "line": 4,
+          "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)"
+        }
+      },
+      {
+        "host": "manifest.json",
+        "at": {
+          "line": 272,
+          "text": "The project includes a `manifest.json` following the [MCPB specification](https://github.com/modelcontextprotocol/mcpb). The `.mcpb` file is a ZIP archive containing the server, dependencies, and conf…"
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 5,
+          "text": "[![MCP spec 2026-07-28](https://img.shields.io/badge/MCP_spec-2026--07--28-blue)](https://modelcontextprotocol.io/specification/2026-07-28)"
+        }
+      },
+      {
+        "host": "modern-protocol.md",
+        "at": {
+          "line": 61,
+          "text": "…ent use the modern protocol, or to require it, see the [Modern Protocol Guide](docs/getting-started/modern-protocol.md). Besides stdio, it can serve **Streamable HTTP** at a single stateless `/mcp` en…"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 242,
+          "text": "- Node.js >= 20.0.0"
+        }
+      },
+      {
+        "host": "opensource.org",
+        "at": {
+          "line": 4,
+          "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)"
+        }
+      },
+      {
+        "host": "shadcn-ui-mcp-server.git",
+        "at": {
+          "line": 249,
+          "text": "git clone https://github.com/Jpisnice/shadcn-ui-mcp-server.git"
+        }
+      },
+      {
+        "host": "shadcn-ui-mcp-server.mcpb",
+        "at": {
+          "line": 50,
+          "text": "1. Download `shadcn-ui-mcp-server.mcpb` from [Releases](https://github.com/Jpisnice/shadcn-ui-mcp-server/releases)"
+        }
+      },
+      {
+        "host": "support.claude.com",
+        "at": {
+          "line": 57,
+          "text": "…ces:** [Anthropic Desktop Extensions](https://www.anthropic.com/engineering/desktop-extensions) | [Building MCPB](https://support.claude.com/en/articles/12922929-building-desktop-extensions-with-mcpb)"
+        }
+      },
+      {
+        "host": "ui.shadcn.com",
+        "at": {
+          "line": 11,
+          "text": "…ntext Protocol (MCP) server that provides AI assistants with comprehensive access to [shadcn/ui v4](https://ui.shadcn.com/) components, blocks, demos, and metadata. Seamlessly retrieve React, Svelte, …"
+        }
+      },
+      {
+        "host": "vscode.md",
+        "at": {
+          "line": 176,
+          "text": "- **VS Code**: [docs/integration/vscode.md](docs/integration/vscode.md)"
+        }
+      },
+      {
+        "host": "www.anthropic.com",
+        "at": {
+          "line": 57,
+          "text": "> **References:** [Anthropic Desktop Extensions](https://www.anthropic.com/engineering/desktop-extensions) | [Building MCPB](https://support.claude.com/en/articles/12922929-building-desktop-extensions…"
+        }
+      },
+      {
+        "host": "www.shadcn-svelte.com",
+        "at": {
+          "line": 123,
+          "text": "| **Svelte** | [shadcn-svelte](https://www.shadcn-svelte.com/) | [huntabyte](https://github.com/huntabyte) | Svelte components from shadcn-svelte |"
+        }
+      },
+      {
+        "host": "www.shadcn-vue.com",
+        "at": {
+          "line": 124,
+          "text": "| **Vue** | [shadcn-vue](https://www.shadcn-vue.com/) | [unovue](https://github.com/unovue) | Vue components from shadcn-vue |"
+        }
+      }
+    ],
+    "identifiers": []
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "shadcn-ui-mcp-server",
+    "title": "shadcn/ui MCP Server",
+    "version": "3.0.0",
+    "description": "shadcn/ui v4 components, blocks, demos and themes for React, Svelte, Vue and React Native",
+    "websiteUrl": "https://github.com/Jpisnice/shadcn-ui-mcp-server"
+  },
+  "observed": {
+    "offered": [
+      "apply_theme",
+      "get_block",
+      "get_component",
+      "get_component_demo",
+      "get_component_metadata",
+      "get_directory_structure",
+      "get_theme",
+      "list_blocks",
+      "list_components",
+      "list_themes"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "setpriv",
+      "shadcn-mcp"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [],
+      "undocumented": [
+        {
+          "name": "apply_theme",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"apply_theme\""
+          ]
+        },
+        {
+          "name": "get_block",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"get_block\""
+          ]
+        },
+        {
+          "name": "get_component",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"get_component\""
+          ]
+        },
+        {
+          "name": "get_component_demo",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"get_component_demo\""
+          ]
+        },
+        {
+          "name": "get_component_metadata",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"get_component_metadata\""
+          ]
+        },
+        {
+          "name": "get_directory_structure",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"get_directory_structure\""
+          ]
+        },
+        {
+          "name": "get_theme",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"get_theme\""
+          ]
+        },
+        {
+          "name": "list_blocks",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"list_blocks\""
+          ]
+        },
+        {
+          "name": "list_components",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"list_components\""
+          ]
+        },
+        {
+          "name": "list_themes",
+          "evidence": [
+            "offered in tools/list by @jpisnice/shadcn-ui-mcp-server@3.0.0",
+            "absent from README.md (307 lines, sha256 c78bd43bfe46…): no whole-word match for \"list_themes\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "2fshadcn-ui-mcp-server.svg",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://badge.fury.io/js/@jpisnice%2Fshadcn-ui-mcp-server.svg)](https://badge.fury.io/js/@jpisnice%2Fshadcn-ui-mcp-server)"
+          }
+        },
+        {
+          "host": "anthropic.com",
+          "at": {
+            "line": 300,
+            "text": "- **[Anthropic](https://anthropic.com)** - For the Model Context Protocol specification"
+          }
+        },
+        {
+          "host": "archestra.ai",
+          "at": {
+            "line": 7,
+            "text": "[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/Jpisnice/shadcn-ui-mcp-server)](https://archestra.ai/mcp-catalog/jpisnice__shadcn-ui-mcp-server)"
+          }
+        },
+        {
+          "host": "badge.fury.io",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://badge.fury.io/js/@jpisnice%2Fshadcn-ui-mcp-server.svg)](https://badge.fury.io/js/@jpisnice%2Fshadcn-ui-mcp-server)"
+          }
+        },
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 284,
+            "text": "- 📝 [Changelog](CHANGELOG.md)"
+          }
+        },
+        {
+          "host": "claude-code.md",
+          "at": {
+            "line": 214,
+            "text": "See [Claude Code Integration Guide](docs/integration/claude-code.md) for framework-specific commands (React, Svelte, Vue, React Native)."
+          }
+        },
+        {
+          "host": "claude-desktop.md",
+          "at": {
+            "line": 178,
+            "text": "- **Claude Desktop**: [docs/integration/claude-desktop.md](docs/integration/claude-desktop.md)"
+          }
+        },
+        {
+          "host": "code.claude.com",
+          "at": {
+            "line": 216,
+            "text": "> **Reference:** [Claude Code MCP Documentation](https://code.claude.com/docs/en/mcp)"
+          }
+        },
+        {
+          "host": "continue.dev",
+          "at": {
+            "line": 179,
+            "text": "- **Continue.dev**: [docs/integration/continue.md](docs/integration/continue.md)"
+          }
+        },
+        {
+          "host": "continue.md",
+          "at": {
+            "line": 179,
+            "text": "- **Continue.dev**: [docs/integration/continue.md](docs/integration/continue.md)"
+          }
+        },
+        {
+          "host": "contributing.md",
+          "at": {
+            "line": 274,
+            "text": "See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed packaging instructions."
+          }
+        },
+        {
+          "host": "cursor.md",
+          "at": {
+            "line": 177,
+            "text": "- **Cursor**: [docs/integration/cursor.md](docs/integration/cursor.md)"
+          }
+        },
+        {
+          "host": "github-token.md",
+          "at": {
+            "line": 44,
+            "text": "**🎯 Get your GitHub token in 2 minutes**: [docs/getting-started/github-token.md](docs/getting-started/github-token.md)"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 50,
+            "text": "1. Download `shadcn-ui-mcp-server.mcpb` from [Releases](https://github.com/Jpisnice/shadcn-ui-mcp-server/releases)"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 4,
+            "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)"
+          }
+        },
+        {
+          "host": "index.js",
+          "at": {
+            "line": 66,
+            "text": "node build/index.js --mode http --port 7423"
+          }
+        },
+        {
+          "host": "license-mit-yellow.svg",
+          "at": {
+            "line": 4,
+            "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)"
+          }
+        },
+        {
+          "host": "manifest.json",
+          "at": {
+            "line": 272,
+            "text": "The project includes a `manifest.json` following the [MCPB specification](https://github.com/modelcontextprotocol/mcpb). The `.mcpb` file is a ZIP archive containing the server, dependencies, and conf…"
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 5,
+            "text": "[![MCP spec 2026-07-28](https://img.shields.io/badge/MCP_spec-2026--07--28-blue)](https://modelcontextprotocol.io/specification/2026-07-28)"
+          }
+        },
+        {
+          "host": "modern-protocol.md",
+          "at": {
+            "line": 61,
+            "text": "…ent use the modern protocol, or to require it, see the [Modern Protocol Guide](docs/getting-started/modern-protocol.md). Besides stdio, it can serve **Streamable HTTP** at a single stateless `/mcp` en…"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 242,
+            "text": "- Node.js >= 20.0.0"
+          }
+        },
+        {
+          "host": "opensource.org",
+          "at": {
+            "line": 4,
+            "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)"
+          }
+        },
+        {
+          "host": "shadcn-ui-mcp-server.git",
+          "at": {
+            "line": 249,
+            "text": "git clone https://github.com/Jpisnice/shadcn-ui-mcp-server.git"
+          }
+        },
+        {
+          "host": "shadcn-ui-mcp-server.mcpb",
+          "at": {
+            "line": 50,
+            "text": "1. Download `shadcn-ui-mcp-server.mcpb` from [Releases](https://github.com/Jpisnice/shadcn-ui-mcp-server/releases)"
+          }
+        },
+        {
+          "host": "support.claude.com",
+          "at": {
+            "line": 57,
+            "text": "…ces:** [Anthropic Desktop Extensions](https://www.anthropic.com/engineering/desktop-extensions) | [Building MCPB](https://support.claude.com/en/articles/12922929-building-desktop-extensions-with-mcpb)"
+          }
+        },
+        {
+          "host": "ui.shadcn.com",
+          "at": {
+            "line": 11,
+            "text": "…ntext Protocol (MCP) server that provides AI assistants with comprehensive access to [shadcn/ui v4](https://ui.shadcn.com/) components, blocks, demos, and metadata. Seamlessly retrieve React, Svelte, …"
+          }
+        },
+        {
+          "host": "vscode.md",
+          "at": {
+            "line": 176,
+            "text": "- **VS Code**: [docs/integration/vscode.md](docs/integration/vscode.md)"
+          }
+        },
+        {
+          "host": "www.anthropic.com",
+          "at": {
+            "line": 57,
+            "text": "> **References:** [Anthropic Desktop Extensions](https://www.anthropic.com/engineering/desktop-extensions) | [Building MCPB](https://support.claude.com/en/articles/12922929-building-desktop-extensions…"
+          }
+        },
+        {
+          "host": "www.shadcn-svelte.com",
+          "at": {
+            "line": 123,
+            "text": "| **Svelte** | [shadcn-svelte](https://www.shadcn-svelte.com/) | [huntabyte](https://github.com/huntabyte) | Svelte components from shadcn-svelte |"
+          }
+        },
+        {
+          "host": "www.shadcn-vue.com",
+          "at": {
+            "line": 124,
+            "text": "| **Vue** | [shadcn-vue](https://www.shadcn-vue.com/) | [unovue](https://github.com/unovue) | Vue components from shadcn-vue |"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:note:looked",
+      "kind": "credential",
+      "security": false,
+      "says": "Looked for credential-like variables we did not plant: GITHUB_PERSONAL_ACCESS_TOKEN. Reported for completeness; not counted as a credential read.",
+      "evidence": [
+        "no planted secret was behind these names"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @jpisnice/shadcn-ui-mcp-server@3.0.0",
+        "integrity sha512-XaZwCdGc2pkB+FSZr46rWnZU6FGYfccxk/ZQ2nx9Ngqf4yIxhCmOLa7+id/nsUM6I8KV8jZFlDLPazRFxmreYg==",
+        "tarball https://registry.npmjs.org/@jpisnice/shadcn-ui-mcp-server/-/shadcn-ui-mcp-server-3.0.0.tgz"
+      ]
+    }
+  ]
+}

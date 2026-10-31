@@ -1,0 +1,492 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@eslint/mcp@0.3.16",
+  "measuredAt": "2026-10-31T13:54:13.460Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "eslint--mcp",
+  "package": {
+    "name": "@eslint/mcp",
+    "version": "0.3.16",
+    "tarball": "https://registry.npmjs.org/@eslint/mcp/-/mcp-0.3.16.tgz",
+    "integrity": "sha512-mGNBEEIJ2FBMdFXE6NW6VB6dxM1vqTjOz9u217UvjXPbT66/hzyY6XpGG6hdHBKHNtfZ26/6zOs0CXNYa22G2g==",
+    "repository": "git+https://github.com/eslint/rewrite.git",
+    "homepage": "https://github.com/eslint/rewrite/tree/main/packages/mcp#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "20c046717158f0396d0a6aa5d5f14287076d0a7db42ff5158175d02eeb00a9b2",
+    "lines": 43,
+    "bytes": 3595
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "1password-icon.svg",
+        "at": {
+          "line": 41,
+          "text": "…ght=\"32\"></a> <a href=\"https://1password.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/1password-icon.svg\" alt=\"1Password\" height=\"32\"></a></p>"
+        }
+      },
+      {
+        "host": "1password.com",
+        "at": {
+          "line": 41,
+          "text": "…t.org/main/src/assets/images/techsponsors/algolia-icon.svg\" alt=\"Algolia\" height=\"32\"></a> <a href=\"https://1password.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets…"
+        }
+      },
+      {
+        "host": "algolia-icon.svg",
+        "at": {
+          "line": 41,
+          "text": "…\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/algolia-icon.svg\" alt=\"Algolia\" height=\"32\"></a> <a href=\"https://1password.com\"><img src=\"https://r…"
+        }
+      },
+      {
+        "host": "algolia.com",
+        "at": {
+          "line": 41,
+          "text": "…t.org/main/src/assets/images/techsponsors/netlify-icon.svg\" alt=\"Netlify\" height=\"32\"></a> <a href=\"https://algolia.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/i…"
+        }
+      },
+      {
+        "host": "automattic.com",
+        "at": {
+          "line": 36,
+          "text": "… src=\"https://avatars.githubusercontent.com/u/132028505\" alt=\"CodeRabbit\" height=\"96\"></a> <a href=\"https://automattic.com\"><img src=\"https://avatars.githubusercontent.com/u/887802\" alt=\"Automattic\" h…"
+        }
+      },
+      {
+        "host": "avatars.githubusercontent.com",
+        "at": {
+          "line": 36,
+          "text": "…57d/logo.png\" alt=\"Qlty Software\" height=\"96\"></a> <a href=\"https://shopify.engineering/\"><img src=\"https://avatars.githubusercontent.com/u/8085\" alt=\"Shopify\" height=\"96\"></a> <a href=\"https://www.co…"
+        }
+      },
+      {
+        "host": "citadel-ai.com",
+        "at": {
+          "line": 38,
+          "text": "…><img src=\"https://avatars.githubusercontent.com/u/7111340\" alt=\"GitBook\" height=\"32\"></a> <a href=\"https://citadel-ai.com\"><img src=\"https://avatars.githubusercontent.com/u/75781367\" alt=\"Citadel AI\"…"
+        }
+      },
+      {
+        "host": "code.visualstudio.com",
+        "at": {
+          "line": 9,
+          "text": "The ESLint MCP server is designed to be run by an IDE-based MCP client like [Visual Studio Code's Copilot](https://code.visualstudio.com/docs/copilot/chat/chat-agent-mode). The command is:"
+        }
+      },
+      {
+        "host": "cybozu.co.jp",
+        "at": {
+          "line": 38,
+          "text": "<p><a href=\"https://cybozu.co.jp/\"><img src=\"https://images.opencollective.com/cybozu/933e46d/logo.png\" alt=\"Cybozu\" height=\"32\"></a> <a href=\"https://opensource.sap.com\"><img src=\"https://avatars.git…"
+        }
+      },
+      {
+        "host": "discord.com",
+        "at": {
+          "line": 38,
+          "text": "…com\"><img src=\"https://avatars.githubusercontent.com/u/2531208\" alt=\"SAP\" height=\"32\"></a> <a href=\"https://discord.com\"><img src=\"https://images.opencollective.com/discordapp/f9645d9/logo.png\" alt=\"D…"
+        }
+      },
+      {
+        "host": "eslint.org",
+        "at": {
+          "line": 21,
+          "text": "For further instructions please see the [documentation](https://eslint.org/docs/latest/use/mcp)."
+        }
+      },
+      {
+        "host": "images.opencollective.com",
+        "at": {
+          "line": 36,
+          "text": "<p><a href=\"#\"><img src=\"https://images.opencollective.com/vite-ecosystem-fund/logo.png\" alt=\"Vite Ecosystem Fund\" height=\"96\"></a> <a href=\"https://qlty.sh/\"><img src=\"https://images.opencollective.c…"
+        }
+      },
+      {
+        "host": "liftoff.io",
+        "at": {
+          "line": 37,
+          "text": "… src=\"https://images.opencollective.com/vite/d472863/logo.png\" alt=\"Vite\" height=\"64\"></a> <a href=\"https://liftoff.io/\"><img src=\"https://images.opencollective.com/liftoff/2d6c3b6/logo.png\" alt=\"Lift…"
+        }
+      },
+      {
+        "host": "logo.png",
+        "at": {
+          "line": 36,
+          "text": "<p><a href=\"#\"><img src=\"https://images.opencollective.com/vite-ecosystem-fund/logo.png\" alt=\"Vite Ecosystem Fund\" height=\"96\"></a> <a href=\"https://qlty.sh/\"><img src=\"https://images.opencollective.c…"
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 5,
+          "text": "[Model Context Protocol](https://modelcontextprotocol.io) (MCP) server for ESLint."
+        }
+      },
+      {
+        "host": "netlify-icon.svg",
+        "at": {
+          "line": 41,
+          "text": "…\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/netlify-icon.svg\" alt=\"Netlify\" height=\"32\"></a> <a href=\"https://algolia.com\"><img src=\"https://raw…"
+        }
+      },
+      {
+        "host": "netlify.com",
+        "at": {
+          "line": 41,
+          "text": "<p><a href=\"https://netlify.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/netlify-icon.svg\" alt=\"Netlify\" height=\"32\"></a> <a href=\"https://alg…"
+        }
+      },
+      {
+        "host": "opensource.sap.com",
+        "at": {
+          "line": 38,
+          "text": "…=\"https://images.opencollective.com/cybozu/933e46d/logo.png\" alt=\"Cybozu\" height=\"32\"></a> <a href=\"https://opensource.sap.com\"><img src=\"https://avatars.githubusercontent.com/u/2531208\" alt=\"SAP\" hei…"
+        }
+      },
+      {
+        "host": "qlty.sh",
+        "at": {
+          "line": 36,
+          "text": "…pencollective.com/vite-ecosystem-fund/logo.png\" alt=\"Vite Ecosystem Fund\" height=\"96\"></a> <a href=\"https://qlty.sh/\"><img src=\"https://images.opencollective.com/qltysh/33d157d/logo.png\" alt=\"Qlty Sof…"
+        }
+      },
+      {
+        "host": "raw.githubusercontent.com",
+        "at": {
+          "line": 41,
+          "text": "<p><a href=\"https://netlify.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/netlify-icon.svg\" alt=\"Netlify\" height=\"32\"></a> <a href=\"https://alg…"
+        }
+      },
+      {
+        "host": "shopify.engineering",
+        "at": {
+          "line": 36,
+          "text": "…://images.opencollective.com/qltysh/33d157d/logo.png\" alt=\"Qlty Software\" height=\"96\"></a> <a href=\"https://shopify.engineering/\"><img src=\"https://avatars.githubusercontent.com/u/8085\" alt=\"Shopify\" …"
+        }
+      },
+      {
+        "host": "stackblitz.com",
+        "at": {
+          "line": 37,
+          "text": "…https://images.opencollective.com/liftoff/2d6c3b6/logo.png\" alt=\"Liftoff\" height=\"64\"></a> <a href=\"https://stackblitz.com\"><img src=\"https://avatars.githubusercontent.com/u/28635252\" alt=\"StackBlitz\"…"
+        }
+      },
+      {
+        "host": "vite.dev",
+        "at": {
+          "line": 37,
+          "text": "<p><a href=\"https://vite.dev/\"><img src=\"https://images.opencollective.com/vite/d472863/logo.png\" alt=\"Vite\" height=\"64\"></a> <a href=\"https://liftoff.io/\"><img src=\"https://images.opencollective.com/…"
+        }
+      },
+      {
+        "host": "www.coderabbit.ai",
+        "at": {
+          "line": 36,
+          "text": "…g/\"><img src=\"https://avatars.githubusercontent.com/u/8085\" alt=\"Shopify\" height=\"96\"></a> <a href=\"https://www.coderabbit.ai/?utm_source=cr_org&utm_medium=github\"><img src=\"https://avatars.githubuser…"
+        }
+      },
+      {
+        "host": "www.gitbook.com",
+        "at": {
+          "line": 38,
+          "text": "…ps://images.opencollective.com/discordapp/f9645d9/logo.png\" alt=\"Discord\" height=\"32\"></a> <a href=\"https://www.gitbook.com\"><img src=\"https://avatars.githubusercontent.com/u/7111340\" alt=\"GitBook\" he…"
+        }
+      },
+      {
+        "host": "www.testmuai.com",
+        "at": {
+          "line": 38,
+          "text": "…g src=\"https://avatars.githubusercontent.com/u/75781367\" alt=\"Citadel AI\" height=\"32\"></a> <a href=\"https://www.testmuai.com\"><img src=\"https://avatars.githubusercontent.com/u/171592363\" alt=\"TestMu A…"
+        }
+      }
+    ],
+    "identifiers": []
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "ESLint",
+    "version": "0.3.16"
+  },
+  "observed": {
+    "offered": [
+      "lint-files"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [],
+      "undocumented": [
+        {
+          "name": "lint-files",
+          "evidence": [
+            "offered in tools/list by @eslint/mcp@0.3.16",
+            "absent from README.md (43 lines, sha256 20c046717158…): no whole-word match for \"lint-files\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "1password-icon.svg",
+          "at": {
+            "line": 41,
+            "text": "…ght=\"32\"></a> <a href=\"https://1password.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/1password-icon.svg\" alt=\"1Password\" height=\"32\"></a></p>"
+          }
+        },
+        {
+          "host": "1password.com",
+          "at": {
+            "line": 41,
+            "text": "…t.org/main/src/assets/images/techsponsors/algolia-icon.svg\" alt=\"Algolia\" height=\"32\"></a> <a href=\"https://1password.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets…"
+          }
+        },
+        {
+          "host": "algolia-icon.svg",
+          "at": {
+            "line": 41,
+            "text": "…\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/algolia-icon.svg\" alt=\"Algolia\" height=\"32\"></a> <a href=\"https://1password.com\"><img src=\"https://r…"
+          }
+        },
+        {
+          "host": "algolia.com",
+          "at": {
+            "line": 41,
+            "text": "…t.org/main/src/assets/images/techsponsors/netlify-icon.svg\" alt=\"Netlify\" height=\"32\"></a> <a href=\"https://algolia.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/i…"
+          }
+        },
+        {
+          "host": "automattic.com",
+          "at": {
+            "line": 36,
+            "text": "… src=\"https://avatars.githubusercontent.com/u/132028505\" alt=\"CodeRabbit\" height=\"96\"></a> <a href=\"https://automattic.com\"><img src=\"https://avatars.githubusercontent.com/u/887802\" alt=\"Automattic\" h…"
+          }
+        },
+        {
+          "host": "avatars.githubusercontent.com",
+          "at": {
+            "line": 36,
+            "text": "…57d/logo.png\" alt=\"Qlty Software\" height=\"96\"></a> <a href=\"https://shopify.engineering/\"><img src=\"https://avatars.githubusercontent.com/u/8085\" alt=\"Shopify\" height=\"96\"></a> <a href=\"https://www.co…"
+          }
+        },
+        {
+          "host": "citadel-ai.com",
+          "at": {
+            "line": 38,
+            "text": "…><img src=\"https://avatars.githubusercontent.com/u/7111340\" alt=\"GitBook\" height=\"32\"></a> <a href=\"https://citadel-ai.com\"><img src=\"https://avatars.githubusercontent.com/u/75781367\" alt=\"Citadel AI\"…"
+          }
+        },
+        {
+          "host": "code.visualstudio.com",
+          "at": {
+            "line": 9,
+            "text": "The ESLint MCP server is designed to be run by an IDE-based MCP client like [Visual Studio Code's Copilot](https://code.visualstudio.com/docs/copilot/chat/chat-agent-mode). The command is:"
+          }
+        },
+        {
+          "host": "cybozu.co.jp",
+          "at": {
+            "line": 38,
+            "text": "<p><a href=\"https://cybozu.co.jp/\"><img src=\"https://images.opencollective.com/cybozu/933e46d/logo.png\" alt=\"Cybozu\" height=\"32\"></a> <a href=\"https://opensource.sap.com\"><img src=\"https://avatars.git…"
+          }
+        },
+        {
+          "host": "discord.com",
+          "at": {
+            "line": 38,
+            "text": "…com\"><img src=\"https://avatars.githubusercontent.com/u/2531208\" alt=\"SAP\" height=\"32\"></a> <a href=\"https://discord.com\"><img src=\"https://images.opencollective.com/discordapp/f9645d9/logo.png\" alt=\"D…"
+          }
+        },
+        {
+          "host": "eslint.org",
+          "at": {
+            "line": 21,
+            "text": "For further instructions please see the [documentation](https://eslint.org/docs/latest/use/mcp)."
+          }
+        },
+        {
+          "host": "images.opencollective.com",
+          "at": {
+            "line": 36,
+            "text": "<p><a href=\"#\"><img src=\"https://images.opencollective.com/vite-ecosystem-fund/logo.png\" alt=\"Vite Ecosystem Fund\" height=\"96\"></a> <a href=\"https://qlty.sh/\"><img src=\"https://images.opencollective.c…"
+          }
+        },
+        {
+          "host": "liftoff.io",
+          "at": {
+            "line": 37,
+            "text": "… src=\"https://images.opencollective.com/vite/d472863/logo.png\" alt=\"Vite\" height=\"64\"></a> <a href=\"https://liftoff.io/\"><img src=\"https://images.opencollective.com/liftoff/2d6c3b6/logo.png\" alt=\"Lift…"
+          }
+        },
+        {
+          "host": "logo.png",
+          "at": {
+            "line": 36,
+            "text": "<p><a href=\"#\"><img src=\"https://images.opencollective.com/vite-ecosystem-fund/logo.png\" alt=\"Vite Ecosystem Fund\" height=\"96\"></a> <a href=\"https://qlty.sh/\"><img src=\"https://images.opencollective.c…"
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 5,
+            "text": "[Model Context Protocol](https://modelcontextprotocol.io) (MCP) server for ESLint."
+          }
+        },
+        {
+          "host": "netlify-icon.svg",
+          "at": {
+            "line": 41,
+            "text": "…\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/netlify-icon.svg\" alt=\"Netlify\" height=\"32\"></a> <a href=\"https://algolia.com\"><img src=\"https://raw…"
+          }
+        },
+        {
+          "host": "netlify.com",
+          "at": {
+            "line": 41,
+            "text": "<p><a href=\"https://netlify.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/netlify-icon.svg\" alt=\"Netlify\" height=\"32\"></a> <a href=\"https://alg…"
+          }
+        },
+        {
+          "host": "opensource.sap.com",
+          "at": {
+            "line": 38,
+            "text": "…=\"https://images.opencollective.com/cybozu/933e46d/logo.png\" alt=\"Cybozu\" height=\"32\"></a> <a href=\"https://opensource.sap.com\"><img src=\"https://avatars.githubusercontent.com/u/2531208\" alt=\"SAP\" hei…"
+          }
+        },
+        {
+          "host": "qlty.sh",
+          "at": {
+            "line": 36,
+            "text": "…pencollective.com/vite-ecosystem-fund/logo.png\" alt=\"Vite Ecosystem Fund\" height=\"96\"></a> <a href=\"https://qlty.sh/\"><img src=\"https://images.opencollective.com/qltysh/33d157d/logo.png\" alt=\"Qlty Sof…"
+          }
+        },
+        {
+          "host": "raw.githubusercontent.com",
+          "at": {
+            "line": 41,
+            "text": "<p><a href=\"https://netlify.com\"><img src=\"https://raw.githubusercontent.com/eslint/eslint.org/main/src/assets/images/techsponsors/netlify-icon.svg\" alt=\"Netlify\" height=\"32\"></a> <a href=\"https://alg…"
+          }
+        },
+        {
+          "host": "shopify.engineering",
+          "at": {
+            "line": 36,
+            "text": "…://images.opencollective.com/qltysh/33d157d/logo.png\" alt=\"Qlty Software\" height=\"96\"></a> <a href=\"https://shopify.engineering/\"><img src=\"https://avatars.githubusercontent.com/u/8085\" alt=\"Shopify\" …"
+          }
+        },
+        {
+          "host": "stackblitz.com",
+          "at": {
+            "line": 37,
+            "text": "…https://images.opencollective.com/liftoff/2d6c3b6/logo.png\" alt=\"Liftoff\" height=\"64\"></a> <a href=\"https://stackblitz.com\"><img src=\"https://avatars.githubusercontent.com/u/28635252\" alt=\"StackBlitz\"…"
+          }
+        },
+        {
+          "host": "vite.dev",
+          "at": {
+            "line": 37,
+            "text": "<p><a href=\"https://vite.dev/\"><img src=\"https://images.opencollective.com/vite/d472863/logo.png\" alt=\"Vite\" height=\"64\"></a> <a href=\"https://liftoff.io/\"><img src=\"https://images.opencollective.com/…"
+          }
+        },
+        {
+          "host": "www.coderabbit.ai",
+          "at": {
+            "line": 36,
+            "text": "…g/\"><img src=\"https://avatars.githubusercontent.com/u/8085\" alt=\"Shopify\" height=\"96\"></a> <a href=\"https://www.coderabbit.ai/?utm_source=cr_org&utm_medium=github\"><img src=\"https://avatars.githubuser…"
+          }
+        },
+        {
+          "host": "www.gitbook.com",
+          "at": {
+            "line": 38,
+            "text": "…ps://images.opencollective.com/discordapp/f9645d9/logo.png\" alt=\"Discord\" height=\"32\"></a> <a href=\"https://www.gitbook.com\"><img src=\"https://avatars.githubusercontent.com/u/7111340\" alt=\"GitBook\" he…"
+          }
+        },
+        {
+          "host": "www.testmuai.com",
+          "at": {
+            "line": 38,
+            "text": "…g src=\"https://avatars.githubusercontent.com/u/75781367\" alt=\"Citadel AI\" height=\"32\"></a> <a href=\"https://www.testmuai.com\"><img src=\"https://avatars.githubusercontent.com/u/171592363\" alt=\"TestMu A…"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @eslint/mcp@0.3.16",
+        "integrity sha512-mGNBEEIJ2FBMdFXE6NW6VB6dxM1vqTjOz9u217UvjXPbT66/hzyY6XpGG6hdHBKHNtfZ26/6zOs0CXNYa22G2g==",
+        "tarball https://registry.npmjs.org/@eslint/mcp/-/mcp-0.3.16.tgz"
+      ]
+    }
+  ]
+}

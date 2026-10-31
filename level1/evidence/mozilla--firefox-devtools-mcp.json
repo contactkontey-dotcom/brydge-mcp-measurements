@@ -1,0 +1,1027 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@mozilla/firefox-devtools-mcp@0.10.7",
+  "measuredAt": "2026-10-31T14:01:27.887Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "mozilla--firefox-devtools-mcp",
+  "package": {
+    "name": "@mozilla/firefox-devtools-mcp",
+    "version": "0.10.7",
+    "tarball": "https://registry.npmjs.org/@mozilla/firefox-devtools-mcp/-/firefox-devtools-mcp-0.10.7.tgz",
+    "integrity": "sha512-TJWTPR6ZKfe39JndcB/nvJC52PmpmsMvpu5Gt4iauQDOXZDXjqBJi1vVABJncxMo7HQwfoN0rWPJHAK1g3Ue/A==",
+    "repository": "git+https://github.com/mozilla/firefox-devtools-mcp.git",
+    "homepage": "https://github.com/mozilla/firefox-devtools-mcp#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "0801a5f10a97941bd223401015c6351e958bf96ca82a4d49b3f622b6e8199f4a",
+    "lines": 352,
+    "bytes": 17721
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "202.0-blue.svg",
+        "at": {
+          "line": 6,
+          "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE-MIT) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)"
+        }
+      },
+      {
+        "host": "2ffirefox-devtools-mcp.svg",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://badge.fury.io/js/@mozilla%2Ffirefox-devtools-mcp.svg)](https://www.npmjs.com/package/@mozilla/firefox-devtools-mcp)"
+        }
+      },
+      {
+        "host": "app.update.disabledfortesting",
+        "at": {
+          "line": 194,
+          "text": "- app.update.disabledForTesting=false. Allow Firefox to automatically download and apply updates. Note that updates may interrupt your session. Requires also setting remote.prefs.recommended=false."
+        }
+      },
+      {
+        "host": "badge.fury.io",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://badge.fury.io/js/@mozilla%2Ffirefox-devtools-mcp.svg)](https://www.npmjs.com/package/@mozilla/firefox-devtools-mcp)"
+        }
+      },
+      {
+        "host": "badge.svg",
+        "at": {
+          "line": 4,
+          "text": "[![CI](https://github.com/mozilla/firefox-devtools-mcp/workflows/CI/badge.svg)](https://github.com/mozilla/firefox-devtools-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "bugzilla.mozilla.org",
+        "at": {
+          "line": 206,
+          "text": "> [Bug 2064088](https://bugzilla.mozilla.org/show_bug.cgi?id=2064088) tracks adding an"
+        }
+      },
+      {
+        "host": "ci.yml",
+        "at": {
+          "line": 4,
+          "text": "[![CI](https://github.com/mozilla/firefox-devtools-mcp/workflows/CI/badge.svg)](https://github.com/mozilla/firefox-devtools-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "codecov.io",
+        "at": {
+          "line": 5,
+          "text": "[![codecov](https://codecov.io/gh/mozilla/firefox-devtools-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/mozilla/firefox-devtools-mcp)"
+        }
+      },
+      {
+        "host": "config.toml",
+        "at": {
+          "line": 94,
+          "text": "Add to ~/.codex/config.toml:"
+        }
+      },
+      {
+        "host": "contributing.md",
+        "at": {
+          "line": 307,
+          "text": "See [CONTRIBUTING.md](CONTRIBUTING.md) for more details on local development, testing, and CI."
+        }
+      },
+      {
+        "host": "example.com",
+        "at": {
+          "line": 52,
+          "text": "--env START_URL=https://example.com \\"
+        }
+      },
+      {
+        "host": "firefox-devtools.env",
+        "at": {
+          "line": 101,
+          "text": "[mcp_servers.firefox-devtools.env]"
+        }
+      },
+      {
+        "host": "firefox-mcp.log",
+        "at": {
+          "line": 149,
+          "text": "…r logs to a file instead of stderr. Useful for debugging sessions with MCP clients that hide server output. Set `DEBUG=*` to also include verbose debug logs. Example: `--log-file /tmp/firefox-mcp.log`"
+        }
+      },
+      {
+        "host": "firefox.app",
+        "at": {
+          "line": 311,
+          "text": "- Firefox not found: pass `--firefox-path \"/Applications/Firefox.app/Contents/MacOS/firefox\"` (macOS) or the correct path on your OS."
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 4,
+          "text": "[![CI](https://github.com/mozilla/firefox-devtools-mcp/workflows/CI/badge.svg)](https://github.com/mozilla/firefox-devtools-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "glama.ai",
+        "at": {
+          "line": 8,
+          "text": "<a href=\"https://glama.ai/mcp/servers/@mozilla/firefox-devtools-mcp\"><img src=\"https://glama.ai/mcp/servers/@mozilla/firefox-devtools-mcp/badge\" height=\"223\" alt=\"Glama\"></a>"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 6,
+          "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE-MIT) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)"
+        }
+      },
+      {
+        "host": "index.js",
+        "at": {
+          "line": 301,
+          "text": "npx @modelcontextprotocol/inspector node dist/index.js --headless --viewport 1280x720"
+        }
+      },
+      {
+        "host": "license-mit-yellow.svg",
+        "at": {
+          "line": 6,
+          "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE-MIT) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)"
+        }
+      },
+      {
+        "host": "navigator.webdriver",
+        "at": {
+          "line": 252,
+          "text": "> `navigator.webdriver = true` and changes other browser fingerprint signals,"
+        }
+      },
+      {
+        "host": "network.json",
+        "at": {
+          "line": 283,
+          "text": "list_network_requests({ urlContains: \"api\", saveTo: \"network.json\" })"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 33,
+          "text": "- Node.js ≥ 20.19.0"
+        }
+      },
+      {
+        "host": "org.mozilla",
+        "at": {
+          "line": 147,
+          "text": "- `--android-package` — Android app package name, default `org.mozilla.firefox`. Other packages: `org.mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.feni…"
+        }
+      },
+      {
+        "host": "org.mozilla.fenix",
+        "at": {
+          "line": 147,
+          "text": "… name, default `org.mozilla.firefox`. Other packages: `org.mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.fenix.debug` for Firefox Nightly Debug, `org.mo…"
+        }
+      },
+      {
+        "host": "org.mozilla.fenix.debug",
+        "at": {
+          "line": 147,
+          "text": "…er packages: `org.mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.fenix.debug` for Firefox Nightly Debug, `org.mozilla.geckoview_example` for geckoview (`…"
+        }
+      },
+      {
+        "host": "org.mozilla.firefox",
+        "at": {
+          "line": 147,
+          "text": "- `--android-package` — Android app package name, default `org.mozilla.firefox`. Other packages: `org.mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.feni…"
+        }
+      },
+      {
+        "host": "page.png",
+        "at": {
+          "line": 281,
+          "text": "screenshot_page({ saveTo: \"page.png\" })"
+        }
+      },
+      {
+        "host": "performance.getentries",
+        "at": {
+          "line": 284,
+          "text": "evaluate_script({ function: \"() => performance.getEntries()\", saveTo: true, preview: 2000 })"
+        }
+      },
+      {
+        "host": "recommendedpreferences.sys.mjs",
+        "at": {
+          "line": 192,
+          "text": "…mation, it applies [RecommendedPreferences](https://searchfox.org/firefox-main/source/remote/shared/RecommendedPreferences.sys.mjs) that modify browser behavior for testing. Set remote.prefs.recommend…"
+        }
+      },
+      {
+        "host": "remote.log.level",
+        "at": {
+          "line": 193,
+          "text": "- remote.log.level=Trace. Enable verbose WebDriver protocol logs in Firefox. The MCP server will automatically pass the matching log level to geckodriver so both sides log at the same verbosity."
+        }
+      },
+      {
+        "host": "remote.prefs.recommended",
+        "at": {
+          "line": 192,
+          "text": "- remote.prefs.recommended=false. When Firefox runs in automation, it applies [RecommendedPreferences](https://searchfox.org/firefox-main/source/remote/shared/RecommendedPreferences.sys.mjs) that modi…"
+        }
+      },
+      {
+        "host": "searchfox.org",
+        "at": {
+          "line": 192,
+          "text": "…emote.prefs.recommended=false. When Firefox runs in automation, it applies [RecommendedPreferences](https://searchfox.org/firefox-main/source/remote/shared/RecommendedPreferences.sys.mjs) that modify …"
+        }
+      },
+      {
+        "host": "security.md",
+        "at": {
+          "line": 29,
+          "text": "See [SECURITY.md](SECURITY.md) for a full breakdown of risks and how to report vulnerabilities."
+        }
+      },
+      {
+        "host": "tools.md",
+        "at": {
+          "line": 166,
+          "text": "See [docs/tools.md](docs/tools.md#modules-and-presets) for the list of modules and the modules"
+        }
+      },
+      {
+        "host": "www.mozilla.org",
+        "at": {
+          "line": 347,
+          "text": "Maintained by [Mozilla](https://www.mozilla.org)."
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://badge.fury.io/js/@mozilla%2Ffirefox-devtools-mcp.svg)](https://www.npmjs.com/package/@mozilla/firefox-devtools-mcp)"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "click_by_uid",
+        "at": {
+          "line": 121,
+          "text": "- `take_snapshot` then `click_by_uid` / `fill_by_uid`"
+        }
+      },
+      {
+        "name": "evaluate_script",
+        "at": {
+          "line": 27,
+          "text": "- **Enable only the tool modules you need.** The default `basic` preset already includes `evaluate_script`; `--tool-preset slim` drops it. Higher presets such as `--tool-preset developer` (debugging, …"
+        }
+      },
+      {
+        "name": "fill_by_uid",
+        "at": {
+          "line": 121,
+          "text": "- `take_snapshot` then `click_by_uid` / `fill_by_uid`"
+        }
+      },
+      {
+        "name": "firefox_beta",
+        "at": {
+          "line": 147,
+          "text": "- `--android-package` — Android app package name, default `org.mozilla.firefox`. Other packages: `org.mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.feni…"
+        }
+      },
+      {
+        "name": "firefox_devtools_mcp_profile",
+        "at": {
+          "line": 133,
+          "text": "- `--profile-path` — use a specific Firefox profile. Firefox runs in a `firefox_devtools_mcp_profile` subfolder of that path, marked with a `.firefox-devtools-mcp` file; pointing `--profile-path` at a…"
+        }
+      },
+      {
+        "name": "geckoview_example",
+        "at": {
+          "line": 147,
+          "text": "….mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.fenix.debug` for Firefox Nightly Debug, `org.mozilla.geckoview_example` for geckoview (`ANDROID_PACKAGE`)"
+        }
+      },
+      {
+        "name": "get_network_request",
+        "at": {
+          "line": 122,
+          "text": "- `list_network_requests` (always‑on capture), `get_network_request`"
+        }
+      },
+      {
+        "name": "list_console_messages",
+        "at": {
+          "line": 124,
+          "text": "- `screenshot_page`, `list_console_messages`"
+        }
+      },
+      {
+        "name": "list_downloads",
+        "at": {
+          "line": 123,
+          "text": "- `list_downloads` (always‑on capture), `set_download_behavior`"
+        }
+      },
+      {
+        "name": "list_network_requests",
+        "at": {
+          "line": 122,
+          "text": "- `list_network_requests` (always‑on capture), `get_network_request`"
+        }
+      },
+      {
+        "name": "list_pages",
+        "at": {
+          "line": 120,
+          "text": "- `list_pages`, `select_page`, `navigate_page`"
+        }
+      },
+      {
+        "name": "navigate_page",
+        "at": {
+          "line": 120,
+          "text": "- `list_pages`, `select_page`, `navigate_page`"
+        }
+      },
+      {
+        "name": "screenshot_page",
+        "at": {
+          "line": 124,
+          "text": "- `screenshot_page`, `list_console_messages`"
+        }
+      },
+      {
+        "name": "select_page",
+        "at": {
+          "line": 120,
+          "text": "- `list_pages`, `select_page`, `navigate_page`"
+        }
+      },
+      {
+        "name": "set_download_behavior",
+        "at": {
+          "line": 123,
+          "text": "- `list_downloads` (always‑on capture), `set_download_behavior`"
+        }
+      },
+      {
+        "name": "take_snapshot",
+        "at": {
+          "line": 121,
+          "text": "- `take_snapshot` then `click_by_uid` / `fill_by_uid`"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "@mozilla/firefox-devtools-mcp",
+    "version": "0.10.7"
+  },
+  "observed": {
+    "offered": [
+      "accept_dialog",
+      "clear_downloads",
+      "clear_snapshot",
+      "click_by_uid",
+      "close_firefox_session",
+      "close_page",
+      "dismiss_dialog",
+      "drag_by_uid_to_uid",
+      "evaluate_script",
+      "fill_by_uid",
+      "fill_form_by_uid",
+      "get_firefox_info",
+      "get_firefox_output",
+      "get_page_text",
+      "hover_by_uid",
+      "install_extension",
+      "list_downloads",
+      "list_pages",
+      "navigate_history",
+      "navigate_page",
+      "new_page",
+      "press_key",
+      "print_page",
+      "resolve_uid_to_selector",
+      "screencast_start",
+      "screencast_stop",
+      "screenshot_by_uid",
+      "screenshot_page",
+      "select_page",
+      "set_download_behavior",
+      "set_viewport_size",
+      "take_snapshot",
+      "type_text",
+      "uninstall_extension",
+      "upload_file_by_uid"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "firefox-devtools-mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "click_by_uid",
+          "at": {
+            "line": 121,
+            "text": "- `take_snapshot` then `click_by_uid` / `fill_by_uid`"
+          }
+        },
+        {
+          "name": "evaluate_script",
+          "at": {
+            "line": 27,
+            "text": "- **Enable only the tool modules you need.** The default `basic` preset already includes `evaluate_script`; `--tool-preset slim` drops it. Higher presets such as `--tool-preset developer` (debugging, …"
+          }
+        },
+        {
+          "name": "fill_by_uid",
+          "at": {
+            "line": 121,
+            "text": "- `take_snapshot` then `click_by_uid` / `fill_by_uid`"
+          }
+        },
+        {
+          "name": "list_downloads",
+          "at": {
+            "line": 123,
+            "text": "- `list_downloads` (always‑on capture), `set_download_behavior`"
+          }
+        },
+        {
+          "name": "list_pages",
+          "at": {
+            "line": 120,
+            "text": "- `list_pages`, `select_page`, `navigate_page`"
+          }
+        },
+        {
+          "name": "navigate_page",
+          "at": {
+            "line": 120,
+            "text": "- `list_pages`, `select_page`, `navigate_page`"
+          }
+        },
+        {
+          "name": "screenshot_page",
+          "at": {
+            "line": 124,
+            "text": "- `screenshot_page`, `list_console_messages`"
+          }
+        },
+        {
+          "name": "select_page",
+          "at": {
+            "line": 120,
+            "text": "- `list_pages`, `select_page`, `navigate_page`"
+          }
+        },
+        {
+          "name": "set_download_behavior",
+          "at": {
+            "line": 123,
+            "text": "- `list_downloads` (always‑on capture), `set_download_behavior`"
+          }
+        },
+        {
+          "name": "take_snapshot",
+          "at": {
+            "line": 121,
+            "text": "- `take_snapshot` then `click_by_uid` / `fill_by_uid`"
+          }
+        }
+      ],
+      "undocumented": [
+        {
+          "name": "accept_dialog",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"accept_dialog\""
+          ]
+        },
+        {
+          "name": "clear_downloads",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"clear_downloads\""
+          ]
+        },
+        {
+          "name": "clear_snapshot",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"clear_snapshot\""
+          ]
+        },
+        {
+          "name": "close_firefox_session",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"close_firefox_session\""
+          ]
+        },
+        {
+          "name": "close_page",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"close_page\""
+          ]
+        },
+        {
+          "name": "dismiss_dialog",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"dismiss_dialog\""
+          ]
+        },
+        {
+          "name": "drag_by_uid_to_uid",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"drag_by_uid_to_uid\""
+          ]
+        },
+        {
+          "name": "fill_form_by_uid",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"fill_form_by_uid\""
+          ]
+        },
+        {
+          "name": "get_firefox_info",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"get_firefox_info\""
+          ]
+        },
+        {
+          "name": "get_firefox_output",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"get_firefox_output\""
+          ]
+        },
+        {
+          "name": "get_page_text",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"get_page_text\""
+          ]
+        },
+        {
+          "name": "hover_by_uid",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"hover_by_uid\""
+          ]
+        },
+        {
+          "name": "install_extension",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"install_extension\""
+          ]
+        },
+        {
+          "name": "navigate_history",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"navigate_history\""
+          ]
+        },
+        {
+          "name": "new_page",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"new_page\""
+          ]
+        },
+        {
+          "name": "press_key",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"press_key\""
+          ]
+        },
+        {
+          "name": "print_page",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"print_page\""
+          ]
+        },
+        {
+          "name": "resolve_uid_to_selector",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"resolve_uid_to_selector\""
+          ]
+        },
+        {
+          "name": "screencast_start",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"screencast_start\""
+          ]
+        },
+        {
+          "name": "screencast_stop",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"screencast_stop\""
+          ]
+        },
+        {
+          "name": "screenshot_by_uid",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"screenshot_by_uid\""
+          ]
+        },
+        {
+          "name": "set_viewport_size",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"set_viewport_size\""
+          ]
+        },
+        {
+          "name": "type_text",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"type_text\""
+          ]
+        },
+        {
+          "name": "uninstall_extension",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"uninstall_extension\""
+          ]
+        },
+        {
+          "name": "upload_file_by_uid",
+          "evidence": [
+            "offered in tools/list by @mozilla/firefox-devtools-mcp@0.10.7",
+            "absent from README.md (352 lines, sha256 0801a5f10a97…): no whole-word match for \"upload_file_by_uid\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "202.0-blue.svg",
+          "at": {
+            "line": 6,
+            "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE-MIT) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)"
+          }
+        },
+        {
+          "host": "2ffirefox-devtools-mcp.svg",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://badge.fury.io/js/@mozilla%2Ffirefox-devtools-mcp.svg)](https://www.npmjs.com/package/@mozilla/firefox-devtools-mcp)"
+          }
+        },
+        {
+          "host": "app.update.disabledfortesting",
+          "at": {
+            "line": 194,
+            "text": "- app.update.disabledForTesting=false. Allow Firefox to automatically download and apply updates. Note that updates may interrupt your session. Requires also setting remote.prefs.recommended=false."
+          }
+        },
+        {
+          "host": "badge.fury.io",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://badge.fury.io/js/@mozilla%2Ffirefox-devtools-mcp.svg)](https://www.npmjs.com/package/@mozilla/firefox-devtools-mcp)"
+          }
+        },
+        {
+          "host": "badge.svg",
+          "at": {
+            "line": 4,
+            "text": "[![CI](https://github.com/mozilla/firefox-devtools-mcp/workflows/CI/badge.svg)](https://github.com/mozilla/firefox-devtools-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "bugzilla.mozilla.org",
+          "at": {
+            "line": 206,
+            "text": "> [Bug 2064088](https://bugzilla.mozilla.org/show_bug.cgi?id=2064088) tracks adding an"
+          }
+        },
+        {
+          "host": "ci.yml",
+          "at": {
+            "line": 4,
+            "text": "[![CI](https://github.com/mozilla/firefox-devtools-mcp/workflows/CI/badge.svg)](https://github.com/mozilla/firefox-devtools-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "codecov.io",
+          "at": {
+            "line": 5,
+            "text": "[![codecov](https://codecov.io/gh/mozilla/firefox-devtools-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/mozilla/firefox-devtools-mcp)"
+          }
+        },
+        {
+          "host": "config.toml",
+          "at": {
+            "line": 94,
+            "text": "Add to ~/.codex/config.toml:"
+          }
+        },
+        {
+          "host": "contributing.md",
+          "at": {
+            "line": 307,
+            "text": "See [CONTRIBUTING.md](CONTRIBUTING.md) for more details on local development, testing, and CI."
+          }
+        },
+        {
+          "host": "example.com",
+          "at": {
+            "line": 52,
+            "text": "--env START_URL=https://example.com \\"
+          }
+        },
+        {
+          "host": "firefox-devtools.env",
+          "at": {
+            "line": 101,
+            "text": "[mcp_servers.firefox-devtools.env]"
+          }
+        },
+        {
+          "host": "firefox-mcp.log",
+          "at": {
+            "line": 149,
+            "text": "…r logs to a file instead of stderr. Useful for debugging sessions with MCP clients that hide server output. Set `DEBUG=*` to also include verbose debug logs. Example: `--log-file /tmp/firefox-mcp.log`"
+          }
+        },
+        {
+          "host": "firefox.app",
+          "at": {
+            "line": 311,
+            "text": "- Firefox not found: pass `--firefox-path \"/Applications/Firefox.app/Contents/MacOS/firefox\"` (macOS) or the correct path on your OS."
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 4,
+            "text": "[![CI](https://github.com/mozilla/firefox-devtools-mcp/workflows/CI/badge.svg)](https://github.com/mozilla/firefox-devtools-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "glama.ai",
+          "at": {
+            "line": 8,
+            "text": "<a href=\"https://glama.ai/mcp/servers/@mozilla/firefox-devtools-mcp\"><img src=\"https://glama.ai/mcp/servers/@mozilla/firefox-devtools-mcp/badge\" height=\"223\" alt=\"Glama\"></a>"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 6,
+            "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE-MIT) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)"
+          }
+        },
+        {
+          "host": "index.js",
+          "at": {
+            "line": 301,
+            "text": "npx @modelcontextprotocol/inspector node dist/index.js --headless --viewport 1280x720"
+          }
+        },
+        {
+          "host": "license-mit-yellow.svg",
+          "at": {
+            "line": 6,
+            "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE-MIT) [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)"
+          }
+        },
+        {
+          "host": "navigator.webdriver",
+          "at": {
+            "line": 252,
+            "text": "> `navigator.webdriver = true` and changes other browser fingerprint signals,"
+          }
+        },
+        {
+          "host": "network.json",
+          "at": {
+            "line": 283,
+            "text": "list_network_requests({ urlContains: \"api\", saveTo: \"network.json\" })"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 33,
+            "text": "- Node.js ≥ 20.19.0"
+          }
+        },
+        {
+          "host": "org.mozilla",
+          "at": {
+            "line": 147,
+            "text": "- `--android-package` — Android app package name, default `org.mozilla.firefox`. Other packages: `org.mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.feni…"
+          }
+        },
+        {
+          "host": "org.mozilla.fenix",
+          "at": {
+            "line": 147,
+            "text": "… name, default `org.mozilla.firefox`. Other packages: `org.mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.fenix.debug` for Firefox Nightly Debug, `org.mo…"
+          }
+        },
+        {
+          "host": "org.mozilla.fenix.debug",
+          "at": {
+            "line": 147,
+            "text": "…er packages: `org.mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.fenix.debug` for Firefox Nightly Debug, `org.mozilla.geckoview_example` for geckoview (`…"
+          }
+        },
+        {
+          "host": "org.mozilla.firefox",
+          "at": {
+            "line": 147,
+            "text": "- `--android-package` — Android app package name, default `org.mozilla.firefox`. Other packages: `org.mozilla.firefox_beta` for Firefox Beta, `org.mozilla.fenix` for Firefox Nightly, `org.mozilla.feni…"
+          }
+        },
+        {
+          "host": "page.png",
+          "at": {
+            "line": 281,
+            "text": "screenshot_page({ saveTo: \"page.png\" })"
+          }
+        },
+        {
+          "host": "performance.getentries",
+          "at": {
+            "line": 284,
+            "text": "evaluate_script({ function: \"() => performance.getEntries()\", saveTo: true, preview: 2000 })"
+          }
+        },
+        {
+          "host": "recommendedpreferences.sys.mjs",
+          "at": {
+            "line": 192,
+            "text": "…mation, it applies [RecommendedPreferences](https://searchfox.org/firefox-main/source/remote/shared/RecommendedPreferences.sys.mjs) that modify browser behavior for testing. Set remote.prefs.recommend…"
+          }
+        },
+        {
+          "host": "remote.log.level",
+          "at": {
+            "line": 193,
+            "text": "- remote.log.level=Trace. Enable verbose WebDriver protocol logs in Firefox. The MCP server will automatically pass the matching log level to geckodriver so both sides log at the same verbosity."
+          }
+        },
+        {
+          "host": "remote.prefs.recommended",
+          "at": {
+            "line": 192,
+            "text": "- remote.prefs.recommended=false. When Firefox runs in automation, it applies [RecommendedPreferences](https://searchfox.org/firefox-main/source/remote/shared/RecommendedPreferences.sys.mjs) that modi…"
+          }
+        },
+        {
+          "host": "searchfox.org",
+          "at": {
+            "line": 192,
+            "text": "…emote.prefs.recommended=false. When Firefox runs in automation, it applies [RecommendedPreferences](https://searchfox.org/firefox-main/source/remote/shared/RecommendedPreferences.sys.mjs) that modify …"
+          }
+        },
+        {
+          "host": "security.md",
+          "at": {
+            "line": 29,
+            "text": "See [SECURITY.md](SECURITY.md) for a full breakdown of risks and how to report vulnerabilities."
+          }
+        },
+        {
+          "host": "tools.md",
+          "at": {
+            "line": 166,
+            "text": "See [docs/tools.md](docs/tools.md#modules-and-presets) for the list of modules and the modules"
+          }
+        },
+        {
+          "host": "www.mozilla.org",
+          "at": {
+            "line": 347,
+            "text": "Maintained by [Mozilla](https://www.mozilla.org)."
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://badge.fury.io/js/@mozilla%2Ffirefox-devtools-mcp.svg)](https://www.npmjs.com/package/@mozilla/firefox-devtools-mcp)"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at Object.getEnv (file:///srv/brydge-measure/mozilla--firefox-devtools-mcp-1793455289287/install/node_modules/yargs/lib/platform-shims/esm.mjs:34:23) read 4 variables"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @mozilla/firefox-devtools-mcp@0.10.7",
+        "integrity sha512-TJWTPR6ZKfe39JndcB/nvJC52PmpmsMvpu5Gt4iauQDOXZDXjqBJi1vVABJncxMo7HQwfoN0rWPJHAK1g3Ue/A==",
+        "tarball https://registry.npmjs.org/@mozilla/firefox-devtools-mcp/-/firefox-devtools-mcp-0.10.7.tgz"
+      ]
+    }
+  ]
+}

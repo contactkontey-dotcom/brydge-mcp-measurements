@@ -1,0 +1,1006 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@contentrain/mcp@3.11.21",
+  "measuredAt": "2026-10-31T13:52:40.715Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "contentrain--mcp",
+  "package": {
+    "name": "@contentrain/mcp",
+    "version": "3.11.21",
+    "tarball": "https://registry.npmjs.org/@contentrain/mcp/-/mcp-3.11.21.tgz",
+    "integrity": "sha512-u3A5dSTS5MIhL3K/suXmLeEd9UdhRW4Jze60TUKu1yVmAA0EiCKdrwzxHeKoqsAEnN8Oevggwj10OZhF1shMDQ==",
+    "repository": "git+https://github.com/Contentrain/ai.git",
+    "homepage": "https://ai.contentrain.io/packages/mcp"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "fee6156b2cd21dc7710edc694350f1f8f659bba21bf0e26f052831d9f738b2d9",
+    "lines": 434,
+    "bytes": 26824
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "ai.contentrain.io",
+        "at": {
+          "line": 5,
+          "text": "[![Docs](https://img.shields.io/badge/docs-ai.contentrain.io-0f172a)](https://ai.contentrain.io/packages/mcp)"
+        }
+      },
+      {
+        "host": "astro.config.mjs",
+        "at": {
+          "line": 319,
+          "text": "allow: ['src/**', 'public/**', 'package.json', 'astro.config.mjs'],"
+        }
+      },
+      {
+        "host": "config.json",
+        "at": {
+          "line": 68,
+          "text": "- review: feature branch pushed to remote for team review; once merged (or deleted), its remote copy is removed too — best-effort, opt out with `remoteBranchCleanup: false` in config.json"
+        }
+      },
+      {
+        "host": "config.locales.supported",
+        "at": {
+          "line": 405,
+          "text": "in `config.locales.supported`. A model that declares `locales` — a subset of that"
+        }
+      },
+      {
+        "host": "contentrain.io",
+        "at": {
+          "line": 143,
+          "text": "| `CONTENTRAIN_AUTHOR_NAME` / `CONTENTRAIN_AUTHOR_EMAIL` | `Contentrain` / `ai@contentrain.io` | Author identity on Contentrain's commits |"
+        }
+      },
+      {
+        "host": "context.json",
+        "at": {
+          "line": 74,
+          "text": "- context.json never lands on feature branches — it is regenerated on the `contentrain` branch after merge (locally by the transaction layer; in remote flows by the orchestrator that owns the merge)"
+        }
+      },
+      {
+        "host": "docs-ai.contentrain.io",
+        "at": {
+          "line": 5,
+          "text": "[![Docs](https://img.shields.io/badge/docs-ai.contentrain.io-0f172a)](https://ai.contentrain.io/packages/mcp)"
+        }
+      },
+      {
+        "host": "git.push",
+        "at": {
+          "line": 69,
+          "text": "- local mode (`git.push: false` or `CONTENTRAIN_NO_PUSH=1`): nothing is ever pushed or deleted on the remote, and every result says so — see [Git environment and local mode](#git-environment-and-local…"
+        }
+      },
+      {
+        "host": "git.verify",
+        "at": {
+          "line": 71,
+          "text": "- commit hooks: skipped on machine commits by default; `git.verify: true` or `CONTENTRAIN_VERIFY=1` runs them, and a rejecting hook fails the write with its output — see [Commit hooks](#commit-hooks)"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 4,
+          "text": "[![GitHub source](https://img.shields.io/badge/source-Contentrain%2Fai-181717?logo=github)](https://github.com/Contentrain/ai/tree/main/packages/mcp)"
+        }
+      },
+      {
+        "host": "gitlab.com",
+        "at": {
+          "line": 237,
+          "text": "- **GitLabProvider** — gitbeaker over the GitLab REST API. No clone, no worktree. `@gitbeaker/rest` ships as an optional peer dependency. Supports gitlab.com and self-hosted CE / EE."
+        }
+      },
+      {
+        "host": "gitlab.company.com",
+        "at": {
+          "line": 255,
+          "text": "host: 'https://gitlab.company.com', // omit for gitlab.com"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/%40contentrain%2Fmcp?label=%40contentrain%2Fmcp)](https://www.npmjs.com/package/@contentrain/mcp)"
+        }
+      },
+      {
+        "host": "migrate.contentrain.io",
+        "at": {
+          "line": 396,
+          "text": "… and the `contentrain_media_*` tools need a provider with a media stack such as Studio's. [Migrate](https://migrate.contentrain.io) moves WordPress sites to Astro, and [Bridge](https://github.com/Cont…"
+        }
+      },
+      {
+        "host": "model.locales",
+        "at": {
+          "line": 402,
+          "text": "### Locale coverage (`model.locales`)"
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 80,
+          "text": "27 MCP tools — 22 core + 5 media — with [annotations](https://modelcontextprotocol.io/specification/2025-03-26/server/tools#tool) (`readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHi…"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 36,
+          "text": "- Node.js `22+`"
+        }
+      },
+      {
+        "host": "package.json",
+        "at": {
+          "line": 307,
+          "text": "`package.json`, a lockfile, deploy configuration. The content write path was"
+        }
+      },
+      {
+        "host": "process.cwd",
+        "at": {
+          "line": 169,
+          "text": "const server = createServer(process.cwd())"
+        }
+      },
+      {
+        "host": "process.env",
+        "at": {
+          "line": 252,
+          "text": "auth: { type: 'pat', token: process.env.GITLAB_TOKEN! },"
+        }
+      },
+      {
+        "host": "repoprovider.media",
+        "at": {
+          "line": 114,
+          "text": "…contentrain_media_*` tools are a deterministic passthrough to the provider's optional media facet (`RepoProvider.media`) and are registered **only when the provider exposes one** (e.g. Studio MCP Clou…"
+        }
+      },
+      {
+        "host": "server.connect",
+        "at": {
+          "line": 172,
+          "text": "await server.connect(transport)"
+        }
+      },
+      {
+        "host": "stdio.js",
+        "at": {
+          "line": 167,
+          "text": "import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'"
+        }
+      },
+      {
+        "host": "tr.json",
+        "at": {
+          "line": 417,
+          "text": "Locale file missing: tr.json (checked against the model's own locales [en, tr])"
+        }
+      },
+      {
+        "host": "writer.applyplan",
+        "at": {
+          "line": 332,
+          "text": "await writer.applyPlan({ ...plan, step: 'emit', actor })"
+        }
+      },
+      {
+        "host": "writer.audit",
+        "at": {
+          "line": 333,
+          "text": "writer.audit  // which file, in which step, by which actor, in which commit"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/%40contentrain%2Fmcp?label=%40contentrain%2Fmcp)](https://www.npmjs.com/package/@contentrain/mcp)"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "base_branch",
+        "at": {
+          "line": 70,
+          "text": "- every local write's `git` block names the resolved `base_branch`; when it is not the checked-out branch, the result's `warning` says your working tree was left alone"
+        }
+      },
+      {
+        "name": "content_delete",
+        "at": {
+          "line": 82,
+          "text": "…afe subset — `status`, `describe`, `describe_format`, `model_save`, `model_delete`, `content_save`, `content_delete`, `content_list`, `vocabulary_save`, `vocabulary_delete`, `validate`. The requiremen…"
+        }
+      },
+      {
+        "name": "content_list",
+        "at": {
+          "line": 82,
+          "text": "…us`, `describe`, `describe_format`, `model_save`, `model_delete`, `content_save`, `content_delete`, `content_list`, `vocabulary_save`, `vocabulary_delete`, `validate`. The requirement map lives in `TO…"
+        }
+      },
+      {
+        "name": "content_save",
+        "at": {
+          "line": 82,
+          "text": "…nly the remote-safe subset — `status`, `describe`, `describe_format`, `model_save`, `model_delete`, `content_save`, `content_delete`, `content_list`, `vocabulary_save`, `vocabulary_delete`, `validate`…"
+        }
+      },
+      {
+        "name": "content_source",
+        "at": {
+          "line": 67,
+          "text": "…hecked-out feature branch, which writes do not update, `.contentrain/**` is read from the `contentrain` ref instead (source files still from the working tree); read tools report it as `content_source`"
+        }
+      },
+      {
+        "name": "contentrain_apply",
+        "at": {
+          "line": 104,
+          "text": "| `contentrain_apply` | Normalize extract/reuse execution with dry-run support | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_branch_delete",
+        "at": {
+          "line": 102,
+          "text": "| `contentrain_branch_delete` | Delete a stale/failed `cr/*` branch locally and on the remote (contentrain branch protected) | — | **Yes** |"
+        }
+      },
+      {
+        "name": "contentrain_branch_list",
+        "at": {
+          "line": 101,
+          "text": "| `contentrain_branch_list` | List pending `cr/*` branches with merge status (`remote: true` adds remote view) | Yes | — |"
+        }
+      },
+      {
+        "name": "contentrain_bulk",
+        "at": {
+          "line": 105,
+          "text": "| `contentrain_bulk` | Bulk locale copy, status updates, and deletes (`dry_run` previews) | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_content_delete",
+        "at": {
+          "line": 95,
+          "text": "| `contentrain_content_delete` | Delete content entries | — | **Yes** |"
+        }
+      },
+      {
+        "name": "contentrain_content_list",
+        "at": {
+          "line": 96,
+          "text": "| `contentrain_content_list` | Read content entries | Yes | — |"
+        }
+      },
+      {
+        "name": "contentrain_content_save",
+        "at": {
+          "line": 94,
+          "text": "| `contentrain_content_save` | Save content entries for any model kind | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_describe",
+        "at": {
+          "line": 87,
+          "text": "| `contentrain_describe` | Full schema and sample data for a model | Yes | — |"
+        }
+      },
+      {
+        "name": "contentrain_describe_format",
+        "at": {
+          "line": 88,
+          "text": "| `contentrain_describe_format` | File-format and storage contract reference | Yes | — |"
+        }
+      },
+      {
+        "name": "contentrain_doctor",
+        "at": {
+          "line": 89,
+          "text": "| `contentrain_doctor` | Project health report (env, structure, models, orphans, local + remote branches, SDK) | Yes | — |"
+        }
+      },
+      {
+        "name": "contentrain_init",
+        "at": {
+          "line": 90,
+          "text": "| `contentrain_init` | Create `.contentrain/` structure and base config | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_media_delete",
+        "at": {
+          "line": 112,
+          "text": "| `contentrain_media_delete` | Delete an asset from the media stack | — | **Yes** |"
+        }
+      },
+      {
+        "name": "contentrain_media_get",
+        "at": {
+          "line": 109,
+          "text": "| `contentrain_media_get` | Get one media asset by id | Yes | — |"
+        }
+      },
+      {
+        "name": "contentrain_media_ingest",
+        "at": {
+          "line": 80,
+          "text": "… (`readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHint: false` everywhere except `contentrain_media_ingest`, which fetches a caller-supplied URL server-side) for client safety hints…"
+        }
+      },
+      {
+        "name": "contentrain_media_list",
+        "at": {
+          "line": 108,
+          "text": "| `contentrain_media_list` | List media assets (search, tag filter, cursor pagination) | Yes | — |"
+        }
+      },
+      {
+        "name": "contentrain_media_update",
+        "at": {
+          "line": 111,
+          "text": "| `contentrain_media_update` | Update asset metadata (alt, tags, filename) | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_merge",
+        "at": {
+          "line": 99,
+          "text": "| `contentrain_merge` | Merge a review-mode branch into contentrain locally (by exact branch or model); deletes its remote copy | — | Yes |"
+        }
+      },
+      {
+        "name": "contentrain_model_delete",
+        "at": {
+          "line": 93,
+          "text": "| `contentrain_model_delete` | Delete a model definition | — | **Yes** |"
+        }
+      },
+      {
+        "name": "contentrain_model_save",
+        "at": {
+          "line": 92,
+          "text": "| `contentrain_model_save` | Create or update a model definition | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_reconcile",
+        "at": {
+          "line": 100,
+          "text": "| `contentrain_reconcile` | Content-aware three-way merge of a diverged contentrain ↔ base pair (dry_run first, resolutions second) | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_scaffold",
+        "at": {
+          "line": 91,
+          "text": "| `contentrain_scaffold` | Apply a starter template such as blog, docs, landing, saas | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_scan",
+        "at": {
+          "line": 103,
+          "text": "| `contentrain_scan` | Graph- and candidate-based hardcoded string scan | Yes | — |"
+        }
+      },
+      {
+        "name": "contentrain_status",
+        "at": {
+          "line": 86,
+          "text": "| `contentrain_status` | Project status, config, models, branch health, context | Yes | — |"
+        }
+      },
+      {
+        "name": "contentrain_submit",
+        "at": {
+          "line": 98,
+          "text": "| `contentrain_submit` | Push `cr/*` branches to remote, then lazily prune merged local + remote leftovers | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_validate",
+        "at": {
+          "line": 97,
+          "text": "| `contentrain_validate` | Validate project content, optionally auto-fix structural issues | — | — |"
+        }
+      },
+      {
+        "name": "contentrain_vocabulary_delete",
+        "at": {
+          "line": 107,
+          "text": "| `contentrain_vocabulary_delete` | Remove canonical vocabulary terms by slug (`confirm: true`) | — | **Yes** |"
+        }
+      },
+      {
+        "name": "contentrain_vocabulary_save",
+        "at": {
+          "line": 106,
+          "text": "| `contentrain_vocabulary_save` | Add or update canonical vocabulary terms (merges with what exists) | — | — |"
+        }
+      },
+      {
+        "name": "default_branch",
+        "at": {
+          "line": 65,
+          "text": "- baseBranch = `CONTENTRAIN_BRANCH` env → `repository.default_branch` → remote HEAD → `main` → `master` → checked-out branch → `main` (fallback). A write made on a feature branch never merges, moves o…"
+        }
+      },
+      {
+        "name": "describe_format",
+        "at": {
+          "line": 82,
+          "text": "…ovider (GitHub/GitLab, no local checkout) lists only the remote-safe subset — `status`, `describe`, `describe_format`, `model_save`, `model_delete`, `content_save`, `content_delete`, `content_list`, `…"
+        }
+      },
+      {
+        "name": "dry_run",
+        "at": {
+          "line": 105,
+          "text": "| `contentrain_bulk` | Bulk locale copy, status updates, and deletes (`dry_run` previews) | — | — |"
+        }
+      },
+      {
+        "name": "model_delete",
+        "at": {
+          "line": 82,
+          "text": "…heckout) lists only the remote-safe subset — `status`, `describe`, `describe_format`, `model_save`, `model_delete`, `content_save`, `content_delete`, `content_list`, `vocabulary_save`, `vocabulary_del…"
+        }
+      },
+      {
+        "name": "model_save",
+        "at": {
+          "line": 82,
+          "text": "…ab, no local checkout) lists only the remote-safe subset — `status`, `describe`, `describe_format`, `model_save`, `model_delete`, `content_save`, `content_delete`, `content_list`, `vocabulary_save`, `…"
+        }
+      },
+      {
+        "name": "next_steps",
+        "at": {
+          "line": 151,
+          "text": "…'s `git` block reports `remote_push: \"disabled\"` with `remote_note: \"not pushed (local mode)\"`, and `next_steps` carries a `LOCAL MODE` line. `contentrain_submit` returns an error instead of pushing; …"
+        }
+      },
+      {
+        "name": "node_modules",
+        "at": {
+          "line": 155,
+          "text": "…. That keeps existing projects working: these commits are made in a temporary worktree without your `node_modules`, and their `[contentrain] …` subject fails a strict commitlint. Merges still run the …"
+        }
+      },
+      {
+        "name": "preserved_blocks",
+        "at": {
+          "line": 432,
+          "text": "tool does not enable or change them. Its response lists `preserved_blocks` when"
+        }
+      },
+      {
+        "name": "remote_note",
+        "at": {
+          "line": 151,
+          "text": "It is never a silent success. Each write's `git` block reports `remote_push: \"disabled\"` with `remote_note: \"not pushed (local mode)\"`, and `next_steps` carries a `LOCAL MODE` line. `contentrain_submi…"
+        }
+      },
+      {
+        "name": "remote_push",
+        "at": {
+          "line": 151,
+          "text": "It is never a silent success. Each write's `git` block reports `remote_push: \"disabled\"` with `remote_note: \"not pushed (local mode)\"`, and `next_steps` carries a `LOCAL MODE` line. `contentrain_submi…"
+        }
+      },
+      {
+        "name": "remote_skipped",
+        "at": {
+          "line": 151,
+          "text": "… the local branch as usual and leave any remote copy untouched; `contentrain_branch_delete` reports `remote_skipped: \"local-mode\"`, `contentrain_merge` reports `remote: { deleted: false, skipped: \"loc…"
+        }
+      },
+      {
+        "name": "scope_hash",
+        "at": {
+          "line": 341,
+          "text": "| **Consent** | One approval, bound to the exact scope by `scope_hash`. An approval of `src/**` cannot be replayed against a scope that also has `.github/workflows/**` |"
+        }
+      },
+      {
+        "name": "vocabulary_delete",
+        "at": {
+          "line": 82,
+          "text": "… `model_save`, `model_delete`, `content_save`, `content_delete`, `content_list`, `vocabulary_save`, `vocabulary_delete`, `validate`. The requirement map lives in `TOOL_REQUIREMENTS` (`@contentrain/mcp…"
+        }
+      },
+      {
+        "name": "vocabulary_save",
+        "at": {
+          "line": 82,
+          "text": "… `describe_format`, `model_save`, `model_delete`, `content_save`, `content_delete`, `content_list`, `vocabulary_save`, `vocabulary_delete`, `validate`. The requirement map lives in `TOOL_REQUIREMENTS`…"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "contentrain-mcp",
+    "version": "3.11.21"
+  },
+  "observed": {
+    "offered": [
+      "contentrain_apply",
+      "contentrain_branch_delete",
+      "contentrain_branch_list",
+      "contentrain_bulk",
+      "contentrain_content_delete",
+      "contentrain_content_list",
+      "contentrain_content_save",
+      "contentrain_describe",
+      "contentrain_describe_format",
+      "contentrain_doctor",
+      "contentrain_init",
+      "contentrain_merge",
+      "contentrain_model_delete",
+      "contentrain_model_save",
+      "contentrain_reconcile",
+      "contentrain_scaffold",
+      "contentrain_scan",
+      "contentrain_status",
+      "contentrain_submit",
+      "contentrain_validate",
+      "contentrain_vocabulary_delete",
+      "contentrain_vocabulary_save"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "contentrain-mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "contentrain_apply",
+          "at": {
+            "line": 104,
+            "text": "| `contentrain_apply` | Normalize extract/reuse execution with dry-run support | — | — |"
+          }
+        },
+        {
+          "name": "contentrain_branch_delete",
+          "at": {
+            "line": 102,
+            "text": "| `contentrain_branch_delete` | Delete a stale/failed `cr/*` branch locally and on the remote (contentrain branch protected) | — | **Yes** |"
+          }
+        },
+        {
+          "name": "contentrain_branch_list",
+          "at": {
+            "line": 101,
+            "text": "| `contentrain_branch_list` | List pending `cr/*` branches with merge status (`remote: true` adds remote view) | Yes | — |"
+          }
+        },
+        {
+          "name": "contentrain_bulk",
+          "at": {
+            "line": 105,
+            "text": "| `contentrain_bulk` | Bulk locale copy, status updates, and deletes (`dry_run` previews) | — | — |"
+          }
+        },
+        {
+          "name": "contentrain_content_delete",
+          "at": {
+            "line": 95,
+            "text": "| `contentrain_content_delete` | Delete content entries | — | **Yes** |"
+          }
+        },
+        {
+          "name": "contentrain_content_list",
+          "at": {
+            "line": 96,
+            "text": "| `contentrain_content_list` | Read content entries | Yes | — |"
+          }
+        },
+        {
+          "name": "contentrain_content_save",
+          "at": {
+            "line": 94,
+            "text": "| `contentrain_content_save` | Save content entries for any model kind | — | — |"
+          }
+        },
+        {
+          "name": "contentrain_describe",
+          "at": {
+            "line": 87,
+            "text": "| `contentrain_describe` | Full schema and sample data for a model | Yes | — |"
+          }
+        },
+        {
+          "name": "contentrain_describe_format",
+          "at": {
+            "line": 88,
+            "text": "| `contentrain_describe_format` | File-format and storage contract reference | Yes | — |"
+          }
+        },
+        {
+          "name": "contentrain_doctor",
+          "at": {
+            "line": 89,
+            "text": "| `contentrain_doctor` | Project health report (env, structure, models, orphans, local + remote branches, SDK) | Yes | — |"
+          }
+        },
+        {
+          "name": "contentrain_init",
+          "at": {
+            "line": 90,
+            "text": "| `contentrain_init` | Create `.contentrain/` structure and base config | — | — |"
+          }
+        },
+        {
+          "name": "contentrain_merge",
+          "at": {
+            "line": 99,
+            "text": "| `contentrain_merge` | Merge a review-mode branch into contentrain locally (by exact branch or model); deletes its remote copy | — | Yes |"
+          }
+        },
+        {
+          "name": "contentrain_model_delete",
+          "at": {
+            "line": 93,
+            "text": "| `contentrain_model_delete` | Delete a model definition | — | **Yes** |"
+          }
+        },
+        {
+          "name": "contentrain_model_save",
+          "at": {
+            "line": 92,
+            "text": "| `contentrain_model_save` | Create or update a model definition | — | — |"
+          }
+        },
+        {
+          "name": "contentrain_reconcile",
+          "at": {
+            "line": 100,
+            "text": "| `contentrain_reconcile` | Content-aware three-way merge of a diverged contentrain ↔ base pair (dry_run first, resolutions second) | — | — |"
+          }
+        },
+        {
+          "name": "contentrain_scaffold",
+          "at": {
+            "line": 91,
+            "text": "| `contentrain_scaffold` | Apply a starter template such as blog, docs, landing, saas | — | — |"
+          }
+        },
+        {
+          "name": "contentrain_scan",
+          "at": {
+            "line": 103,
+            "text": "| `contentrain_scan` | Graph- and candidate-based hardcoded string scan | Yes | — |"
+          }
+        },
+        {
+          "name": "contentrain_status",
+          "at": {
+            "line": 86,
+            "text": "| `contentrain_status` | Project status, config, models, branch health, context | Yes | — |"
+          }
+        },
+        {
+          "name": "contentrain_submit",
+          "at": {
+            "line": 98,
+            "text": "| `contentrain_submit` | Push `cr/*` branches to remote, then lazily prune merged local + remote leftovers | — | — |"
+          }
+        },
+        {
+          "name": "contentrain_validate",
+          "at": {
+            "line": 97,
+            "text": "| `contentrain_validate` | Validate project content, optionally auto-fix structural issues | — | — |"
+          }
+        },
+        {
+          "name": "contentrain_vocabulary_delete",
+          "at": {
+            "line": 107,
+            "text": "| `contentrain_vocabulary_delete` | Remove canonical vocabulary terms by slug (`confirm: true`) | — | **Yes** |"
+          }
+        },
+        {
+          "name": "contentrain_vocabulary_save",
+          "at": {
+            "line": 106,
+            "text": "| `contentrain_vocabulary_save` | Add or update canonical vocabulary terms (merges with what exists) | — | — |"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "ai.contentrain.io",
+          "at": {
+            "line": 5,
+            "text": "[![Docs](https://img.shields.io/badge/docs-ai.contentrain.io-0f172a)](https://ai.contentrain.io/packages/mcp)"
+          }
+        },
+        {
+          "host": "astro.config.mjs",
+          "at": {
+            "line": 319,
+            "text": "allow: ['src/**', 'public/**', 'package.json', 'astro.config.mjs'],"
+          }
+        },
+        {
+          "host": "config.json",
+          "at": {
+            "line": 68,
+            "text": "- review: feature branch pushed to remote for team review; once merged (or deleted), its remote copy is removed too — best-effort, opt out with `remoteBranchCleanup: false` in config.json"
+          }
+        },
+        {
+          "host": "config.locales.supported",
+          "at": {
+            "line": 405,
+            "text": "in `config.locales.supported`. A model that declares `locales` — a subset of that"
+          }
+        },
+        {
+          "host": "contentrain.io",
+          "at": {
+            "line": 143,
+            "text": "| `CONTENTRAIN_AUTHOR_NAME` / `CONTENTRAIN_AUTHOR_EMAIL` | `Contentrain` / `ai@contentrain.io` | Author identity on Contentrain's commits |"
+          }
+        },
+        {
+          "host": "context.json",
+          "at": {
+            "line": 74,
+            "text": "- context.json never lands on feature branches — it is regenerated on the `contentrain` branch after merge (locally by the transaction layer; in remote flows by the orchestrator that owns the merge)"
+          }
+        },
+        {
+          "host": "docs-ai.contentrain.io",
+          "at": {
+            "line": 5,
+            "text": "[![Docs](https://img.shields.io/badge/docs-ai.contentrain.io-0f172a)](https://ai.contentrain.io/packages/mcp)"
+          }
+        },
+        {
+          "host": "git.push",
+          "at": {
+            "line": 69,
+            "text": "- local mode (`git.push: false` or `CONTENTRAIN_NO_PUSH=1`): nothing is ever pushed or deleted on the remote, and every result says so — see [Git environment and local mode](#git-environment-and-local…"
+          }
+        },
+        {
+          "host": "git.verify",
+          "at": {
+            "line": 71,
+            "text": "- commit hooks: skipped on machine commits by default; `git.verify: true` or `CONTENTRAIN_VERIFY=1` runs them, and a rejecting hook fails the write with its output — see [Commit hooks](#commit-hooks)"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 4,
+            "text": "[![GitHub source](https://img.shields.io/badge/source-Contentrain%2Fai-181717?logo=github)](https://github.com/Contentrain/ai/tree/main/packages/mcp)"
+          }
+        },
+        {
+          "host": "gitlab.com",
+          "at": {
+            "line": 237,
+            "text": "- **GitLabProvider** — gitbeaker over the GitLab REST API. No clone, no worktree. `@gitbeaker/rest` ships as an optional peer dependency. Supports gitlab.com and self-hosted CE / EE."
+          }
+        },
+        {
+          "host": "gitlab.company.com",
+          "at": {
+            "line": 255,
+            "text": "host: 'https://gitlab.company.com', // omit for gitlab.com"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/%40contentrain%2Fmcp?label=%40contentrain%2Fmcp)](https://www.npmjs.com/package/@contentrain/mcp)"
+          }
+        },
+        {
+          "host": "migrate.contentrain.io",
+          "at": {
+            "line": 396,
+            "text": "… and the `contentrain_media_*` tools need a provider with a media stack such as Studio's. [Migrate](https://migrate.contentrain.io) moves WordPress sites to Astro, and [Bridge](https://github.com/Cont…"
+          }
+        },
+        {
+          "host": "model.locales",
+          "at": {
+            "line": 402,
+            "text": "### Locale coverage (`model.locales`)"
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 80,
+            "text": "27 MCP tools — 22 core + 5 media — with [annotations](https://modelcontextprotocol.io/specification/2025-03-26/server/tools#tool) (`readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHi…"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 36,
+            "text": "- Node.js `22+`"
+          }
+        },
+        {
+          "host": "package.json",
+          "at": {
+            "line": 307,
+            "text": "`package.json`, a lockfile, deploy configuration. The content write path was"
+          }
+        },
+        {
+          "host": "process.cwd",
+          "at": {
+            "line": 169,
+            "text": "const server = createServer(process.cwd())"
+          }
+        },
+        {
+          "host": "process.env",
+          "at": {
+            "line": 252,
+            "text": "auth: { type: 'pat', token: process.env.GITLAB_TOKEN! },"
+          }
+        },
+        {
+          "host": "repoprovider.media",
+          "at": {
+            "line": 114,
+            "text": "…contentrain_media_*` tools are a deterministic passthrough to the provider's optional media facet (`RepoProvider.media`) and are registered **only when the provider exposes one** (e.g. Studio MCP Clou…"
+          }
+        },
+        {
+          "host": "server.connect",
+          "at": {
+            "line": 172,
+            "text": "await server.connect(transport)"
+          }
+        },
+        {
+          "host": "stdio.js",
+          "at": {
+            "line": 167,
+            "text": "import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'"
+          }
+        },
+        {
+          "host": "tr.json",
+          "at": {
+            "line": 417,
+            "text": "Locale file missing: tr.json (checked against the model's own locales [en, tr])"
+          }
+        },
+        {
+          "host": "writer.applyplan",
+          "at": {
+            "line": 332,
+            "text": "await writer.applyPlan({ ...plan, step: 'emit', actor })"
+          }
+        },
+        {
+          "host": "writer.audit",
+          "at": {
+            "line": 333,
+            "text": "writer.audit  // which file, in which step, by which actor, in which commit"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/%40contentrain%2Fmcp?label=%40contentrain%2Fmcp)](https://www.npmjs.com/package/@contentrain/mcp)"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at Object.getEnvironmentVariable (/srv/brydge-measure/contentrain--mcp-1793454762427/install/node_modules/typescript/lib/typescript.js:8345:27) read 10 variables"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @contentrain/mcp@3.11.21",
+        "integrity sha512-u3A5dSTS5MIhL3K/suXmLeEd9UdhRW4Jze60TUKu1yVmAA0EiCKdrwzxHeKoqsAEnN8Oevggwj10OZhF1shMDQ==",
+        "tarball https://registry.npmjs.org/@contentrain/mcp/-/mcp-3.11.21.tgz"
+      ]
+    }
+  ]
+}

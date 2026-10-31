@@ -1,0 +1,530 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@ai-dossier/mcp-server@1.6.5",
+  "measuredAt": "2026-10-31T13:48:39.949Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "ai-dossier--mcp-server",
+  "package": {
+    "name": "@ai-dossier/mcp-server",
+    "version": "1.6.5",
+    "tarball": "https://registry.npmjs.org/@ai-dossier/mcp-server/-/mcp-server-1.6.5.tgz",
+    "integrity": "sha512-gimEHPPPfAUtixUUELy6SsQxGtLCGiq9YtO0/S65Xk3wxfcQhduZJP4Iw3n6JWgLK2BoVxWw3ev/pRdihstvkQ==",
+    "repository": "git+https://github.com/imboard-ai/ai-dossier.git",
+    "homepage": "https://ai-dossier.dev"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "37051e0fec04de49d812fdb433f35911c68fa471ab15c327429a48c46f7df7ae",
+    "lines": 210,
+    "bytes": 7641
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "ai-dossier.git",
+        "at": {
+          "line": 149,
+          "text": "git clone https://github.com/imboard-ai/ai-dossier.git"
+        }
+      },
+      {
+        "host": "ai.imboard",
+        "at": {
+          "line": 200,
+          "text": "…*For dossier users (not contributors):** install via `claude mcp add dossier -- npx @ai-dossier/mcp-server` to get `dossier://` resources and tools at runtime. MCP Registry name: `ai.imboard/dossier`."
+        }
+      },
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 207,
+          "text": "- [Changelog](./CHANGELOG.md)"
+        }
+      },
+      {
+        "host": "ds.md",
+        "at": {
+          "line": 69,
+          "text": "| `list_dossiers` | Discover available dossiers in a directory. Scans for `*.ds.md` files and returns metadata. |"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 5,
+          "text": "[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://github.com/imboard-ai/ai-dossier/blob/main/LICENSE)"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/@ai-dossier/mcp-server)](https://www.npmjs.com/package/@ai-dossier/mcp-server)"
+        }
+      },
+      {
+        "host": "index.ts",
+        "at": {
+          "line": 162,
+          "text": "index.ts                 # Server entry point"
+        }
+      },
+      {
+        "host": "license-agpl--3.0-blue.svg",
+        "at": {
+          "line": 5,
+          "text": "[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://github.com/imboard-ai/ai-dossier/blob/main/LICENSE)"
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 9,
+          "text": "… their MCP clients to discover, verify, and run trusted skills through the [Model Context Protocol](https://modelcontextprotocol.io/). Dossiers are portable, signed, versioned skills: familiar to Clau…"
+        }
+      },
+      {
+        "host": "myresource.ts",
+        "at": {
+          "line": 198,
+          "text": "**Adding a resource:** create `src/resources/myResource.ts`, register in `src/index.ts` (add to ListResources + ReadResource switch)."
+        }
+      },
+      {
+        "host": "mytool.ts",
+        "at": {
+          "line": 196,
+          "text": "**Adding a tool:** create `src/tools/myTool.ts`, export handler + input type, register in `src/index.ts` (add to ListTools + CallTool switch)."
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 175,
+          "text": "- **Runtime**: Node.js 20+"
+        }
+      },
+      {
+        "host": "readme.md",
+        "at": {
+          "line": 11,
+          "text": "> **Part of the ai-dossier ecosystem**: use [`@ai-dossier/cli`](../cli/README.md) to author and install skills, [`@ai-dossier/core`](../packages/core/README.md) for verification, and the [ai-dossier p…"
+        }
+      },
+      {
+        "host": "specification.md",
+        "at": {
+          "line": 206,
+          "text": "- [Specification](./SPECIFICATION.md)"
+        }
+      },
+      {
+        "host": "trusted-keys.txt",
+        "at": {
+          "line": 142,
+          "text": "- **Trust model**: Decentralized — users choose which signing keys to trust via `~/.dossier/trusted-keys.txt`"
+        }
+      },
+      {
+        "host": "verifydossier.ts",
+        "at": {
+          "line": 191,
+          "text": "- `src/tools/` — one file per MCP tool (e.g. `verifyDossier.ts`)"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/@ai-dossier/mcp-server)](https://www.npmjs.com/package/@ai-dossier/mcp-server)"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "cancel_journey",
+        "at": {
+          "line": 88,
+          "text": "| `cancel_journey` | Cancel an active journey session. Returns a summary of what completed before cancellation. |"
+        }
+      },
+      {
+        "name": "claude_desktop_config",
+        "at": {
+          "line": 36,
+          "text": "Add to `claude_desktop_config.json`:"
+        }
+      },
+      {
+        "name": "dry_run",
+        "at": {
+          "line": 70,
+          "text": "| `read_dossier` | Read and parse a dossier file. Returns metadata and content. Should be called after `verify_dossier` passes. Pass `dry_run: true` to also get `dry_run_plan` (static preview). |"
+        }
+      },
+      {
+        "name": "dry_run_plan",
+        "at": {
+          "line": 70,
+          "text": "| `read_dossier` | Read and parse a dossier file. Returns metadata and content. Should be called after `verify_dossier` passes. Pass `dry_run: true` to also get `dry_run_plan` (static preview). |"
+        }
+      },
+      {
+        "name": "get_journey_status",
+        "at": {
+          "line": 87,
+          "text": "| `get_journey_status` | Get the current state of a journey: completed steps, current step, remaining steps, and collected outputs. |"
+        }
+      },
+      {
+        "name": "list_dossiers",
+        "at": {
+          "line": 69,
+          "text": "| `list_dossiers` | Discover available dossiers in a directory. Scans for `*.ds.md` files and returns metadata. |"
+        }
+      },
+      {
+        "name": "read_dossier",
+        "at": {
+          "line": 70,
+          "text": "| `read_dossier` | Read and parse a dossier file. Returns metadata and content. Should be called after `verify_dossier` passes. Pass `dry_run: true` to also get `dry_run_plan` (static preview). |"
+        }
+      },
+      {
+        "name": "resolve_graph",
+        "at": {
+          "line": 84,
+          "text": "| `resolve_graph` | Resolve a dossier dependency graph into an execution plan. Produces a DAG with ordered phases, parallel groups, and conflict detection. |"
+        }
+      },
+      {
+        "name": "search_dossiers",
+        "at": {
+          "line": 71,
+          "text": "| `search_dossiers` | Search the dossier registry for available dossiers by keyword and optional category filter. |"
+        }
+      },
+      {
+        "name": "start_journey",
+        "at": {
+          "line": 85,
+          "text": "| `start_journey` | Start a journey session from a resolved and verified graph. Returns the first step's dossier content with injected context. With `dry_run: true` no session is created and a static …"
+        }
+      },
+      {
+        "name": "step_complete",
+        "at": {
+          "line": 86,
+          "text": "| `step_complete` | Mark the current journey step as complete or failed. Advances to the next step with context from previous outputs. |"
+        }
+      },
+      {
+        "name": "verify_dossier",
+        "at": {
+          "line": 70,
+          "text": "| `read_dossier` | Read and parse a dossier file. Returns metadata and content. Should be called after `verify_dossier` passes. Pass `dry_run: true` to also get `dry_run_plan` (static preview). |"
+        }
+      },
+      {
+        "name": "verify_graph",
+        "at": {
+          "line": 78,
+          "text": "| `verify_graph` | Batch verify all dossiers in a resolved dependency graph. Returns aggregate security report with per-dossier breakdown. |"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "@ai-dossier/mcp-server",
+    "version": "1.6.5"
+  },
+  "observed": {
+    "offered": [
+      "cancel_journey",
+      "get_journey_status",
+      "list_dossiers",
+      "read_dossier",
+      "resolve_graph",
+      "search_dossiers",
+      "start_journey",
+      "step_complete",
+      "verify_dossier",
+      "verify_graph"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "dossier-mcp-server",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "cancel_journey",
+          "at": {
+            "line": 88,
+            "text": "| `cancel_journey` | Cancel an active journey session. Returns a summary of what completed before cancellation. |"
+          }
+        },
+        {
+          "name": "get_journey_status",
+          "at": {
+            "line": 87,
+            "text": "| `get_journey_status` | Get the current state of a journey: completed steps, current step, remaining steps, and collected outputs. |"
+          }
+        },
+        {
+          "name": "list_dossiers",
+          "at": {
+            "line": 69,
+            "text": "| `list_dossiers` | Discover available dossiers in a directory. Scans for `*.ds.md` files and returns metadata. |"
+          }
+        },
+        {
+          "name": "read_dossier",
+          "at": {
+            "line": 70,
+            "text": "| `read_dossier` | Read and parse a dossier file. Returns metadata and content. Should be called after `verify_dossier` passes. Pass `dry_run: true` to also get `dry_run_plan` (static preview). |"
+          }
+        },
+        {
+          "name": "resolve_graph",
+          "at": {
+            "line": 84,
+            "text": "| `resolve_graph` | Resolve a dossier dependency graph into an execution plan. Produces a DAG with ordered phases, parallel groups, and conflict detection. |"
+          }
+        },
+        {
+          "name": "search_dossiers",
+          "at": {
+            "line": 71,
+            "text": "| `search_dossiers` | Search the dossier registry for available dossiers by keyword and optional category filter. |"
+          }
+        },
+        {
+          "name": "start_journey",
+          "at": {
+            "line": 85,
+            "text": "| `start_journey` | Start a journey session from a resolved and verified graph. Returns the first step's dossier content with injected context. With `dry_run: true` no session is created and a static …"
+          }
+        },
+        {
+          "name": "step_complete",
+          "at": {
+            "line": 86,
+            "text": "| `step_complete` | Mark the current journey step as complete or failed. Advances to the next step with context from previous outputs. |"
+          }
+        },
+        {
+          "name": "verify_dossier",
+          "at": {
+            "line": 70,
+            "text": "| `read_dossier` | Read and parse a dossier file. Returns metadata and content. Should be called after `verify_dossier` passes. Pass `dry_run: true` to also get `dry_run_plan` (static preview). |"
+          }
+        },
+        {
+          "name": "verify_graph",
+          "at": {
+            "line": 78,
+            "text": "| `verify_graph` | Batch verify all dossiers in a resolved dependency graph. Returns aggregate security report with per-dossier breakdown. |"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "ai-dossier.git",
+          "at": {
+            "line": 149,
+            "text": "git clone https://github.com/imboard-ai/ai-dossier.git"
+          }
+        },
+        {
+          "host": "ai.imboard",
+          "at": {
+            "line": 200,
+            "text": "…*For dossier users (not contributors):** install via `claude mcp add dossier -- npx @ai-dossier/mcp-server` to get `dossier://` resources and tools at runtime. MCP Registry name: `ai.imboard/dossier`."
+          }
+        },
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 207,
+            "text": "- [Changelog](./CHANGELOG.md)"
+          }
+        },
+        {
+          "host": "ds.md",
+          "at": {
+            "line": 69,
+            "text": "| `list_dossiers` | Discover available dossiers in a directory. Scans for `*.ds.md` files and returns metadata. |"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 5,
+            "text": "[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://github.com/imboard-ai/ai-dossier/blob/main/LICENSE)"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/@ai-dossier/mcp-server)](https://www.npmjs.com/package/@ai-dossier/mcp-server)"
+          }
+        },
+        {
+          "host": "index.ts",
+          "at": {
+            "line": 162,
+            "text": "index.ts                 # Server entry point"
+          }
+        },
+        {
+          "host": "license-agpl--3.0-blue.svg",
+          "at": {
+            "line": 5,
+            "text": "[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://github.com/imboard-ai/ai-dossier/blob/main/LICENSE)"
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 9,
+            "text": "… their MCP clients to discover, verify, and run trusted skills through the [Model Context Protocol](https://modelcontextprotocol.io/). Dossiers are portable, signed, versioned skills: familiar to Clau…"
+          }
+        },
+        {
+          "host": "myresource.ts",
+          "at": {
+            "line": 198,
+            "text": "**Adding a resource:** create `src/resources/myResource.ts`, register in `src/index.ts` (add to ListResources + ReadResource switch)."
+          }
+        },
+        {
+          "host": "mytool.ts",
+          "at": {
+            "line": 196,
+            "text": "**Adding a tool:** create `src/tools/myTool.ts`, export handler + input type, register in `src/index.ts` (add to ListTools + CallTool switch)."
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 175,
+            "text": "- **Runtime**: Node.js 20+"
+          }
+        },
+        {
+          "host": "readme.md",
+          "at": {
+            "line": 11,
+            "text": "> **Part of the ai-dossier ecosystem**: use [`@ai-dossier/cli`](../cli/README.md) to author and install skills, [`@ai-dossier/core`](../packages/core/README.md) for verification, and the [ai-dossier p…"
+          }
+        },
+        {
+          "host": "specification.md",
+          "at": {
+            "line": 206,
+            "text": "- [Specification](./SPECIFICATION.md)"
+          }
+        },
+        {
+          "host": "trusted-keys.txt",
+          "at": {
+            "line": 142,
+            "text": "- **Trust model**: Decentralized — users choose which signing keys to trust via `~/.dossier/trusted-keys.txt`"
+          }
+        },
+        {
+          "host": "verifydossier.ts",
+          "at": {
+            "line": 191,
+            "text": "- `src/tools/` — one file per MCP tool (e.g. `verifyDossier.ts`)"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/@ai-dossier/mcp-server)](https://www.npmjs.com/package/@ai-dossier/mcp-server)"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @ai-dossier/mcp-server@1.6.5",
+        "integrity sha512-gimEHPPPfAUtixUUELy6SsQxGtLCGiq9YtO0/S65Xk3wxfcQhduZJP4Iw3n6JWgLK2BoVxWw3ev/pRdihstvkQ==",
+        "tarball https://registry.npmjs.org/@ai-dossier/mcp-server/-/mcp-server-1.6.5.tgz"
+      ]
+    }
+  ]
+}

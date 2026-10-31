@@ -1,0 +1,438 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "package-registry-mcp@2.1.0",
+  "measuredAt": "2026-10-31T14:21:16.761Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "package-registry-mcp",
+  "package": {
+    "name": "package-registry-mcp",
+    "version": "2.1.0",
+    "tarball": "https://registry.npmjs.org/package-registry-mcp/-/package-registry-mcp-2.1.0.tgz",
+    "integrity": "sha512-D8F0ER4Wj2moK3qNVu5aE5ylz0SOSVKvVJuOxiuUNPsQuvWcxhQOL2vks/V+J1DzyxkleiQ8l2TO5PT1jdwG2Q==",
+    "repository": "git+https://github.com/artmann/package-registry-mcp.git",
+    "homepage": "https://github.com/artmann/package-registry-mcp"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "a88e570b00bd83939291167bfc97cadb583acf527cc758efe0104cf19feae6b5",
+    "lines": 476,
+    "bytes": 11769
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "archestra.ai",
+        "at": {
+          "line": 23,
+          "text": "<a href=\"https://archestra.ai/mcp-catalog/artmann__package-registry-mcp\">"
+        }
+      },
+      {
+        "host": "contributing.md",
+        "at": {
+          "line": 466,
+          "text": "See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines."
+        }
+      },
+      {
+        "host": "crates.io",
+        "at": {
+          "line": 81,
+          "text": "- Search crates.io (Rust package registry)"
+        }
+      },
+      {
+        "host": "cursor.com",
+        "at": {
+          "line": 32,
+          "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=package-registry&config=eyJjb21tYW5kIjoibnB4IHBhY2thZ2UtcmVnaXN0cnktbWNwIn0%3D)"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 14,
+          "text": "<a href=\"https://github.com/Artmann/package-registry-mcp/blob/main/LICENSE\">"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 9,
+          "text": "<img alt=\"NPM Version\" src=\"https://img.shields.io/npm/v/package-registry-mcp\" />"
+        }
+      },
+      {
+        "host": "mcp-install-dark.svg",
+        "at": {
+          "line": 32,
+          "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=package-registry&config=eyJjb21tYW5kIjoibnB4IHBhY2thZ2UtcmVnaXN0cnktbWNwIn0%3D)"
+        }
+      },
+      {
+        "host": "newtonsoft.json",
+        "at": {
+          "line": 243,
+          "text": "bun tool get-nuget-package-details '{\"name\": \"Newtonsoft.Json\"}'"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 18,
+          "text": "<img alt=\"Node.js\" src=\"https://img.shields.io/node/v/package-registry-mcp\" />"
+        }
+      },
+      {
+        "host": "nodejs.org",
+        "at": {
+          "line": 17,
+          "text": "<a href=\"https://nodejs.org\">"
+        }
+      },
+      {
+        "host": "pkg.go.dev",
+        "at": {
+          "line": 332,
+          "text": "Note: pkg.go.dev does not provide a JSON search API, so only package details and"
+        }
+      },
+      {
+        "host": "pypi.org",
+        "at": {
+          "line": 281,
+          "text": "directly at https://pypi.org/search/."
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 8,
+          "text": "<a href=\"https://www.npmjs.com/package/package-registry-mcp\">"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "claude_desktop_config",
+        "at": {
+          "line": 57,
+          "text": "`claude_desktop_config.json`:"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "package-registry",
+    "version": "1.0.0"
+  },
+  "observed": {
+    "offered": [
+      "get-cargo-package-details",
+      "get-github-advisory",
+      "get-golang-package-details",
+      "get-npm-package-details",
+      "get-nuget-package-details",
+      "get-package-advisories",
+      "get-pypi-package-details",
+      "list-cargo-package-versions",
+      "list-golang-package-versions",
+      "list-npm-package-versions",
+      "list-nuget-package-versions",
+      "list-pypi-package-versions",
+      "search-cargo-packages",
+      "search-github-advisories",
+      "search-npm-packages",
+      "search-nuget-packages"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "package-registry-mcp",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "get-cargo-package-details",
+          "at": {
+            "line": 170,
+            "text": "#### `get-cargo-package-details`"
+          }
+        },
+        {
+          "name": "get-github-advisory",
+          "at": {
+            "line": 404,
+            "text": "#### `get-github-advisory`"
+          }
+        },
+        {
+          "name": "get-golang-package-details",
+          "at": {
+            "line": 336,
+            "text": "#### `get-golang-package-details`"
+          }
+        },
+        {
+          "name": "get-npm-package-details",
+          "at": {
+            "line": 109,
+            "text": "#### `get-npm-package-details`"
+          }
+        },
+        {
+          "name": "get-nuget-package-details",
+          "at": {
+            "line": 232,
+            "text": "#### `get-nuget-package-details`"
+          }
+        },
+        {
+          "name": "get-package-advisories",
+          "at": {
+            "line": 427,
+            "text": "#### `get-package-advisories`"
+          }
+        },
+        {
+          "name": "get-pypi-package-details",
+          "at": {
+            "line": 283,
+            "text": "#### `get-pypi-package-details`"
+          }
+        },
+        {
+          "name": "list-cargo-package-versions",
+          "at": {
+            "line": 193,
+            "text": "#### `list-cargo-package-versions`"
+          }
+        },
+        {
+          "name": "list-golang-package-versions",
+          "at": {
+            "line": 358,
+            "text": "#### `list-golang-package-versions`"
+          }
+        },
+        {
+          "name": "list-npm-package-versions",
+          "at": {
+            "line": 131,
+            "text": "#### `list-npm-package-versions`"
+          }
+        },
+        {
+          "name": "list-nuget-package-versions",
+          "at": {
+            "line": 255,
+            "text": "#### `list-nuget-package-versions`"
+          }
+        },
+        {
+          "name": "list-pypi-package-versions",
+          "at": {
+            "line": 308,
+            "text": "#### `list-pypi-package-versions`"
+          }
+        },
+        {
+          "name": "search-cargo-packages",
+          "at": {
+            "line": 155,
+            "text": "#### `search-cargo-packages`"
+          }
+        },
+        {
+          "name": "search-github-advisories",
+          "at": {
+            "line": 382,
+            "text": "#### `search-github-advisories`"
+          }
+        },
+        {
+          "name": "search-npm-packages",
+          "at": {
+            "line": 94,
+            "text": "#### `search-npm-packages`"
+          }
+        },
+        {
+          "name": "search-nuget-packages",
+          "at": {
+            "line": 217,
+            "text": "#### `search-nuget-packages`"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "archestra.ai",
+          "at": {
+            "line": 23,
+            "text": "<a href=\"https://archestra.ai/mcp-catalog/artmann__package-registry-mcp\">"
+          }
+        },
+        {
+          "host": "contributing.md",
+          "at": {
+            "line": 466,
+            "text": "See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines."
+          }
+        },
+        {
+          "host": "crates.io",
+          "at": {
+            "line": 81,
+            "text": "- Search crates.io (Rust package registry)"
+          }
+        },
+        {
+          "host": "cursor.com",
+          "at": {
+            "line": 32,
+            "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=package-registry&config=eyJjb21tYW5kIjoibnB4IHBhY2thZ2UtcmVnaXN0cnktbWNwIn0%3D)"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 14,
+            "text": "<a href=\"https://github.com/Artmann/package-registry-mcp/blob/main/LICENSE\">"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 9,
+            "text": "<img alt=\"NPM Version\" src=\"https://img.shields.io/npm/v/package-registry-mcp\" />"
+          }
+        },
+        {
+          "host": "mcp-install-dark.svg",
+          "at": {
+            "line": 32,
+            "text": "[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=package-registry&config=eyJjb21tYW5kIjoibnB4IHBhY2thZ2UtcmVnaXN0cnktbWNwIn0%3D)"
+          }
+        },
+        {
+          "host": "newtonsoft.json",
+          "at": {
+            "line": 243,
+            "text": "bun tool get-nuget-package-details '{\"name\": \"Newtonsoft.Json\"}'"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 18,
+            "text": "<img alt=\"Node.js\" src=\"https://img.shields.io/node/v/package-registry-mcp\" />"
+          }
+        },
+        {
+          "host": "nodejs.org",
+          "at": {
+            "line": 17,
+            "text": "<a href=\"https://nodejs.org\">"
+          }
+        },
+        {
+          "host": "pkg.go.dev",
+          "at": {
+            "line": 332,
+            "text": "Note: pkg.go.dev does not provide a JSON search API, so only package details and"
+          }
+        },
+        {
+          "host": "pypi.org",
+          "at": {
+            "line": 281,
+            "text": "directly at https://pypi.org/search/."
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 8,
+            "text": "<a href=\"https://www.npmjs.com/package/package-registry-mcp\">"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm package-registry-mcp@2.1.0",
+        "integrity sha512-D8F0ER4Wj2moK3qNVu5aE5ylz0SOSVKvVJuOxiuUNPsQuvWcxhQOL2vks/V+J1DzyxkleiQ8l2TO5PT1jdwG2Q==",
+        "tarball https://registry.npmjs.org/package-registry-mcp/-/package-registry-mcp-2.1.0.tgz"
+      ]
+    }
+  ]
+}

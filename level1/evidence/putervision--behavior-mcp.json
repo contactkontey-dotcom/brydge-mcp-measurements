@@ -1,0 +1,587 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@putervision/behavior-mcp@0.4.1",
+  "measuredAt": "2026-10-31T14:04:27.574Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "putervision--behavior-mcp",
+  "package": {
+    "name": "@putervision/behavior-mcp",
+    "version": "0.4.1",
+    "tarball": "https://registry.npmjs.org/@putervision/behavior-mcp/-/behavior-mcp-0.4.1.tgz",
+    "integrity": "sha512-8LzYcU7Vn4ZJePb+3ft3F/oC3h4j9lAGiWQ7QqZWMOJhz7ghkW7YoDBF3wcVpxSL7nbxexZMiLDW43dp0kjq6g==",
+    "repository": "git+https://github.com/putervision/behavior-mcp.git",
+    "homepage": "https://behaviormcp.com"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "fc91fe1a8af6ec3f9d01cfb8431178744cf78a27de8f6dc28ea5f6bbce61a238",
+    "lines": 99,
+    "bytes": 4558
+  },
+  "readmeNotes": [
+    {
+      "word": "telemetry",
+      "at": {
+        "line": 42,
+        "text": "| `get_metrics` | `current`, `history` | Retrieve runtime telemetry, tick durations, and stuck events |"
+      }
+    }
+  ],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "3d20.0.0-brightgreen.svg",
+        "at": {
+          "line": 6,
+          "text": "[![Node](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)"
+        }
+      },
+      {
+        "host": "api-reference.md",
+        "at": {
+          "line": 61,
+          "text": "- 📖 **[Formal API Reference](docs/api-reference.md)**: Full parameter tables, type definitions, and tool schemas."
+        }
+      },
+      {
+        "host": "badge.svg",
+        "at": {
+          "line": 5,
+          "text": "[![CI](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "behavior-mcp.json",
+        "at": {
+          "line": 65,
+          "text": "- ⚙️ **[Configuration Reference](docs/configuration.md)**: `.behavior-mcp.json` parameters and environment variables."
+        }
+      },
+      {
+        "host": "behavior-mcp.svg",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/@putervision/behavior-mcp.svg)](https://www.npmjs.com/package/@putervision/behavior-mcp)"
+        }
+      },
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 4,
+          "text": "[![version](https://img.shields.io/badge/version-0.4.1-blue.svg)](./CHANGELOG.md)"
+        }
+      },
+      {
+        "host": "ci.yml",
+        "at": {
+          "line": 5,
+          "text": "[![CI](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "cli-usage.md",
+        "at": {
+          "line": 63,
+          "text": "- 🖥️ **[CLI Usage Guide](docs/cli-usage.md)**: Complete CLI command reference (`init`, `doctor`, `inspect`, `run`)."
+        }
+      },
+      {
+        "host": "concepts.md",
+        "at": {
+          "line": 62,
+          "text": "- 💡 **[Core Architecture & Concepts](docs/concepts.md)**: Behavior tree execution model, ~60Hz loop, and trigger lifecycle."
+        }
+      },
+      {
+        "host": "configuration.md",
+        "at": {
+          "line": 65,
+          "text": "- ⚙️ **[Configuration Reference](docs/configuration.md)**: `.behavior-mcp.json` parameters and environment variables."
+        }
+      },
+      {
+        "host": "database-schema.md",
+        "at": {
+          "line": 64,
+          "text": "- 💾 **[Database Schema](docs/database-schema.md)**: SQLite table structures, indexes, and Merkle audit ledger."
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 5,
+          "text": "[![CI](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/@putervision/behavior-mcp.svg)](https://www.npmjs.com/package/@putervision/behavior-mcp)"
+        }
+      },
+      {
+        "host": "index.html",
+        "at": {
+          "line": 13,
+          "text": "🌐 **Official Documentation**: [putervision.com](https://putervision.com) • [Interactive Web Docs](docs/index.html)"
+        }
+      },
+      {
+        "host": "license-mit-blue.svg",
+        "at": {
+          "line": 7,
+          "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)"
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 71,
+          "text": "Add to `.cursor/mcp.json` or `.vscode/mcp.json`:"
+        }
+      },
+      {
+        "host": "nodejs.org",
+        "at": {
+          "line": 6,
+          "text": "[![Node](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)"
+        }
+      },
+      {
+        "host": "opensource.org",
+        "at": {
+          "line": 7,
+          "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)"
+        }
+      },
+      {
+        "host": "putervision.com",
+        "at": {
+          "line": 13,
+          "text": "🌐 **Official Documentation**: [putervision.com](https://putervision.com) • [Interactive Web Docs](docs/index.html)"
+        }
+      },
+      {
+        "host": "version-0.4.1-blue.svg",
+        "at": {
+          "line": 4,
+          "text": "[![version](https://img.shields.io/badge/version-0.4.1-blue.svg)](./CHANGELOG.md)"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 3,
+          "text": "[![npm version](https://img.shields.io/npm/v/@putervision/behavior-mcp.svg)](https://www.npmjs.com/package/@putervision/behavior-mcp)"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "abort_behavior",
+        "at": {
+          "line": 39,
+          "text": "| `abort_behavior` | `abort`, `pause`, `resume` | Halt, pause, or resume behavior execution safely |"
+        }
+      },
+      {
+        "name": "get_metrics",
+        "at": {
+          "line": 42,
+          "text": "| `get_metrics` | `current`, `history` | Retrieve runtime telemetry, tick durations, and stuck events |"
+        }
+      },
+      {
+        "name": "get_status",
+        "at": {
+          "line": 38,
+          "text": "| `get_status` | `current`, `history`, `tree_state` | Query active status, node traversal path, tick count, duration |"
+        }
+      },
+      {
+        "name": "load_behavior",
+        "at": {
+          "line": 36,
+          "text": "| `load_behavior` | `load`, `unload`, `swap` | Inject, initialize, or hot-swap a behavior tree in browser runtime |"
+        }
+      },
+      {
+        "name": "manage_behaviors",
+        "at": {
+          "line": 43,
+          "text": "| `manage_behaviors` | `register`, `get`, `list` | CRUD for immutable behavior tree JSON with SHA-256 tree hashes |"
+        }
+      },
+      {
+        "name": "manage_blackboard",
+        "at": {
+          "line": 44,
+          "text": "| `manage_blackboard` | `get`, `set` | Read, write, or query shared behavior tree blackboard variables |"
+        }
+      },
+      {
+        "name": "manage_runtime_db",
+        "at": {
+          "line": 45,
+          "text": "| `manage_runtime_db` | `stats`, `audit`, `snapshot`, `restore` | SQLite diagnostics, SHA-256 Merkle audit, and checkpoint rollback |"
+        }
+      },
+      {
+        "name": "register_trigger",
+        "at": {
+          "line": 40,
+          "text": "| `register_trigger` | `register`, `list` | Configure reactive interrupt triggers with priority preemption |"
+        }
+      },
+      {
+        "name": "replay_recording",
+        "at": {
+          "line": 41,
+          "text": "| `replay_recording` | `capture`, `list` | Capture or inspect deterministic browser action sequences |"
+        }
+      },
+      {
+        "name": "semantic_check",
+        "at": {
+          "line": 52,
+          "text": "2. **60Hz Tick Invariant & Synchronous `semantic_check`**: The loop never blocks on external network calls; semantic condition checks resolve synchronously against blackboard caches."
+        }
+      },
+      {
+        "name": "set_parameters",
+        "at": {
+          "line": 37,
+          "text": "| `set_parameters` | `set`, `get`, `reset` | Dynamically update or query runtime execution parameters |"
+        }
+      },
+      {
+        "name": "tree_state",
+        "at": {
+          "line": 38,
+          "text": "| `get_status` | `current`, `history`, `tree_state` | Query active status, node traversal path, tick count, duration |"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "io.github.putervision/behavior-mcp",
+    "version": "0.4.1"
+  },
+  "observed": {
+    "offered": [
+      "abort_behavior",
+      "get_metrics",
+      "get_status",
+      "load_behavior",
+      "manage_behaviors",
+      "manage_blackboard",
+      "manage_runtime_db",
+      "register_trigger",
+      "replay_recording",
+      "set_parameters"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "behavior-mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "abort_behavior",
+          "at": {
+            "line": 39,
+            "text": "| `abort_behavior` | `abort`, `pause`, `resume` | Halt, pause, or resume behavior execution safely |"
+          }
+        },
+        {
+          "name": "get_metrics",
+          "at": {
+            "line": 42,
+            "text": "| `get_metrics` | `current`, `history` | Retrieve runtime telemetry, tick durations, and stuck events |"
+          }
+        },
+        {
+          "name": "get_status",
+          "at": {
+            "line": 38,
+            "text": "| `get_status` | `current`, `history`, `tree_state` | Query active status, node traversal path, tick count, duration |"
+          }
+        },
+        {
+          "name": "load_behavior",
+          "at": {
+            "line": 36,
+            "text": "| `load_behavior` | `load`, `unload`, `swap` | Inject, initialize, or hot-swap a behavior tree in browser runtime |"
+          }
+        },
+        {
+          "name": "manage_behaviors",
+          "at": {
+            "line": 43,
+            "text": "| `manage_behaviors` | `register`, `get`, `list` | CRUD for immutable behavior tree JSON with SHA-256 tree hashes |"
+          }
+        },
+        {
+          "name": "manage_blackboard",
+          "at": {
+            "line": 44,
+            "text": "| `manage_blackboard` | `get`, `set` | Read, write, or query shared behavior tree blackboard variables |"
+          }
+        },
+        {
+          "name": "manage_runtime_db",
+          "at": {
+            "line": 45,
+            "text": "| `manage_runtime_db` | `stats`, `audit`, `snapshot`, `restore` | SQLite diagnostics, SHA-256 Merkle audit, and checkpoint rollback |"
+          }
+        },
+        {
+          "name": "register_trigger",
+          "at": {
+            "line": 40,
+            "text": "| `register_trigger` | `register`, `list` | Configure reactive interrupt triggers with priority preemption |"
+          }
+        },
+        {
+          "name": "replay_recording",
+          "at": {
+            "line": 41,
+            "text": "| `replay_recording` | `capture`, `list` | Capture or inspect deterministic browser action sequences |"
+          }
+        },
+        {
+          "name": "set_parameters",
+          "at": {
+            "line": 37,
+            "text": "| `set_parameters` | `set`, `get`, `reset` | Dynamically update or query runtime execution parameters |"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "3d20.0.0-brightgreen.svg",
+          "at": {
+            "line": 6,
+            "text": "[![Node](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)"
+          }
+        },
+        {
+          "host": "api-reference.md",
+          "at": {
+            "line": 61,
+            "text": "- 📖 **[Formal API Reference](docs/api-reference.md)**: Full parameter tables, type definitions, and tool schemas."
+          }
+        },
+        {
+          "host": "badge.svg",
+          "at": {
+            "line": 5,
+            "text": "[![CI](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "behavior-mcp.json",
+          "at": {
+            "line": 65,
+            "text": "- ⚙️ **[Configuration Reference](docs/configuration.md)**: `.behavior-mcp.json` parameters and environment variables."
+          }
+        },
+        {
+          "host": "behavior-mcp.svg",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/@putervision/behavior-mcp.svg)](https://www.npmjs.com/package/@putervision/behavior-mcp)"
+          }
+        },
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 4,
+            "text": "[![version](https://img.shields.io/badge/version-0.4.1-blue.svg)](./CHANGELOG.md)"
+          }
+        },
+        {
+          "host": "ci.yml",
+          "at": {
+            "line": 5,
+            "text": "[![CI](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "cli-usage.md",
+          "at": {
+            "line": 63,
+            "text": "- 🖥️ **[CLI Usage Guide](docs/cli-usage.md)**: Complete CLI command reference (`init`, `doctor`, `inspect`, `run`)."
+          }
+        },
+        {
+          "host": "concepts.md",
+          "at": {
+            "line": 62,
+            "text": "- 💡 **[Core Architecture & Concepts](docs/concepts.md)**: Behavior tree execution model, ~60Hz loop, and trigger lifecycle."
+          }
+        },
+        {
+          "host": "configuration.md",
+          "at": {
+            "line": 65,
+            "text": "- ⚙️ **[Configuration Reference](docs/configuration.md)**: `.behavior-mcp.json` parameters and environment variables."
+          }
+        },
+        {
+          "host": "database-schema.md",
+          "at": {
+            "line": 64,
+            "text": "- 💾 **[Database Schema](docs/database-schema.md)**: SQLite table structures, indexes, and Merkle audit ledger."
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 5,
+            "text": "[![CI](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/putervision/behavior-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/@putervision/behavior-mcp.svg)](https://www.npmjs.com/package/@putervision/behavior-mcp)"
+          }
+        },
+        {
+          "host": "index.html",
+          "at": {
+            "line": 13,
+            "text": "🌐 **Official Documentation**: [putervision.com](https://putervision.com) • [Interactive Web Docs](docs/index.html)"
+          }
+        },
+        {
+          "host": "license-mit-blue.svg",
+          "at": {
+            "line": 7,
+            "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)"
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 71,
+            "text": "Add to `.cursor/mcp.json` or `.vscode/mcp.json`:"
+          }
+        },
+        {
+          "host": "nodejs.org",
+          "at": {
+            "line": 6,
+            "text": "[![Node](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)"
+          }
+        },
+        {
+          "host": "opensource.org",
+          "at": {
+            "line": 7,
+            "text": "[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)"
+          }
+        },
+        {
+          "host": "putervision.com",
+          "at": {
+            "line": 13,
+            "text": "🌐 **Official Documentation**: [putervision.com](https://putervision.com) • [Interactive Web Docs](docs/index.html)"
+          }
+        },
+        {
+          "host": "version-0.4.1-blue.svg",
+          "at": {
+            "line": 4,
+            "text": "[![version](https://img.shields.io/badge/version-0.4.1-blue.svg)](./CHANGELOG.md)"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 3,
+            "text": "[![npm version](https://img.shields.io/npm/v/@putervision/behavior-mcp.svg)](https://www.npmjs.com/package/@putervision/behavior-mcp)"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @putervision/behavior-mcp@0.4.1",
+        "integrity sha512-8LzYcU7Vn4ZJePb+3ft3F/oC3h4j9lAGiWQ7QqZWMOJhz7ghkW7YoDBF3wcVpxSL7nbxexZMiLDW43dp0kjq6g==",
+        "tarball https://registry.npmjs.org/@putervision/behavior-mcp/-/behavior-mcp-0.4.1.tgz"
+      ]
+    }
+  ]
+}

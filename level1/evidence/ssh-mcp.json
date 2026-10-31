@@ -1,0 +1,829 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "ssh-mcp@2.22.0",
+  "measuredAt": "2026-10-31T14:24:20.365Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "ssh-mcp",
+  "package": {
+    "name": "ssh-mcp",
+    "version": "2.22.0",
+    "tarball": "https://registry.npmjs.org/ssh-mcp/-/ssh-mcp-2.22.0.tgz",
+    "integrity": "sha512-0Pn9B7T1S9VzOEiqXsn9Z+IIv4kRifgxVFS01iZN5YcOOjIlvNI3ObsF+pVyi4FJpsfcp8U1z8E2ooO3eqDT0w==",
+    "repository": "git+https://github.com/tufantunc/ssh-mcp.git",
+    "homepage": "https://github.com/tufantunc/ssh-mcp#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "1a91abd35f58a1879a34fb31b221793dcc9f81fc7307299a55463f31ba14cfcf",
+    "lines": 1195,
+    "bytes": 61899
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "api.scorecard.dev",
+        "at": {
+          "line": 6,
+          "text": "[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/tufantunc/ssh-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/tufantunc/ssh-mcp)"
+        }
+      },
+      {
+        "host": "badge.svg",
+        "at": {
+          "line": 5,
+          "text": "[![CI](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "bastion.example.com",
+        "at": {
+          "line": 399,
+          "text": "host = \"bastion.example.com\""
+        }
+      },
+      {
+        "host": "builder.id",
+        "at": {
+          "line": 915,
+          "text": "`builder.id` is `https://github.com/actions/runner/github-hosted` — which the build itself"
+        }
+      },
+      {
+        "host": "cert.pub",
+        "at": {
+          "line": 428,
+          "text": "The certificate file is auto-detected using OpenSSH convention (`keyRef` + `-cert.pub`, e.g. `~/.ssh/id_ed25519-cert.pub`). You can override the path with `SSH_MCP_<NAME>_CERT` env var. The cert is co…"
+        }
+      },
+      {
+        "host": "ci.yml",
+        "at": {
+          "line": 5,
+          "text": "[![CI](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "cmd.exe",
+        "at": {
+          "line": 278,
+          "text": "trailer — none of which exist in `cmd.exe`, the default shell for Windows"
+        }
+      },
+      {
+        "host": "codecov.io",
+        "at": {
+          "line": 8,
+          "text": "[![codecov](https://codecov.io/gh/tufantunc/ssh-mcp/graph/badge.svg?branch=main)](https://codecov.io/gh/tufantunc/ssh-mcp)"
+        }
+      },
+      {
+        "host": "config.toml",
+        "at": {
+          "line": 39,
+          "text": "| Linux | `~/.config/ssh-mcp/config.toml` (or `$XDG_CONFIG_HOME/ssh-mcp/config.toml`) |"
+        }
+      },
+      {
+        "host": "contributing.md",
+        "at": {
+          "line": 1184,
+          "text": "See [CONTRIBUTING.md](./CONTRIBUTING.md). Please follow the [security checklist](./SECURITY.md#security-checklist-for-contributors) in all PRs."
+        }
+      },
+      {
+        "host": "cyclonedx.org",
+        "at": {
+          "line": 892,
+          "text": "| SBOM — CycloneDX and SPDX | `cyclonedx.org/bom`, `spdx.dev/Document` | GitHub | releases after v2.4.0 |"
+        }
+      },
+      {
+        "host": "db.internal",
+        "at": {
+          "line": 421,
+          "text": "host = \"db.internal\""
+        }
+      },
+      {
+        "host": "defaults.transferroot",
+        "at": {
+          "line": 199,
+          "text": "The two transfer tools are **off until you configure `defaults.transferRoot`**,"
+        }
+      },
+      {
+        "host": "docs.npmjs.com",
+        "at": {
+          "line": 894,
+          "text": "Provenance comes from npm [trusted publishing](https://docs.npmjs.com/trusted-publishers):"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 5,
+          "text": "[![CI](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml)"
+        }
+      },
+      {
+        "host": "glama.ai",
+        "at": {
+          "line": 1192,
+          "text": "[![SSH MCP Server on Glama](https://glama.ai/mcp/servers/tufantunc/ssh-mcp/badge)](https://glama.ai/mcp/servers/tufantunc/ssh-mcp)"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 3,
+          "text": "[![NPM Version](https://img.shields.io/npm/v/ssh-mcp)](https://www.npmjs.com/package/ssh-mcp)"
+        }
+      },
+      {
+        "host": "input.action.commandclass",
+        "at": {
+          "line": 870,
+          "text": "input.action.commandClass == \"destructive\""
+        }
+      },
+      {
+        "host": "input.subject.profile",
+        "at": {
+          "line": 865,
+          "text": "startswith(input.subject.profile, \"dev\")"
+        }
+      },
+      {
+        "host": "input.subject.role",
+        "at": {
+          "line": 864,
+          "text": "input.subject.role == \"admin\""
+        }
+      },
+      {
+        "host": "io.github.tufantunc",
+        "at": {
+          "line": 1194,
+          "text": "Also on the [official MCP registry](https://registry.modelcontextprotocol.io) as `io.github.tufantunc/ssh-mcp`."
+        }
+      },
+      {
+        "host": "keyref-cert.pub",
+        "at": {
+          "line": 324,
+          "text": "cert = false                        # SSH CA cert auth — auto-detects keyRef-cert.pub"
+        }
+      },
+      {
+        "host": "policy.rolebindings",
+        "at": {
+          "line": 346,
+          "text": "and tier names: every one you write under `[policy.roleBindings]` has to be"
+        }
+      },
+      {
+        "host": "policy.rolebindings.admin",
+        "at": {
+          "line": 599,
+          "text": "[policy.roleBindings.admin]"
+        }
+      },
+      {
+        "host": "policy.rolebindings.operater",
+        "at": {
+          "line": 681,
+          "text": "`[policy.roleBindings.operater]` cannot merge in as a fourth role while the"
+        }
+      },
+      {
+        "host": "policy.rolebindings.operator",
+        "at": {
+          "line": 340,
+          "text": "[policy.roleBindings.operator]"
+        }
+      },
+      {
+        "host": "reader-grammar.ts",
+        "at": {
+          "line": 712,
+          "text": "(`src/policy/reader-grammar.ts`); an option the grammar does not list, an abbreviation of one"
+        }
+      },
+      {
+        "host": "registry.modelcontextprotocol.io",
+        "at": {
+          "line": 1194,
+          "text": "Also on the [official MCP registry](https://registry.modelcontextprotocol.io) as `io.github.tufantunc/ssh-mcp`."
+        }
+      },
+      {
+        "host": "rmlist.txt",
+        "at": {
+          "line": 663,
+          "text": "called `rmlist.txt`."
+        }
+      },
+      {
+        "host": "scorecard.dev",
+        "at": {
+          "line": 6,
+          "text": "[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/tufantunc/ssh-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/tufantunc/ssh-mcp)"
+        }
+      },
+      {
+        "host": "security.md",
+        "at": {
+          "line": 14,
+          "text": "…oes not remove the risk. Two things stay yours: **never point it at a root account**, and **never set `auto` approval on a production profile**. [SECURITY.md](./SECURITY.md) has the full threat model."
+        }
+      },
+      {
+        "host": "simonwillison.net",
+        "at": {
+          "line": 14,
+          "text": "…rivate data, untrusted input and network egress in one place — Simon Willison's [\"lethal trifecta\"](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/). Prompt injection has no general fix, so…"
+        }
+      },
+      {
+        "host": "slsa.dev",
+        "at": {
+          "line": 891,
+          "text": "| Build provenance — [SLSA](https://slsa.dev/) Build **Level 2** | `slsa.dev/provenance/v1` | npm | every release |"
+        }
+      },
+      {
+        "host": "spdx.dev",
+        "at": {
+          "line": 892,
+          "text": "| SBOM — CycloneDX and SPDX | `cyclonedx.org/bom`, `spdx.dev/Document` | GitHub | releases after v2.4.0 |"
+        }
+      },
+      {
+        "host": "ssh-mcp.rego",
+        "at": {
+          "line": 855,
+          "text": "Example Rego policy (`ssh-mcp.rego`):"
+        }
+      },
+      {
+        "host": "ssh.mcp",
+        "at": {
+          "line": 857,
+          "text": "package ssh.mcp"
+        }
+      },
+      {
+        "host": "to.toml",
+        "at": {
+          "line": 954,
+          "text": "ssh-mcp --config=/path/to.toml   # custom config path"
+        }
+      },
+      {
+        "host": "www.bestpractices.dev",
+        "at": {
+          "line": 7,
+          "text": "[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15082/badge)](https://www.bestpractices.dev/projects/15082)"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 3,
+          "text": "[![NPM Version](https://img.shields.io/npm/v/ssh-mcp)](https://www.npmjs.com/package/ssh-mcp)"
+        }
+      },
+      {
+        "host": "www.sigstore.dev",
+        "at": {
+          "line": 885,
+          "text": "Releases carry signed attestations, published through [Sigstore](https://www.sigstore.dev/)"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "authorized_keys",
+        "at": {
+          "line": 190,
+          "text": "path, such as `authorized_keys$`, therefore does not depend on where the string"
+        }
+      },
+      {
+        "name": "id_ed25519",
+        "at": {
+          "line": 428,
+          "text": "The certificate file is auto-detected using OpenSSH convention (`keyRef` + `-cert.pub`, e.g. `~/.ssh/id_ed25519-cert.pub`). You can override the path with `SSH_MCP_<NAME>_CERT` env var. The cert is co…"
+        }
+      },
+      {
+        "name": "known_hosts",
+        "at": {
+          "line": 1147,
+          "text": "process fails the connection. Nothing is written to disk and `~/.ssh/known_hosts`"
+        }
+      },
+      {
+        "name": "sshd_config",
+        "at": {
+          "line": 367,
+          "text": "`AcceptEnv AI_AGENT` in `sshd_config`. Without that line sshd ignores it and the"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "SSH MCP Server",
+    "version": "2.22.0"
+  },
+  "observed": {
+    "offered": [
+      "close-session",
+      "list-connections",
+      "list-sessions",
+      "open-session",
+      "privileged-command",
+      "read-command",
+      "read-session-output",
+      "reload-config",
+      "run-command",
+      "sftp-download",
+      "sftp-download-file",
+      "sftp-list",
+      "sftp-upload",
+      "sftp-upload-file",
+      "signal-process"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "setpriv",
+      "ssh-mcp"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "close-session",
+          "at": {
+            "line": 156,
+            "text": "| `close-session` | Close a session. A background session's command is signalled (INT/TERM/KILL) before its channel is dropped | — | ✅ |"
+          }
+        },
+        {
+          "name": "list-connections",
+          "at": {
+            "line": 153,
+            "text": "| `list-connections` | Discover available hosts and connection status | ✅ | — |"
+          }
+        },
+        {
+          "name": "list-sessions",
+          "at": {
+            "line": 154,
+            "text": "| `list-sessions` | List active sessions per host | ✅ | — |"
+          }
+        },
+        {
+          "name": "open-session",
+          "at": {
+            "line": 155,
+            "text": "| `open-session` | Create a named interactive (stateful) or background session | — | — |"
+          }
+        },
+        {
+          "name": "privileged-command",
+          "at": {
+            "line": 160,
+            "text": "| `privileged-command` | Execute with sudo (needs approval, unless `approvalPolicy = \"auto\"`) | — | ✅ |"
+          }
+        },
+        {
+          "name": "read-command",
+          "at": {
+            "line": 158,
+            "text": "| `read-command` | Execute allowlisted read-only commands (`ls`, `cat`, `grep`, ...) | ✅ | — |"
+          }
+        },
+        {
+          "name": "read-session-output",
+          "at": {
+            "line": 157,
+            "text": "| `read-session-output` | Read output from background sessions (e.g., `tail -f`) | ✅ | — |"
+          }
+        },
+        {
+          "name": "reload-config",
+          "at": {
+            "line": 31,
+            "text": "one exception is `reload-config`: write the file, then call it with `action: \"reload\"` (or"
+          }
+        },
+        {
+          "name": "run-command",
+          "at": {
+            "line": 159,
+            "text": "| `run-command` | Execute arbitrary commands (destructive/privileged need approval, unless `approvalPolicy = \"auto\"`) | — | — |"
+          }
+        },
+        {
+          "name": "sftp-download",
+          "at": {
+            "line": 162,
+            "text": "| `sftp-download` | Download a file via SFTP | ✅ | — |"
+          }
+        },
+        {
+          "name": "sftp-download-file",
+          "at": {
+            "line": 165,
+            "text": "| `sftp-download-file` | Stream a remote file to local disk, never through model context | — | ✅ |"
+          }
+        },
+        {
+          "name": "sftp-list",
+          "at": {
+            "line": 163,
+            "text": "| `sftp-list` | List a remote directory, bounded in entries and bytes | ✅ | — |"
+          }
+        },
+        {
+          "name": "sftp-upload",
+          "at": {
+            "line": 161,
+            "text": "| `sftp-upload` | Upload a file via SFTP (replaces the destination unconditionally) | — | ✅ |"
+          }
+        },
+        {
+          "name": "sftp-upload-file",
+          "at": {
+            "line": 164,
+            "text": "| `sftp-upload-file` | Stream a local file to the remote host, never through model context | — | ✅ |"
+          }
+        },
+        {
+          "name": "signal-process",
+          "at": {
+            "line": 166,
+            "text": "| `signal-process` | Send INT/TERM/KILL to a remote PID | — | ✅ |"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "api.scorecard.dev",
+          "at": {
+            "line": 6,
+            "text": "[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/tufantunc/ssh-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/tufantunc/ssh-mcp)"
+          }
+        },
+        {
+          "host": "badge.svg",
+          "at": {
+            "line": 5,
+            "text": "[![CI](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "bastion.example.com",
+          "at": {
+            "line": 399,
+            "text": "host = \"bastion.example.com\""
+          }
+        },
+        {
+          "host": "builder.id",
+          "at": {
+            "line": 915,
+            "text": "`builder.id` is `https://github.com/actions/runner/github-hosted` — which the build itself"
+          }
+        },
+        {
+          "host": "cert.pub",
+          "at": {
+            "line": 428,
+            "text": "The certificate file is auto-detected using OpenSSH convention (`keyRef` + `-cert.pub`, e.g. `~/.ssh/id_ed25519-cert.pub`). You can override the path with `SSH_MCP_<NAME>_CERT` env var. The cert is co…"
+          }
+        },
+        {
+          "host": "ci.yml",
+          "at": {
+            "line": 5,
+            "text": "[![CI](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "cmd.exe",
+          "at": {
+            "line": 278,
+            "text": "trailer — none of which exist in `cmd.exe`, the default shell for Windows"
+          }
+        },
+        {
+          "host": "codecov.io",
+          "at": {
+            "line": 8,
+            "text": "[![codecov](https://codecov.io/gh/tufantunc/ssh-mcp/graph/badge.svg?branch=main)](https://codecov.io/gh/tufantunc/ssh-mcp)"
+          }
+        },
+        {
+          "host": "config.toml",
+          "at": {
+            "line": 39,
+            "text": "| Linux | `~/.config/ssh-mcp/config.toml` (or `$XDG_CONFIG_HOME/ssh-mcp/config.toml`) |"
+          }
+        },
+        {
+          "host": "contributing.md",
+          "at": {
+            "line": 1184,
+            "text": "See [CONTRIBUTING.md](./CONTRIBUTING.md). Please follow the [security checklist](./SECURITY.md#security-checklist-for-contributors) in all PRs."
+          }
+        },
+        {
+          "host": "cyclonedx.org",
+          "at": {
+            "line": 892,
+            "text": "| SBOM — CycloneDX and SPDX | `cyclonedx.org/bom`, `spdx.dev/Document` | GitHub | releases after v2.4.0 |"
+          }
+        },
+        {
+          "host": "db.internal",
+          "at": {
+            "line": 421,
+            "text": "host = \"db.internal\""
+          }
+        },
+        {
+          "host": "defaults.transferroot",
+          "at": {
+            "line": 199,
+            "text": "The two transfer tools are **off until you configure `defaults.transferRoot`**,"
+          }
+        },
+        {
+          "host": "docs.npmjs.com",
+          "at": {
+            "line": 894,
+            "text": "Provenance comes from npm [trusted publishing](https://docs.npmjs.com/trusted-publishers):"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 5,
+            "text": "[![CI](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tufantunc/ssh-mcp/actions/workflows/ci.yml)"
+          }
+        },
+        {
+          "host": "glama.ai",
+          "at": {
+            "line": 1192,
+            "text": "[![SSH MCP Server on Glama](https://glama.ai/mcp/servers/tufantunc/ssh-mcp/badge)](https://glama.ai/mcp/servers/tufantunc/ssh-mcp)"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 3,
+            "text": "[![NPM Version](https://img.shields.io/npm/v/ssh-mcp)](https://www.npmjs.com/package/ssh-mcp)"
+          }
+        },
+        {
+          "host": "input.action.commandclass",
+          "at": {
+            "line": 870,
+            "text": "input.action.commandClass == \"destructive\""
+          }
+        },
+        {
+          "host": "input.subject.profile",
+          "at": {
+            "line": 865,
+            "text": "startswith(input.subject.profile, \"dev\")"
+          }
+        },
+        {
+          "host": "input.subject.role",
+          "at": {
+            "line": 864,
+            "text": "input.subject.role == \"admin\""
+          }
+        },
+        {
+          "host": "io.github.tufantunc",
+          "at": {
+            "line": 1194,
+            "text": "Also on the [official MCP registry](https://registry.modelcontextprotocol.io) as `io.github.tufantunc/ssh-mcp`."
+          }
+        },
+        {
+          "host": "keyref-cert.pub",
+          "at": {
+            "line": 324,
+            "text": "cert = false                        # SSH CA cert auth — auto-detects keyRef-cert.pub"
+          }
+        },
+        {
+          "host": "policy.rolebindings",
+          "at": {
+            "line": 346,
+            "text": "and tier names: every one you write under `[policy.roleBindings]` has to be"
+          }
+        },
+        {
+          "host": "policy.rolebindings.admin",
+          "at": {
+            "line": 599,
+            "text": "[policy.roleBindings.admin]"
+          }
+        },
+        {
+          "host": "policy.rolebindings.operater",
+          "at": {
+            "line": 681,
+            "text": "`[policy.roleBindings.operater]` cannot merge in as a fourth role while the"
+          }
+        },
+        {
+          "host": "policy.rolebindings.operator",
+          "at": {
+            "line": 340,
+            "text": "[policy.roleBindings.operator]"
+          }
+        },
+        {
+          "host": "reader-grammar.ts",
+          "at": {
+            "line": 712,
+            "text": "(`src/policy/reader-grammar.ts`); an option the grammar does not list, an abbreviation of one"
+          }
+        },
+        {
+          "host": "registry.modelcontextprotocol.io",
+          "at": {
+            "line": 1194,
+            "text": "Also on the [official MCP registry](https://registry.modelcontextprotocol.io) as `io.github.tufantunc/ssh-mcp`."
+          }
+        },
+        {
+          "host": "rmlist.txt",
+          "at": {
+            "line": 663,
+            "text": "called `rmlist.txt`."
+          }
+        },
+        {
+          "host": "scorecard.dev",
+          "at": {
+            "line": 6,
+            "text": "[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/tufantunc/ssh-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/tufantunc/ssh-mcp)"
+          }
+        },
+        {
+          "host": "security.md",
+          "at": {
+            "line": 14,
+            "text": "…oes not remove the risk. Two things stay yours: **never point it at a root account**, and **never set `auto` approval on a production profile**. [SECURITY.md](./SECURITY.md) has the full threat model."
+          }
+        },
+        {
+          "host": "simonwillison.net",
+          "at": {
+            "line": 14,
+            "text": "…rivate data, untrusted input and network egress in one place — Simon Willison's [\"lethal trifecta\"](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/). Prompt injection has no general fix, so…"
+          }
+        },
+        {
+          "host": "slsa.dev",
+          "at": {
+            "line": 891,
+            "text": "| Build provenance — [SLSA](https://slsa.dev/) Build **Level 2** | `slsa.dev/provenance/v1` | npm | every release |"
+          }
+        },
+        {
+          "host": "spdx.dev",
+          "at": {
+            "line": 892,
+            "text": "| SBOM — CycloneDX and SPDX | `cyclonedx.org/bom`, `spdx.dev/Document` | GitHub | releases after v2.4.0 |"
+          }
+        },
+        {
+          "host": "ssh-mcp.rego",
+          "at": {
+            "line": 855,
+            "text": "Example Rego policy (`ssh-mcp.rego`):"
+          }
+        },
+        {
+          "host": "ssh.mcp",
+          "at": {
+            "line": 857,
+            "text": "package ssh.mcp"
+          }
+        },
+        {
+          "host": "to.toml",
+          "at": {
+            "line": 954,
+            "text": "ssh-mcp --config=/path/to.toml   # custom config path"
+          }
+        },
+        {
+          "host": "www.bestpractices.dev",
+          "at": {
+            "line": 7,
+            "text": "[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15082/badge)](https://www.bestpractices.dev/projects/15082)"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 3,
+            "text": "[![NPM Version](https://img.shields.io/npm/v/ssh-mcp)](https://www.npmjs.com/package/ssh-mcp)"
+          }
+        },
+        {
+          "host": "www.sigstore.dev",
+          "at": {
+            "line": 885,
+            "text": "Releases carry signed attestations, published through [Sigstore](https://www.sigstore.dev/)"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm ssh-mcp@2.22.0",
+        "integrity sha512-0Pn9B7T1S9VzOEiqXsn9Z+IIv4kRifgxVFS01iZN5YcOOjIlvNI3ObsF+pVyi4FJpsfcp8U1z8E2ooO3eqDT0w==",
+        "tarball https://registry.npmjs.org/ssh-mcp/-/ssh-mcp-2.22.0.tgz"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,480 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@mui/mcp@0.1.9",
+  "measuredAt": "2026-10-31T14:01:47.313Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "mui--mcp",
+  "package": {
+    "name": "@mui/mcp",
+    "version": "0.1.9",
+    "tarball": "https://registry.npmjs.org/@mui/mcp/-/mcp-0.1.9.tgz",
+    "integrity": "sha512-PSXLDW5dLaSxaA5OVD4BDB6bPLYDGyYsWfIfKYox/vbDgeFayce5Id8dZrHKL9FB3p3O0cXkbJegWdIGEga/dQ==",
+    "repository": "git+https://github.com/mui/mui-x.git",
+    "homepage": "https://github.com/mui/mui-x/tree/master/packages/mcp#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "06565e72d057fec9125b3da5b3089efb8b86eb39593754adfaa0e1a5bf918de0",
+    "lines": 195,
+    "bytes": 11629
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "api.mui.com",
+        "at": {
+          "line": 35,
+          "text": "- `MUI_BACKEND_BASE_URL` (optional, default `https://api.mui.com`): mui-backend base URL (where API-key → JWT exchange happens). Override for local dev, typically `http://localhost:5002`."
+        }
+      },
+      {
+        "host": "app.tsx",
+        "at": {
+          "line": 141,
+          "text": "- `App.tsx` **is usually discarded or replaced.** The MCP emits an entry-file wrapper alongside the component. Host agents drop it when the project already has a host shell (Next.js page, Vite `main.t…"
+        }
+      },
+      {
+        "host": "chat-backend.mui.com",
+        "at": {
+          "line": 33,
+          "text": "- `MUI_DOCS_BASE_URL` (optional, default `https://chat-backend.mui.com`): docs-catalog API base URL. Override when developing against a local backend."
+        }
+      },
+      {
+        "host": "claude.json",
+        "at": {
+          "line": 49,
+          "text": "…separator is required when passing env vars. Verify with `claude mcp list`; remove with `claude mcp remove mui-local`. Writes to your personal `~/.claude.json`, never to the repo's shared `.mcp.json`."
+        }
+      },
+      {
+        "host": "claude.md",
+        "at": {
+          "line": 125,
+          "text": "…ead of the MCP, even on prompts that are clearly about Material UI. To nudge selection in your project, drop the following into your repo's `CLAUDE.md` (or your host's equivalent project-config file):"
+        }
+      },
+      {
+        "host": "console.mui.com",
+        "at": {
+          "line": 34,
+          "text": "- `MUI_RECIPES_API_KEY` (required for `generateReactCode`): API key created at console.mui.com/products/recipes/api-keys. The server exchanges it for a short-lived JWT on the first call and caches the…"
+        }
+      },
+      {
+        "host": "contact-form.tsx",
+        "at": {
+          "line": 142,
+          "text": "- **Component filenames get renamed to match project conventions.** `components/ContactForm.tsx` may become `contact-form.tsx`; PascalCase may become kebab-case. The `filename` we emit is advisory."
+        }
+      },
+      {
+        "host": "contactform.tsx",
+        "at": {
+          "line": 142,
+          "text": "- **Component filenames get renamed to match project conventions.** `components/ContactForm.tsx` may become `contact-form.tsx`; PascalCase may become kebab-case. The `filename` we emit is advisory."
+        }
+      },
+      {
+        "host": "handler.ts",
+        "at": {
+          "line": 167,
+          "text": "│   │   ├── handler.ts      # adapts the docs tools to MCP handlers"
+        }
+      },
+      {
+        "host": "llms.txt",
+        "at": {
+          "line": 9,
+          "text": "…ies) for one or more MUI packages (for example `@mui/material`, `@mui/x-data-grid`). Each source is an llms.txt URL or a bare package name. Agents typically use this first to find the right docs page."
+        }
+      },
+      {
+        "host": "main.tsx",
+        "at": {
+          "line": 141,
+          "text": "…carded or replaced.** The MCP emits an entry-file wrapper alongside the component. Host agents drop it when the project already has a host shell (Next.js page, Vite `main.tsx`, Storybook story, etc.)."
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 49,
+          "text": "…separator is required when passing env vars. Verify with `claude mcp list`; remove with `claude mcp remove mui-local`. Writes to your personal `~/.claude.json`, never to the repo's shared `.mcp.json`."
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 3,
+          "text": "MUI's [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server. Exposes MUI documentation and code-generation tools to any MCP-capable AI client (Claude Code, Cursor, Zed, Continue, etc…"
+        }
+      },
+      {
+        "host": "next.js",
+        "at": {
+          "line": 141,
+          "text": "…carded or replaced.** The MCP emits an entry-file wrapper alongside the component. Host agents drop it when the project already has a host shell (Next.js page, Vite `main.tsx`, Storybook story, etc.)."
+        }
+      },
+      {
+        "host": "package.json",
+        "at": {
+          "line": 102,
+          "text": "… should detect and pass** `muiPairing` **for projects pinned to older majors.** Read the project's `package.json`, look at `@mui/material` and `@mui/x-data-grid` ranges, and forward the matching pair.…"
+        }
+      },
+      {
+        "host": "progress.ts",
+        "at": {
+          "line": 171,
+          "text": "│       ├── progress.ts     # forwards codegen progress as MCP notifications"
+        }
+      },
+      {
+        "host": "recipes.mui.com",
+        "at": {
+          "line": 91,
+          "text": "`generateReactCode` accepts a `muiPairing` field to target a specific MUI / MUI X major. The shape mirrors the version picker on recipes.mui.com:"
+        }
+      },
+      {
+        "host": "register.ts",
+        "at": {
+          "line": 168,
+          "text": "│   │   └── register.ts     # builds + registers useMuiDocs / fetchDocs"
+        }
+      },
+      {
+        "host": "stdio.js",
+        "at": {
+          "line": 17,
+          "text": "pnpm --filter @mui/mcp build:local    # builds @mui/x-agent-tools first, then @mui/mcp -> build/stdio.js"
+        }
+      },
+      {
+        "host": "stdio.ts",
+        "at": {
+          "line": 164,
+          "text": "│   ├── stdio.ts            # entry: builds the server and registers the tools"
+        }
+      },
+      {
+        "host": "tsconfig.json",
+        "at": {
+          "line": 175,
+          "text": "└── tsconfig.json"
+        }
+      },
+      {
+        "host": "version.ts",
+        "at": {
+          "line": 165,
+          "text": "│   ├── version.ts          # reads the package version (works in the flat published layout)"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 182,
+          "text": "Published to npm as [@mui/mcp](https://www.npmjs.com/package/@mui/mcp). End users consume it via `npx` (no local build), pointing at the published version:"
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "claude_desktop_config",
+        "at": {
+          "line": 60,
+          "text": "Edit the client's config file (`~/Library/Application Support/Claude/claude_desktop_config.json` for Claude Desktop, `~/.cursor/mcp.json` for Cursor, etc.):"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "mui-mcp",
+    "version": "0.1.9"
+  },
+  "observed": {
+    "offered": [
+      "fetchDocs",
+      "generateReactCode"
+    ],
+    "dnsNames": [
+      "chat-backend.mui.com"
+    ],
+    "tlsHosts": [
+      "chat-backend.mui.com"
+    ],
+    "connectAttempts": [],
+    "programsStarted": [
+      "mcp",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "fetchDocs",
+          "at": {
+            "line": 10,
+            "text": "- `fetchDocs(urls)` : fetches the full content of one or more docs URLs (typically taken from a `useMuiDocs` response)."
+          }
+        },
+        {
+          "name": "generateReactCode",
+          "at": {
+            "line": 11,
+            "text": "- `generateReactCode({ prompt, threadId?, designContext?, muiPairing?, model? })` : generates React + Material UI code from a natural-language prompt (optionally grounded in a Figma frame). Returns th…"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "api.mui.com",
+          "at": {
+            "line": 35,
+            "text": "- `MUI_BACKEND_BASE_URL` (optional, default `https://api.mui.com`): mui-backend base URL (where API-key → JWT exchange happens). Override for local dev, typically `http://localhost:5002`."
+          }
+        },
+        {
+          "host": "app.tsx",
+          "at": {
+            "line": 141,
+            "text": "- `App.tsx` **is usually discarded or replaced.** The MCP emits an entry-file wrapper alongside the component. Host agents drop it when the project already has a host shell (Next.js page, Vite `main.t…"
+          }
+        },
+        {
+          "host": "chat-backend.mui.com",
+          "at": {
+            "line": 33,
+            "text": "- `MUI_DOCS_BASE_URL` (optional, default `https://chat-backend.mui.com`): docs-catalog API base URL. Override when developing against a local backend."
+          }
+        },
+        {
+          "host": "claude.json",
+          "at": {
+            "line": 49,
+            "text": "…separator is required when passing env vars. Verify with `claude mcp list`; remove with `claude mcp remove mui-local`. Writes to your personal `~/.claude.json`, never to the repo's shared `.mcp.json`."
+          }
+        },
+        {
+          "host": "claude.md",
+          "at": {
+            "line": 125,
+            "text": "…ead of the MCP, even on prompts that are clearly about Material UI. To nudge selection in your project, drop the following into your repo's `CLAUDE.md` (or your host's equivalent project-config file):"
+          }
+        },
+        {
+          "host": "console.mui.com",
+          "at": {
+            "line": 34,
+            "text": "- `MUI_RECIPES_API_KEY` (required for `generateReactCode`): API key created at console.mui.com/products/recipes/api-keys. The server exchanges it for a short-lived JWT on the first call and caches the…"
+          }
+        },
+        {
+          "host": "contact-form.tsx",
+          "at": {
+            "line": 142,
+            "text": "- **Component filenames get renamed to match project conventions.** `components/ContactForm.tsx` may become `contact-form.tsx`; PascalCase may become kebab-case. The `filename` we emit is advisory."
+          }
+        },
+        {
+          "host": "contactform.tsx",
+          "at": {
+            "line": 142,
+            "text": "- **Component filenames get renamed to match project conventions.** `components/ContactForm.tsx` may become `contact-form.tsx`; PascalCase may become kebab-case. The `filename` we emit is advisory."
+          }
+        },
+        {
+          "host": "handler.ts",
+          "at": {
+            "line": 167,
+            "text": "│   │   ├── handler.ts      # adapts the docs tools to MCP handlers"
+          }
+        },
+        {
+          "host": "llms.txt",
+          "at": {
+            "line": 9,
+            "text": "…ies) for one or more MUI packages (for example `@mui/material`, `@mui/x-data-grid`). Each source is an llms.txt URL or a bare package name. Agents typically use this first to find the right docs page."
+          }
+        },
+        {
+          "host": "main.tsx",
+          "at": {
+            "line": 141,
+            "text": "…carded or replaced.** The MCP emits an entry-file wrapper alongside the component. Host agents drop it when the project already has a host shell (Next.js page, Vite `main.tsx`, Storybook story, etc.)."
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 49,
+            "text": "…separator is required when passing env vars. Verify with `claude mcp list`; remove with `claude mcp remove mui-local`. Writes to your personal `~/.claude.json`, never to the repo's shared `.mcp.json`."
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 3,
+            "text": "MUI's [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server. Exposes MUI documentation and code-generation tools to any MCP-capable AI client (Claude Code, Cursor, Zed, Continue, etc…"
+          }
+        },
+        {
+          "host": "next.js",
+          "at": {
+            "line": 141,
+            "text": "…carded or replaced.** The MCP emits an entry-file wrapper alongside the component. Host agents drop it when the project already has a host shell (Next.js page, Vite `main.tsx`, Storybook story, etc.)."
+          }
+        },
+        {
+          "host": "package.json",
+          "at": {
+            "line": 102,
+            "text": "… should detect and pass** `muiPairing` **for projects pinned to older majors.** Read the project's `package.json`, look at `@mui/material` and `@mui/x-data-grid` ranges, and forward the matching pair.…"
+          }
+        },
+        {
+          "host": "progress.ts",
+          "at": {
+            "line": 171,
+            "text": "│       ├── progress.ts     # forwards codegen progress as MCP notifications"
+          }
+        },
+        {
+          "host": "recipes.mui.com",
+          "at": {
+            "line": 91,
+            "text": "`generateReactCode` accepts a `muiPairing` field to target a specific MUI / MUI X major. The shape mirrors the version picker on recipes.mui.com:"
+          }
+        },
+        {
+          "host": "register.ts",
+          "at": {
+            "line": 168,
+            "text": "│   │   └── register.ts     # builds + registers useMuiDocs / fetchDocs"
+          }
+        },
+        {
+          "host": "stdio.js",
+          "at": {
+            "line": 17,
+            "text": "pnpm --filter @mui/mcp build:local    # builds @mui/x-agent-tools first, then @mui/mcp -> build/stdio.js"
+          }
+        },
+        {
+          "host": "stdio.ts",
+          "at": {
+            "line": 164,
+            "text": "│   ├── stdio.ts            # entry: builds the server and registers the tools"
+          }
+        },
+        {
+          "host": "tsconfig.json",
+          "at": {
+            "line": 175,
+            "text": "└── tsconfig.json"
+          }
+        },
+        {
+          "host": "version.ts",
+          "at": {
+            "line": 165,
+            "text": "│   ├── version.ts          # reads the package version (works in the flat published layout)"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 182,
+            "text": "Published to npm as [@mui/mcp](https://www.npmjs.com/package/@mui/mcp). End users consume it via `npx` (no local build), pointing at the published version:"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "network:tls",
+      "kind": "network",
+      "security": false,
+      "says": "Opened TLS to chat-backend.mui.com. The bytes it would have sent are encrypted and were NOT seen — a limit of the method.",
+      "evidence": [
+        "SNI chat-backend.mui.com",
+        "SNI chat-backend.mui.com"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @mui/mcp@0.1.9",
+        "integrity sha512-PSXLDW5dLaSxaA5OVD4BDB6bPLYDGyYsWfIfKYox/vbDgeFayce5Id8dZrHKL9FB3p3O0cXkbJegWdIGEga/dQ==",
+        "tarball https://registry.npmjs.org/@mui/mcp/-/mcp-0.1.9.tgz"
+      ]
+    }
+  ]
+}

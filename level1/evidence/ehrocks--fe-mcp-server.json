@@ -1,0 +1,170 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@ehrocks/fe-mcp-server@1.0.10",
+  "measuredAt": "2026-10-31T13:53:45.772Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "ehrocks--fe-mcp-server",
+  "package": {
+    "name": "@ehrocks/fe-mcp-server",
+    "version": "1.0.10",
+    "tarball": "https://registry.npmjs.org/@ehrocks/fe-mcp-server/-/fe-mcp-server-1.0.10.tgz",
+    "integrity": "sha512-AwRhcBqO4zatN03gZ4Zyrsj1ZjYTh2Nyz0Fv9rCDbvvutBCYG2yEiKyQL6GI4/7PjgAuqgmJe8te8pa4bpaIwQ==",
+    "repository": "git+https://github.com/thinkei/fe-mcp-service.git",
+    "homepage": "https://github.com/thinkei/fe-mcp-service#readme"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "1fe3e4d81fa7fd5c2590321dfcc864bc4dd279093c81d3a7868d8d344ed7faff",
+    "lines": 30,
+    "bytes": 1008
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "employmenthero.atlassian.net",
+        "at": {
+          "line": 27,
+          "text": "…is deployed to Employment Hero staging cluster, ensure you have the connection via VPN. [Read more](https://employmenthero.atlassian.net/wiki/spaces/PLAT/pages/1648525859/VPN+-+Internal+services+and+s…"
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 7,
+          "text": "- Update mcp config from Cursor, e.g. on macOS `~/.cursor/mcp.json`"
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 23,
+          "text": "- MCP connection gets `Client closed` error: *Ensure that Node.js is accessible globally.* Example: If you're using `asdf`, you can set the default Node.js version with:"
+        }
+      }
+    ],
+    "identifiers": []
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "hero-design-mcp-server",
+    "version": "1.0.10"
+  },
+  "observed": {
+    "offered": [
+      "search_hero_design_component_examples"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "setpriv",
+      "start-mcp-server"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [],
+      "undocumented": [
+        {
+          "name": "search_hero_design_component_examples",
+          "evidence": [
+            "offered in tools/list by @ehrocks/fe-mcp-server@1.0.10",
+            "absent from README.md (30 lines, sha256 1fe3e4d81fa7…): no whole-word match for \"search_hero_design_component_examples\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "employmenthero.atlassian.net",
+          "at": {
+            "line": 27,
+            "text": "…is deployed to Employment Hero staging cluster, ensure you have the connection via VPN. [Read more](https://employmenthero.atlassian.net/wiki/spaces/PLAT/pages/1648525859/VPN+-+Internal+services+and+s…"
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 7,
+            "text": "- Update mcp config from Cursor, e.g. on macOS `~/.cursor/mcp.json`"
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 23,
+            "text": "- MCP connection gets `Client closed` error: *Ensure that Node.js is accessible globally.* Example: If you're using `asdf`, you can set the default Node.js version with:"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @ehrocks/fe-mcp-server@1.0.10",
+        "integrity sha512-AwRhcBqO4zatN03gZ4Zyrsj1ZjYTh2Nyz0Fv9rCDbvvutBCYG2yEiKyQL6GI4/7PjgAuqgmJe8te8pa4bpaIwQ==",
+        "tarball https://registry.npmjs.org/@ehrocks/fe-mcp-server/-/fe-mcp-server-1.0.10.tgz"
+      ]
+    }
+  ]
+}

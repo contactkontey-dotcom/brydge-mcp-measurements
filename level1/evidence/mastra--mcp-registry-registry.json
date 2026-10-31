@@ -1,0 +1,248 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@mastra/mcp-registry-registry@1.1.7",
+  "measuredAt": "2026-10-31T13:58:50.411Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "mastra--mcp-registry-registry",
+  "package": {
+    "name": "@mastra/mcp-registry-registry",
+    "version": "1.1.7",
+    "tarball": "https://registry.npmjs.org/@mastra/mcp-registry-registry/-/mcp-registry-registry-1.1.7.tgz",
+    "integrity": "sha512-+BcUJbZ/CcsfxYOH77oAaEwIPWEZnsmisgaPAn3fZgGAYC5MC5vFp9S9YeHe5N0hH7XqM6Q485CyiQD3FuuVSA==",
+    "repository": "git+https://github.com/mastra-ai/mastra.git",
+    "homepage": "https://mastra.ai"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "1395025a7c9daff847575806125d326ab15b681727b3cce5b76a9041fa69933f",
+    "lines": 36,
+    "bytes": 1325
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 31,
+          "text": "See the [package changelog](https://github.com/mastra-ai/mastra/blob/main/packages/mcp-registry-registry/CHANGELOG.md) for version history and release notes."
+        }
+      },
+      {
+        "host": "console.log",
+        "at": {
+          "line": 21,
+          "text": "console.log(`${registry.name}: ${registry.url}`);"
+        }
+      },
+      {
+        "host": "discord.gg",
+        "at": {
+          "line": 35,
+          "text": "We have an [open community Discord](https://discord.gg/mastra-ai). Come and say hello and let us know if you have any questions or need any help getting things running."
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 31,
+          "text": "See the [package changelog](https://github.com/mastra-ai/mastra/blob/main/packages/mcp-registry-registry/CHANGELOG.md) for version history and release notes."
+        }
+      },
+      {
+        "host": "registry.name",
+        "at": {
+          "line": 21,
+          "text": "console.log(`${registry.name}: ${registry.url}`);"
+        }
+      },
+      {
+        "host": "registry.tags",
+        "at": {
+          "line": 18,
+          "text": "const verifiedRegistries = registryData.registries.filter(registry => registry.tags?.includes('verified'));"
+        }
+      },
+      {
+        "host": "registry.url",
+        "at": {
+          "line": 21,
+          "text": "console.log(`${registry.name}: ${registry.url}`);"
+        }
+      },
+      {
+        "host": "registrydata.registries.filter",
+        "at": {
+          "line": 18,
+          "text": "const verifiedRegistries = registryData.registries.filter(registry => registry.tags?.includes('verified'));"
+        }
+      }
+    ],
+    "identifiers": []
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "Registry Registry Server",
+    "version": "1.1.7"
+  },
+  "observed": {
+    "offered": [
+      "registryList",
+      "registryServers"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "mcp-registry-registry",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "registryList",
+          "at": {
+            "line": 27,
+            "text": "…uide. The exported `registryData` catalog includes registry metadata and optional post-processors; the package's MCP server exposes that catalog through the `registryList` and `registryServers` tools."
+          }
+        },
+        {
+          "name": "registryServers",
+          "at": {
+            "line": 27,
+            "text": "…uide. The exported `registryData` catalog includes registry metadata and optional post-processors; the package's MCP server exposes that catalog through the `registryList` and `registryServers` tools."
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 31,
+            "text": "See the [package changelog](https://github.com/mastra-ai/mastra/blob/main/packages/mcp-registry-registry/CHANGELOG.md) for version history and release notes."
+          }
+        },
+        {
+          "host": "console.log",
+          "at": {
+            "line": 21,
+            "text": "console.log(`${registry.name}: ${registry.url}`);"
+          }
+        },
+        {
+          "host": "discord.gg",
+          "at": {
+            "line": 35,
+            "text": "We have an [open community Discord](https://discord.gg/mastra-ai). Come and say hello and let us know if you have any questions or need any help getting things running."
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 31,
+            "text": "See the [package changelog](https://github.com/mastra-ai/mastra/blob/main/packages/mcp-registry-registry/CHANGELOG.md) for version history and release notes."
+          }
+        },
+        {
+          "host": "registry.name",
+          "at": {
+            "line": 21,
+            "text": "console.log(`${registry.name}: ${registry.url}`);"
+          }
+        },
+        {
+          "host": "registry.tags",
+          "at": {
+            "line": 18,
+            "text": "const verifiedRegistries = registryData.registries.filter(registry => registry.tags?.includes('verified'));"
+          }
+        },
+        {
+          "host": "registry.url",
+          "at": {
+            "line": 21,
+            "text": "console.log(`${registry.name}: ${registry.url}`);"
+          }
+        },
+        {
+          "host": "registrydata.registries.filter",
+          "at": {
+            "line": 18,
+            "text": "const verifiedRegistries = registryData.registries.filter(registry => registry.tags?.includes('verified'));"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @mastra/mcp-registry-registry@1.1.7",
+        "integrity sha512-+BcUJbZ/CcsfxYOH77oAaEwIPWEZnsmisgaPAn3fZgGAYC5MC5vFp9S9YeHe5N0hH7XqM6Q485CyiQD3FuuVSA==",
+        "tarball https://registry.npmjs.org/@mastra/mcp-registry-registry/-/mcp-registry-registry-1.1.7.tgz"
+      ]
+    }
+  ]
+}

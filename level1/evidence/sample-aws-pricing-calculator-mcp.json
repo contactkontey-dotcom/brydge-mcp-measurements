@@ -1,0 +1,1118 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "sample-aws-pricing-calculator-mcp@1.3.4",
+  "measuredAt": "2026-10-31T14:23:29.274Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "sample-aws-pricing-calculator-mcp",
+  "package": {
+    "name": "sample-aws-pricing-calculator-mcp",
+    "version": "1.3.4",
+    "tarball": "https://registry.npmjs.org/sample-aws-pricing-calculator-mcp/-/sample-aws-pricing-calculator-mcp-1.3.4.tgz",
+    "integrity": "sha512-M6vB5P3qEZIimI8iKr8klXHb624S/MiJs7gJ48XenFhZwKyb6qZAenGfoHNVe402UBJRqctwNgKKAJw/ik2K5w==",
+    "repository": null,
+    "homepage": null
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "e95ee834d00e93b22b4d03bd5da2f23079f5621f8f6efe398a5eb049b724eb6e",
+    "lines": 458,
+    "bytes": 34913
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "agent-fields.js",
+        "at": {
+          "line": 95,
+          "text": "agent-fields.js        #   Synthetic field surfacing for fields hidden in composite widgets"
+        }
+      },
+      {
+        "host": "author-catalog.test.js",
+        "at": {
+          "line": 146,
+          "text": "convention in `test/author-catalog.test.js`."
+        }
+      },
+      {
+        "host": "aws-calculator.zip",
+        "at": {
+          "line": 119,
+          "text": "dist/                      # Build output: mcp-server.js bundle, aws-calculator.zip, bundle-contract.json"
+        }
+      },
+      {
+        "host": "aws-client.js",
+        "at": {
+          "line": 90,
+          "text": "aws-client.js          #   Manifest loading, service definitions, save/read APIs, selector aggregations"
+        }
+      },
+      {
+        "host": "bundle-contract.json",
+        "at": {
+          "line": 119,
+          "text": "dist/                      # Build output: mcp-server.js bundle, aws-calculator.zip, bundle-contract.json"
+        }
+      },
+      {
+        "host": "calculator.aws",
+        "at": {
+          "line": 3,
+          "text": "[Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that creates, reads, and updates [AWS Pricing Calculator](https://calculator.aws/#/estimate) estimates through natural language."
+        }
+      },
+      {
+        "host": "can-rehydrate-fetch.js",
+        "at": {
+          "line": 98,
+          "text": "can-rehydrate-fetch.js #   Network wrapper around the linter"
+        }
+      },
+      {
+        "host": "can-rehydrate.js",
+        "at": {
+          "line": 97,
+          "text": "can-rehydrate.js       #   Static rehydration linter (pure predicates)"
+        }
+      },
+      {
+        "host": "catalog.js",
+        "at": {
+          "line": 101,
+          "text": "catalog.js             #   Loader for catalog/services/*.json curated entries"
+        }
+      },
+      {
+        "host": "changelog.md",
+        "at": {
+          "line": 449,
+          "text": "See [CHANGELOG.md](CHANGELOG.md) for the full release history."
+        }
+      },
+      {
+        "host": "ci.yml",
+        "at": {
+          "line": 150,
+          "text": "`.github/workflows/ci.yml` runs two jobs on every push to `main` and every PR:"
+        }
+      },
+      {
+        "host": "contributing.md",
+        "at": {
+          "line": 393,
+          "text": "See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for information on reporting security issues."
+        }
+      },
+      {
+        "host": "cursor.com",
+        "at": {
+          "line": 5,
+          "text": "…Install in Cursor](https://img.shields.io/badge/Install-Cursor-blue?style=flat-square&logo=cursor)](https://cursor.com/en/install-mcp?name=aws-pricing-calculator-mcp-server&config=eyJjb21tYW5kIjoibnB4…"
+        }
+      },
+      {
+        "host": "diagnose-service.js",
+        "at": {
+          "line": 329,
+          "text": "`scripts/diagnose-service.js` runs the falsifiable test: probe each un-cataloged service and classify it. Useful when scoping new catalog work."
+        }
+      },
+      {
+        "host": "dom-cost.js",
+        "at": {
+          "line": 112,
+          "text": "dom-cost.js              # Playwright flows: re-share for computed costs (get_estimate_cost) + single-page DOM read (eval oracle). Playwright/Chromium is an on-demand dependency"
+        }
+      },
+      {
+        "host": "ec2.js",
+        "at": {
+          "line": 92,
+          "text": "ec2.js                 #   EC2 agent-friendly → ec2Enhancement transform"
+        }
+      },
+      {
+        "host": "estimate-builder.js",
+        "at": {
+          "line": 91,
+          "text": "estimate-builder.js    #   In-memory estimate model, AWS payload assembly, columnFormIPM remap"
+        }
+      },
+      {
+        "host": "estimate-store-dynamodb.js",
+        "at": {
+          "line": 111,
+          "text": "estimate-store-dynamodb.js # DynamoDB-backed store for stateless multi-replica deployments"
+        }
+      },
+      {
+        "host": "estimate-store.js",
+        "at": {
+          "line": 110,
+          "text": "estimate-store.js      #   Pluggable store (memory default)"
+        }
+      },
+      {
+        "host": "example1.png",
+        "at": {
+          "line": 24,
+          "text": "![](example1.png)"
+        }
+      },
+      {
+        "host": "github.com",
+        "at": {
+          "line": 50,
+          "text": "git clone https://github.com/aws-samples/sample-aws-pricing-calculator-mcp.git"
+        }
+      },
+      {
+        "host": "handler-helpers.js",
+        "at": {
+          "line": 103,
+          "text": "handler-helpers.js     #   Shared internals for the MCP tool handlers"
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 5,
+          "text": "[![Install in Kiro](https://img.shields.io/badge/Install-Kiro-9046FF?style=flat-square&logo=kiro)](https://kiro.dev/launch/mcp/add?name=aws-pricing-calculator-mcp-server&config=%7B%22command%22%3A%22n…"
+        }
+      },
+      {
+        "host": "insiders.vscode.dev",
+        "at": {
+          "line": 5,
+          "text": "…g.shields.io/badge/Install-VS_Code-FF9900?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=aws-pricing-calculator-mcp-server&config=%7B%2…"
+        }
+      },
+      {
+        "host": "kiro.dev",
+        "at": {
+          "line": 5,
+          "text": "[![Install in Kiro](https://img.shields.io/badge/Install-Kiro-9046FF?style=flat-square&logo=kiro)](https://kiro.dev/launch/mcp/add?name=aws-pricing-calculator-mcp-server&config=%7B%22command%22%3A%22n…"
+        }
+      },
+      {
+        "host": "lint-hints.js",
+        "at": {
+          "line": 100,
+          "text": "lint-hints.js          #   Translates lint failures into agent-actionable next_step text"
+        }
+      },
+      {
+        "host": "mcp-server.js",
+        "at": {
+          "line": 63,
+          "text": "\"args\": [\"/path/to/sample-aws-pricing-calculator-mcp/dist/mcp-server.js\"]"
+        }
+      },
+      {
+        "host": "mcp.json",
+        "at": {
+          "line": 45,
+          "text": "Add this to your MCP client config (e.g. `~/.kiro/settings/mcp.json`, Claude Desktop's `claude_desktop_config.json`, Cursor's MCP settings, or the VS Code MCP config). The install badges above generat…"
+        }
+      },
+      {
+        "host": "modelcontextprotocol.io",
+        "at": {
+          "line": 3,
+          "text": "[Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that creates, reads, and updates [AWS Pricing Calculator](https://calculator.aws/#/estimate) estimates through natural language."
+        }
+      },
+      {
+        "host": "node.js",
+        "at": {
+          "line": 28,
+          "text": "Requires [Node.js®](https://nodejs.org/en/download)."
+        }
+      },
+      {
+        "host": "nodejs.org",
+        "at": {
+          "line": 28,
+          "text": "Requires [Node.js®](https://nodejs.org/en/download)."
+        }
+      },
+      {
+        "host": "package.json",
+        "at": {
+          "line": 155,
+          "text": "is a tracked artifact that consumers install (see `files` in `package.json`),"
+        }
+      },
+      {
+        "host": "pct-config.js",
+        "at": {
+          "line": 93,
+          "text": "pct-config.js          #   PCT-based field suggestion"
+        }
+      },
+      {
+        "host": "readme.md",
+        "at": {
+          "line": 142,
+          "text": "…then asserts on the saved blob (DOM-rendered cost, structural field equality, lint-must-pass). Read `eval/README.md` on interpreting failures — a raw count is not meaningful; use `--compare-baseline`."
+        }
+      },
+      {
+        "host": "request-context.js",
+        "at": {
+          "line": 108,
+          "text": "request-context.js     #   Per-request session id propagation"
+        }
+      },
+      {
+        "host": "run.py",
+        "at": {
+          "line": 142,
+          "text": "- **`python eval/run.py`** — 87 YAML scenarios (scripted MCP calls + LLM-driven). Each does a real save, then asserts on the saved blob (DOM-rendered cost, structural field equality, lint-must-pass). …"
+        }
+      },
+      {
+        "host": "sample-aws-pricing-calculator-mcp.git",
+        "at": {
+          "line": 50,
+          "text": "git clone https://github.com/aws-samples/sample-aws-pricing-calculator-mcp.git"
+        }
+      },
+      {
+        "host": "save.fail",
+        "at": {
+          "line": 410,
+          "text": "| `save.fail` | `status`, `body` (≤500 chars), `estimateId?`, `mcpSessionId?` | Save API returned non-200 |"
+        }
+      },
+      {
+        "host": "save.ok",
+        "at": {
+          "line": 409,
+          "text": "| `save.ok` | `savedKey`, `estimateId?`, `mcpSessionId?` | Save API returned 200 |"
+        }
+      },
+      {
+        "host": "save.send",
+        "at": {
+          "line": 408,
+          "text": "| `save.send` | `bytes`, `groupCount`, `serviceCount`, `estimateId?`, `mcpSessionId?` | Before POST to AWS save API |"
+        }
+      },
+      {
+        "host": "schema.json",
+        "at": {
+          "line": 114,
+          "text": "schema.json              # JSON Schema for catalog entries"
+        }
+      },
+      {
+        "host": "session.start",
+        "at": {
+          "line": 411,
+          "text": "| `session.start` | `mcpSessionId?` | New MCP session opened (HTTP transport) |"
+        }
+      },
+      {
+        "host": "surfaceability.js",
+        "at": {
+          "line": 94,
+          "text": "surfaceability.js      #   PCT-driven surfaceability index"
+        }
+      },
+      {
+        "host": "tool-descriptions.js",
+        "at": {
+          "line": 104,
+          "text": "tool-descriptions.js   #   Long agent-facing tool descriptions (separated from wiring)"
+        }
+      },
+      {
+        "host": "tool.call",
+        "at": {
+          "line": 405,
+          "text": "| `tool.call` | `name`, `args`, `mcpSessionId?` | Tool handler entry |"
+        }
+      },
+      {
+        "host": "tool.result",
+        "at": {
+          "line": 406,
+          "text": "| `tool.result` | `name`, `isError`, `resultText` (≤500 chars), `resultLength` (pre-truncation), `durationMs`, `mcpSessionId?` | Tool handler exit (success or error) |"
+        }
+      },
+      {
+        "host": "trace-events.js",
+        "at": {
+          "line": 107,
+          "text": "trace-events.js        #   Trace event name registry"
+        }
+      },
+      {
+        "host": "trace-logger.js",
+        "at": {
+          "line": 106,
+          "text": "trace-logger.js        #   Structured JSON trace events on stderr"
+        }
+      },
+      {
+        "host": "validation.js",
+        "at": {
+          "line": 99,
+          "text": "validation.js          #   Pre-save config validation (field-id, value-shape, region, auto-correct)"
+        }
+      },
+      {
+        "host": "validations.required",
+        "at": {
+          "line": 308,
+          "text": "- `required[]` — pricing-engine-required fields (often broader than the manifest's `validations.required: true`)"
+        }
+      },
+      {
+        "host": "with.yaml",
+        "at": {
+          "line": 354,
+          "text": "**Agent-success measurement (empirical, paired drift audits).** The `eval/scenarios/cat-<svc>-with.yaml` / `cat-<svc>-without.yaml` pairs run the same prompt twice — once with the catalog active, once…"
+        }
+      },
+      {
+        "host": "without.yaml",
+        "at": {
+          "line": 354,
+          "text": "…asurement (empirical, paired drift audits).** The `eval/scenarios/cat-<svc>-with.yaml` / `cat-<svc>-without.yaml` pairs run the same prompt twice — once with the catalog active, once with it removed —…"
+        }
+      },
+      {
+        "host": "zod.dev",
+        "at": {
+          "line": 381,
+          "text": "- All MCP tool inputs are validated using [Zod](https://zod.dev/) schemas before processing."
+        }
+      }
+    ],
+    "identifiers": [
+      {
+        "name": "add_service",
+        "at": {
+          "line": 76,
+          "text": "| `add_service` | Add one or more services to an estimate. Validates field IDs and values against the live service definition (dropdowns, fileSize unit format, numeric/frequency types, region whitelis…"
+        }
+      },
+      {
+        "name": "build_estimate",
+        "at": {
+          "line": 78,
+          "text": "| `build_estimate` | One-shot create + add services + lint preflight + save. Returns the shareable URL on success, or a structured envelope identifying which services need field discovery before retry…"
+        }
+      },
+      {
+        "name": "child_service_codes",
+        "at": {
+          "line": 74,
+          "text": "… deprecated parent service codes (currently `amazonS3`), returns a `redirect_to_parent` status with `child_service_codes` listing the actual service codes to use instead. Services with an include/excl…"
+        }
+      },
+      {
+        "name": "claude_desktop_config",
+        "at": {
+          "line": 45,
+          "text": "Add this to your MCP client config (e.g. `~/.kiro/settings/mcp.json`, Claude Desktop's `claude_desktop_config.json`, Cursor's MCP settings, or the VS Code MCP config). The install badges above generat…"
+        }
+      },
+      {
+        "name": "cost_available",
+        "at": {
+          "line": 81,
+          "text": "…browser — an on-demand dependency NOT installed by default; when either is missing the tool returns `cost_available:false` with the exact install commands instead of failing. **Runs only on an explici…"
+        }
+      },
+      {
+        "name": "create_estimate",
+        "at": {
+          "line": 75,
+          "text": "| `create_estimate` | Create a new empty estimate. Returns an estimate ID. |"
+        }
+      },
+      {
+        "name": "export_estimate",
+        "at": {
+          "line": 79,
+          "text": "| `export_estimate` | Save the in-flight estimate to calculator.aws and return a shareable URL. Refuses with an actionable `next_step` if the static linter predicts the saved blob would rehydrate read…"
+        }
+      },
+      {
+        "name": "free_tier_choice",
+        "at": {
+          "line": 76,
+          "text": "…`estimateFor` selects a specific pricing template (e.g. `lambdaWithoutFreeTier` to exclude the AWS Free Tier); Free-Tier-capable services added without a choice return a `free_tier_choice` advisory. |"
+        }
+      },
+      {
+        "name": "get_estimate_cost",
+        "at": {
+          "line": 15,
+          "text": "- **Read computed costs** - `get_estimate_cost` re-shares an estimate through the calculator (Update estimate → Share) so AWS persists the computed costs, then reads them back: upfront, monthly, and 1…"
+        }
+      },
+      {
+        "name": "get_server_info",
+        "at": {
+          "line": 82,
+          "text": "| `get_server_info` | Return version and capability information. |"
+        }
+      },
+      {
+        "name": "get_service_fields",
+        "at": {
+          "line": 74,
+          "text": "| `get_service_fields` | Get input field IDs, types, labels, valid options, and selector values for one or more services. For curated services, the response includes a `catalog` block (`minimalConfig`…"
+        }
+      },
+      {
+        "name": "import_estimate",
+        "at": {
+          "line": 80,
+          "text": "| `import_estimate` | Download an existing estimate by URL or ID. Returns JSON (raw) or Markdown. |"
+        }
+      },
+      {
+        "name": "lint_services",
+        "at": {
+          "line": 77,
+          "text": "…t: builds the would-be saved payload and runs a static check, without calling the save API. Returns `{lint_verdict, next_step, lint_services, would_be_payload}`. Use to confirm an estimate would rende…"
+        }
+      },
+      {
+        "name": "lint_verdict",
+        "at": {
+          "line": 77,
+          "text": "…t: builds the would-be saved payload and runs a static check, without calling the save API. Returns `{lint_verdict, next_step, lint_services, would_be_payload}`. Use to confirm an estimate would rende…"
+        }
+      },
+      {
+        "name": "monthly_cost",
+        "at": {
+          "line": 229,
+          "text": "…en reads the resulting saved estimate via the public read API. The response carries `upfront_cost`, `monthly_cost`, `total_12_months_cost` (derived as upfront + 12×monthly, which is how the calculator…"
+        }
+      },
+      {
+        "name": "next_step",
+        "at": {
+          "line": 77,
+          "text": "…t: builds the would-be saved payload and runs a static check, without calling the save API. Returns `{lint_verdict, next_step, lint_services, would_be_payload}`. Use to confirm an estimate would rende…"
+        }
+      },
+      {
+        "name": "priced_estimate_url",
+        "at": {
+          "line": 81,
+          "text": "… → Share) so AWS persists the costs, then reads them back — this saves a fresh copy under a new id (`priced_estimate_url`; the original is untouched). Requires Playwright and the Chromium browser — an…"
+        }
+      },
+      {
+        "name": "pricing_as_of",
+        "at": {
+          "line": 229,
+          "text": "…hs_cost` (derived as upfront + 12×monthly, which is how the calculator defines the 12-month total), `pricing_as_of`, and `rows` — every group/line with its own monthly, upfront, and config. There is n…"
+        }
+      },
+      {
+        "name": "redirect_to_parent",
+        "at": {
+          "line": 74,
+          "text": "…required-field hints, traps). For deprecated parent service codes (currently `amazonS3`), returns a `redirect_to_parent` status with `child_service_codes` listing the actual service codes to use inste…"
+        }
+      },
+      {
+        "name": "rows_complete",
+        "at": {
+          "line": 229,
+          "text": "… is how the calculator defines the 12-month total), `pricing_as_of`, and `rows` — every group/line with its own monthly, upfront, and config. There is no pagination, so `rows_complete` is always true."
+        }
+      },
+      {
+        "name": "search_services",
+        "at": {
+          "line": 73,
+          "text": "| `search_services` | Search AWS services by name or key. Supports comma-separated queries. |"
+        }
+      },
+      {
+        "name": "total_12_months_cost",
+        "at": {
+          "line": 229,
+          "text": "…ulting saved estimate via the public read API. The response carries `upfront_cost`, `monthly_cost`, `total_12_months_cost` (derived as upfront + 12×monthly, which is how the calculator defines the 12-…"
+        }
+      },
+      {
+        "name": "upfront_cost",
+        "at": {
+          "line": 229,
+          "text": "…e costs — and then reads the resulting saved estimate via the public read API. The response carries `upfront_cost`, `monthly_cost`, `total_12_months_cost` (derived as upfront + 12×monthly, which is ho…"
+        }
+      },
+      {
+        "name": "validate_estimate",
+        "at": {
+          "line": 77,
+          "text": "| `validate_estimate` | Dry-run preflight: builds the would-be saved payload and runs a static check, without calling the save API. Returns `{lint_verdict, next_step, lint_services, would_be_payload}`…"
+        }
+      },
+      {
+        "name": "would_be_payload",
+        "at": {
+          "line": 77,
+          "text": "…t: builds the would-be saved payload and runs a static check, without calling the save API. Returns `{lint_verdict, next_step, lint_services, would_be_payload}`. Use to confirm an estimate would rende…"
+        }
+      }
+    ]
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "sample-aws-pricing-calculator-mcp",
+    "version": "1.3.4"
+  },
+  "observed": {
+    "offered": [
+      "add_service",
+      "build_estimate",
+      "create_estimate",
+      "export_estimate",
+      "get_estimate_cost",
+      "get_server_info",
+      "get_service_fields",
+      "import_estimate",
+      "search_services",
+      "validate_estimate"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "node",
+      "sample-aws-pricing-calculator-mcp",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "add_service",
+          "at": {
+            "line": 76,
+            "text": "| `add_service` | Add one or more services to an estimate. Validates field IDs and values against the live service definition (dropdowns, fileSize unit format, numeric/frequency types, region whitelis…"
+          }
+        },
+        {
+          "name": "build_estimate",
+          "at": {
+            "line": 78,
+            "text": "| `build_estimate` | One-shot create + add services + lint preflight + save. Returns the shareable URL on success, or a structured envelope identifying which services need field discovery before retry…"
+          }
+        },
+        {
+          "name": "create_estimate",
+          "at": {
+            "line": 75,
+            "text": "| `create_estimate` | Create a new empty estimate. Returns an estimate ID. |"
+          }
+        },
+        {
+          "name": "export_estimate",
+          "at": {
+            "line": 79,
+            "text": "| `export_estimate` | Save the in-flight estimate to calculator.aws and return a shareable URL. Refuses with an actionable `next_step` if the static linter predicts the saved blob would rehydrate read…"
+          }
+        },
+        {
+          "name": "get_estimate_cost",
+          "at": {
+            "line": 15,
+            "text": "- **Read computed costs** - `get_estimate_cost` re-shares an estimate through the calculator (Update estimate → Share) so AWS persists the computed costs, then reads them back: upfront, monthly, and 1…"
+          }
+        },
+        {
+          "name": "get_server_info",
+          "at": {
+            "line": 82,
+            "text": "| `get_server_info` | Return version and capability information. |"
+          }
+        },
+        {
+          "name": "get_service_fields",
+          "at": {
+            "line": 74,
+            "text": "| `get_service_fields` | Get input field IDs, types, labels, valid options, and selector values for one or more services. For curated services, the response includes a `catalog` block (`minimalConfig`…"
+          }
+        },
+        {
+          "name": "import_estimate",
+          "at": {
+            "line": 80,
+            "text": "| `import_estimate` | Download an existing estimate by URL or ID. Returns JSON (raw) or Markdown. |"
+          }
+        },
+        {
+          "name": "search_services",
+          "at": {
+            "line": 73,
+            "text": "| `search_services` | Search AWS services by name or key. Supports comma-separated queries. |"
+          }
+        },
+        {
+          "name": "validate_estimate",
+          "at": {
+            "line": 77,
+            "text": "| `validate_estimate` | Dry-run preflight: builds the would-be saved payload and runs a static check, without calling the save API. Returns `{lint_verdict, next_step, lint_services, would_be_payload}`…"
+          }
+        }
+      ],
+      "undocumented": []
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "agent-fields.js",
+          "at": {
+            "line": 95,
+            "text": "agent-fields.js        #   Synthetic field surfacing for fields hidden in composite widgets"
+          }
+        },
+        {
+          "host": "author-catalog.test.js",
+          "at": {
+            "line": 146,
+            "text": "convention in `test/author-catalog.test.js`."
+          }
+        },
+        {
+          "host": "aws-calculator.zip",
+          "at": {
+            "line": 119,
+            "text": "dist/                      # Build output: mcp-server.js bundle, aws-calculator.zip, bundle-contract.json"
+          }
+        },
+        {
+          "host": "aws-client.js",
+          "at": {
+            "line": 90,
+            "text": "aws-client.js          #   Manifest loading, service definitions, save/read APIs, selector aggregations"
+          }
+        },
+        {
+          "host": "bundle-contract.json",
+          "at": {
+            "line": 119,
+            "text": "dist/                      # Build output: mcp-server.js bundle, aws-calculator.zip, bundle-contract.json"
+          }
+        },
+        {
+          "host": "calculator.aws",
+          "at": {
+            "line": 3,
+            "text": "[Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that creates, reads, and updates [AWS Pricing Calculator](https://calculator.aws/#/estimate) estimates through natural language."
+          }
+        },
+        {
+          "host": "can-rehydrate-fetch.js",
+          "at": {
+            "line": 98,
+            "text": "can-rehydrate-fetch.js #   Network wrapper around the linter"
+          }
+        },
+        {
+          "host": "can-rehydrate.js",
+          "at": {
+            "line": 97,
+            "text": "can-rehydrate.js       #   Static rehydration linter (pure predicates)"
+          }
+        },
+        {
+          "host": "catalog.js",
+          "at": {
+            "line": 101,
+            "text": "catalog.js             #   Loader for catalog/services/*.json curated entries"
+          }
+        },
+        {
+          "host": "changelog.md",
+          "at": {
+            "line": 449,
+            "text": "See [CHANGELOG.md](CHANGELOG.md) for the full release history."
+          }
+        },
+        {
+          "host": "ci.yml",
+          "at": {
+            "line": 150,
+            "text": "`.github/workflows/ci.yml` runs two jobs on every push to `main` and every PR:"
+          }
+        },
+        {
+          "host": "contributing.md",
+          "at": {
+            "line": 393,
+            "text": "See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for information on reporting security issues."
+          }
+        },
+        {
+          "host": "cursor.com",
+          "at": {
+            "line": 5,
+            "text": "…Install in Cursor](https://img.shields.io/badge/Install-Cursor-blue?style=flat-square&logo=cursor)](https://cursor.com/en/install-mcp?name=aws-pricing-calculator-mcp-server&config=eyJjb21tYW5kIjoibnB4…"
+          }
+        },
+        {
+          "host": "diagnose-service.js",
+          "at": {
+            "line": 329,
+            "text": "`scripts/diagnose-service.js` runs the falsifiable test: probe each un-cataloged service and classify it. Useful when scoping new catalog work."
+          }
+        },
+        {
+          "host": "dom-cost.js",
+          "at": {
+            "line": 112,
+            "text": "dom-cost.js              # Playwright flows: re-share for computed costs (get_estimate_cost) + single-page DOM read (eval oracle). Playwright/Chromium is an on-demand dependency"
+          }
+        },
+        {
+          "host": "ec2.js",
+          "at": {
+            "line": 92,
+            "text": "ec2.js                 #   EC2 agent-friendly → ec2Enhancement transform"
+          }
+        },
+        {
+          "host": "estimate-builder.js",
+          "at": {
+            "line": 91,
+            "text": "estimate-builder.js    #   In-memory estimate model, AWS payload assembly, columnFormIPM remap"
+          }
+        },
+        {
+          "host": "estimate-store-dynamodb.js",
+          "at": {
+            "line": 111,
+            "text": "estimate-store-dynamodb.js # DynamoDB-backed store for stateless multi-replica deployments"
+          }
+        },
+        {
+          "host": "estimate-store.js",
+          "at": {
+            "line": 110,
+            "text": "estimate-store.js      #   Pluggable store (memory default)"
+          }
+        },
+        {
+          "host": "example1.png",
+          "at": {
+            "line": 24,
+            "text": "![](example1.png)"
+          }
+        },
+        {
+          "host": "github.com",
+          "at": {
+            "line": 50,
+            "text": "git clone https://github.com/aws-samples/sample-aws-pricing-calculator-mcp.git"
+          }
+        },
+        {
+          "host": "handler-helpers.js",
+          "at": {
+            "line": 103,
+            "text": "handler-helpers.js     #   Shared internals for the MCP tool handlers"
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 5,
+            "text": "[![Install in Kiro](https://img.shields.io/badge/Install-Kiro-9046FF?style=flat-square&logo=kiro)](https://kiro.dev/launch/mcp/add?name=aws-pricing-calculator-mcp-server&config=%7B%22command%22%3A%22n…"
+          }
+        },
+        {
+          "host": "insiders.vscode.dev",
+          "at": {
+            "line": 5,
+            "text": "…g.shields.io/badge/Install-VS_Code-FF9900?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=aws-pricing-calculator-mcp-server&config=%7B%2…"
+          }
+        },
+        {
+          "host": "kiro.dev",
+          "at": {
+            "line": 5,
+            "text": "[![Install in Kiro](https://img.shields.io/badge/Install-Kiro-9046FF?style=flat-square&logo=kiro)](https://kiro.dev/launch/mcp/add?name=aws-pricing-calculator-mcp-server&config=%7B%22command%22%3A%22n…"
+          }
+        },
+        {
+          "host": "lint-hints.js",
+          "at": {
+            "line": 100,
+            "text": "lint-hints.js          #   Translates lint failures into agent-actionable next_step text"
+          }
+        },
+        {
+          "host": "mcp-server.js",
+          "at": {
+            "line": 63,
+            "text": "\"args\": [\"/path/to/sample-aws-pricing-calculator-mcp/dist/mcp-server.js\"]"
+          }
+        },
+        {
+          "host": "mcp.json",
+          "at": {
+            "line": 45,
+            "text": "Add this to your MCP client config (e.g. `~/.kiro/settings/mcp.json`, Claude Desktop's `claude_desktop_config.json`, Cursor's MCP settings, or the VS Code MCP config). The install badges above generat…"
+          }
+        },
+        {
+          "host": "modelcontextprotocol.io",
+          "at": {
+            "line": 3,
+            "text": "[Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that creates, reads, and updates [AWS Pricing Calculator](https://calculator.aws/#/estimate) estimates through natural language."
+          }
+        },
+        {
+          "host": "node.js",
+          "at": {
+            "line": 28,
+            "text": "Requires [Node.js®](https://nodejs.org/en/download)."
+          }
+        },
+        {
+          "host": "nodejs.org",
+          "at": {
+            "line": 28,
+            "text": "Requires [Node.js®](https://nodejs.org/en/download)."
+          }
+        },
+        {
+          "host": "package.json",
+          "at": {
+            "line": 155,
+            "text": "is a tracked artifact that consumers install (see `files` in `package.json`),"
+          }
+        },
+        {
+          "host": "pct-config.js",
+          "at": {
+            "line": 93,
+            "text": "pct-config.js          #   PCT-based field suggestion"
+          }
+        },
+        {
+          "host": "readme.md",
+          "at": {
+            "line": 142,
+            "text": "…then asserts on the saved blob (DOM-rendered cost, structural field equality, lint-must-pass). Read `eval/README.md` on interpreting failures — a raw count is not meaningful; use `--compare-baseline`."
+          }
+        },
+        {
+          "host": "request-context.js",
+          "at": {
+            "line": 108,
+            "text": "request-context.js     #   Per-request session id propagation"
+          }
+        },
+        {
+          "host": "run.py",
+          "at": {
+            "line": 142,
+            "text": "- **`python eval/run.py`** — 87 YAML scenarios (scripted MCP calls + LLM-driven). Each does a real save, then asserts on the saved blob (DOM-rendered cost, structural field equality, lint-must-pass). …"
+          }
+        },
+        {
+          "host": "sample-aws-pricing-calculator-mcp.git",
+          "at": {
+            "line": 50,
+            "text": "git clone https://github.com/aws-samples/sample-aws-pricing-calculator-mcp.git"
+          }
+        },
+        {
+          "host": "save.fail",
+          "at": {
+            "line": 410,
+            "text": "| `save.fail` | `status`, `body` (≤500 chars), `estimateId?`, `mcpSessionId?` | Save API returned non-200 |"
+          }
+        },
+        {
+          "host": "save.ok",
+          "at": {
+            "line": 409,
+            "text": "| `save.ok` | `savedKey`, `estimateId?`, `mcpSessionId?` | Save API returned 200 |"
+          }
+        },
+        {
+          "host": "save.send",
+          "at": {
+            "line": 408,
+            "text": "| `save.send` | `bytes`, `groupCount`, `serviceCount`, `estimateId?`, `mcpSessionId?` | Before POST to AWS save API |"
+          }
+        },
+        {
+          "host": "schema.json",
+          "at": {
+            "line": 114,
+            "text": "schema.json              # JSON Schema for catalog entries"
+          }
+        },
+        {
+          "host": "session.start",
+          "at": {
+            "line": 411,
+            "text": "| `session.start` | `mcpSessionId?` | New MCP session opened (HTTP transport) |"
+          }
+        },
+        {
+          "host": "surfaceability.js",
+          "at": {
+            "line": 94,
+            "text": "surfaceability.js      #   PCT-driven surfaceability index"
+          }
+        },
+        {
+          "host": "tool-descriptions.js",
+          "at": {
+            "line": 104,
+            "text": "tool-descriptions.js   #   Long agent-facing tool descriptions (separated from wiring)"
+          }
+        },
+        {
+          "host": "tool.call",
+          "at": {
+            "line": 405,
+            "text": "| `tool.call` | `name`, `args`, `mcpSessionId?` | Tool handler entry |"
+          }
+        },
+        {
+          "host": "tool.result",
+          "at": {
+            "line": 406,
+            "text": "| `tool.result` | `name`, `isError`, `resultText` (≤500 chars), `resultLength` (pre-truncation), `durationMs`, `mcpSessionId?` | Tool handler exit (success or error) |"
+          }
+        },
+        {
+          "host": "trace-events.js",
+          "at": {
+            "line": 107,
+            "text": "trace-events.js        #   Trace event name registry"
+          }
+        },
+        {
+          "host": "trace-logger.js",
+          "at": {
+            "line": 106,
+            "text": "trace-logger.js        #   Structured JSON trace events on stderr"
+          }
+        },
+        {
+          "host": "validation.js",
+          "at": {
+            "line": 99,
+            "text": "validation.js          #   Pre-save config validation (field-id, value-shape, region, auto-correct)"
+          }
+        },
+        {
+          "host": "validations.required",
+          "at": {
+            "line": 308,
+            "text": "- `required[]` — pricing-engine-required fields (often broader than the manifest's `validations.required: true`)"
+          }
+        },
+        {
+          "host": "with.yaml",
+          "at": {
+            "line": 354,
+            "text": "**Agent-success measurement (empirical, paired drift audits).** The `eval/scenarios/cat-<svc>-with.yaml` / `cat-<svc>-without.yaml` pairs run the same prompt twice — once with the catalog active, once…"
+          }
+        },
+        {
+          "host": "without.yaml",
+          "at": {
+            "line": 354,
+            "text": "…asurement (empirical, paired drift audits).** The `eval/scenarios/cat-<svc>-with.yaml` / `cat-<svc>-without.yaml` pairs run the same prompt twice — once with the catalog active, once with it removed —…"
+          }
+        },
+        {
+          "host": "zod.dev",
+          "at": {
+            "line": 381,
+            "text": "- All MCP tool inputs are validated using [Zod](https://zod.dev/) schemas before processing."
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm sample-aws-pricing-calculator-mcp@1.3.4",
+        "integrity sha512-M6vB5P3qEZIimI8iKr8klXHb624S/MiJs7gJ48XenFhZwKyb6qZAenGfoHNVe402UBJRqctwNgKKAJw/ik2K5w==",
+        "tarball https://registry.npmjs.org/sample-aws-pricing-calculator-mcp/-/sample-aws-pricing-calculator-mcp-1.3.4.tgz"
+      ]
+    }
+  ]
+}

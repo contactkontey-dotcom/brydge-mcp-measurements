@@ -1,0 +1,1420 @@
+{
+  "level": 1,
+  "notCalibrationBacked": true,
+  "asked": "@procedures/mcp-dev-tools@0.46.0",
+  "measuredAt": "2026-10-31T14:03:46.040Z",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "standard": {
+    "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+    "tools": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+    "looseness": "The host pattern matches any dotted name whose last label is two or more letters, so a filename like capture.js reads as a host. That can only make the declared set bigger and suppress a finding, never invent one.",
+    "probes": "No tool is called. Level 1 makes no claim about any tool doing what it says.",
+    "determinism": "No model and no heuristic about meaning. The same README and the same run produce the same report.",
+    "notedWords": "If the README uses the word telemetry or analytics anywhere, the report says so and gives the line. That is recorded, not weighed: it does not make any host declared and the report does not decide whether it accounts for one."
+  },
+  "limits": [
+    {
+      "id": "not-safe",
+      "says": "This cannot show a server is safe. It can show particular claims held or did not, on the calls we made, this once. A server that behaves one way when measured and another way otherwise would pass."
+    },
+    {
+      "id": "offline",
+      "says": "The server runs with no route off the machine — only loopback. So it exercises what a server does WITHOUT a network: nothing that needs a real destination runs, and code that only runs after a connection succeeds never runs here."
+    },
+    {
+      "id": "encrypted-unseen",
+      "says": "We see every destination a server aims at and the full contents of anything it sends in plaintext on port 80. What it would send over TLS is encrypted; we see the name it asked for, not the bytes. A secret sent over HTTPS to a real server would not be caught by content."
+    },
+    {
+      "id": "native-env",
+      "says": "Environment reads by the server's own JavaScript or Python are attributed to the line that made them. Reads by native code or by a subprocess are seen as file opens and process starts, but the individual variable a native read touched is not always visible."
+    },
+    {
+      "id": "no-model",
+      "says": "There is no model in the loop. A tool is called with fixed arguments and its effect is checked. This measures the tool, not an agent's judgement about when to call it."
+    },
+    {
+      "id": "our-reading",
+      "says": "\"Claims\" and \"declares\" are our readings of a server's own words, quoted so you can check them. Where a maintainer means something different, our reading is what is wrong, and the quote is there to show it."
+    },
+    {
+      "id": "not-a-sample",
+      "says": "These servers were chosen, not sampled. They skew toward ones that install cleanly and need no account. There is no ranking and no score: a page is about one server against its own claims, not against the others."
+    },
+    {
+      "id": "ours-and-interested",
+      "says": "The harness is ours, and BRYDGE is an interested party in the subject of whether tools do what they say. The calibration catches planted lies of the kinds we thought of; it cannot catch a kind we did not plant."
+    },
+    {
+      "id": "detectable",
+      "says": "A server that detected the sandbox — the empty home, the loopback-only network, the traced syscalls — could behave differently while watched. Nothing here defeats a server built to notice it is being measured."
+    }
+  ],
+  "slug": "procedures--mcp-dev-tools",
+  "package": {
+    "name": "@procedures/mcp-dev-tools",
+    "version": "0.46.0",
+    "tarball": "https://registry.npmjs.org/@procedures/mcp-dev-tools/-/mcp-dev-tools-0.46.0.tgz",
+    "integrity": "sha512-C0d8M4Coq9xiNgZcFAdN+KURXShkOHXn7iVk5p/7B7XRDWE1gDqRp7ZtVJI7tivhkzSRALqDJJIS13zS9HLDiQ==",
+    "repository": "git+https://github.com/mark1russell7/client.git",
+    "homepage": "https://mark1russell7.github.io/client/"
+  },
+  "readme": {
+    "file": "README.md",
+    "digest": "620878e13941ebebc2cf67b2033dcf446807c355434e84cd914b7d15bd97421c",
+    "lines": 113,
+    "bytes": 7885
+  },
+  "readmeNotes": [],
+  "declaration": {
+    "hosts": [
+      {
+        "host": "capabilities-2026-10.md",
+        "at": {
+          "line": 87,
+          "text": "The rules and the table of all the procedures are in [CAPABILITIES-2026-10.md](../documentation/CAPABILITIES-2026-10.md#the-root-of-the-files-roadmap-r33)."
+        }
+      },
+      {
+        "host": "client.chain",
+        "at": {
+          "line": 94,
+          "text": "…A `ProcedureServer` serves the registry with that rule as its `expose` rule. A data-driven procedure (`client.chain`, `client.eval`, a procedure of `procedure.define`) can use only exposed procedures."
+        }
+      },
+      {
+        "host": "client.eval",
+        "at": {
+          "line": 94,
+          "text": "…A `ProcedureServer` serves the registry with that rule as its `expose` rule. A data-driven procedure (`client.chain`, `client.eval`, a procedure of `procedure.define`) can use only exposed procedures."
+        }
+      },
+      {
+        "host": "console.log",
+        "at": {
+          "line": 102,
+          "text": "The server sends `console.log` output to stderr, because stdout carries the MCP protocol."
+        }
+      },
+      {
+        "host": "docker.build",
+        "at": {
+          "line": 83,
+          "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+        }
+      },
+      {
+        "host": "docker.compose",
+        "at": {
+          "line": 83,
+          "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+        }
+      },
+      {
+        "host": "docker.exec",
+        "at": {
+          "line": 83,
+          "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+        }
+      },
+      {
+        "host": "docker.images",
+        "at": {
+          "line": 82,
+          "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+        }
+      },
+      {
+        "host": "docker.inspect",
+        "at": {
+          "line": 82,
+          "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+        }
+      },
+      {
+        "host": "docker.logs",
+        "at": {
+          "line": 82,
+          "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+        }
+      },
+      {
+        "host": "docker.network",
+        "at": {
+          "line": 82,
+          "text": "…ocker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a folder of the root. |"
+        }
+      },
+      {
+        "host": "docker.ps",
+        "at": {
+          "line": 82,
+          "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+        }
+      },
+      {
+        "host": "docker.pull",
+        "at": {
+          "line": 82,
+          "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+        }
+      },
+      {
+        "host": "docker.rm",
+        "at": {
+          "line": 82,
+          "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+        }
+      },
+      {
+        "host": "docker.run",
+        "at": {
+          "line": 83,
+          "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+        }
+      },
+      {
+        "host": "docker.stop",
+        "at": {
+          "line": 82,
+          "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+        }
+      },
+      {
+        "host": "docker.tag",
+        "at": {
+          "line": 82,
+          "text": "….ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a folder of the…"
+        }
+      },
+      {
+        "host": "docker.volume",
+        "at": {
+          "line": 82,
+          "text": "…ocker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a folder of the root. |"
+        }
+      },
+      {
+        "host": "events.md",
+        "at": {
+          "line": 61,
+          "text": "The server serves no remote events (`documentation/EVENTS.md`). Its transport carries only MCP, and `events.subscribe` is not a tool. Thus the host has no variable for the topics."
+        }
+      },
+      {
+        "host": "events.subscribe",
+        "at": {
+          "line": 61,
+          "text": "The server serves no remote events (`documentation/EVENTS.md`). Its transport carries only MCP, and `events.subscribe` is not a tool. Thus the host has no variable for the topics."
+        }
+      },
+      {
+        "host": "img.shields.io",
+        "at": {
+          "line": 3,
+          "text": "[![npm](https://img.shields.io/npm/v/@procedures/mcp-dev-tools?color=2346c4&label=npm)](https://www.npmjs.com/package/@procedures/mcp-dev-tools)"
+        }
+      },
+      {
+        "host": "lib.audit",
+        "at": {
+          "line": 79,
+          "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+        }
+      },
+      {
+        "host": "lib.graph",
+        "at": {
+          "line": 79,
+          "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+        }
+      },
+      {
+        "host": "lib.new",
+        "at": {
+          "line": 84,
+          "text": "| `lib.new`, `vitest.run`, `vitest.coverage` | Refused: they start code of the project |"
+        }
+      },
+      {
+        "host": "lib.rename",
+        "at": {
+          "line": 79,
+          "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+        }
+      },
+      {
+        "host": "lib.scan",
+        "at": {
+          "line": 79,
+          "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+        }
+      },
+      {
+        "host": "mcp.serve",
+        "at": {
+          "line": 96,
+          "text": "`createMcpHost()` of `@procedures/mcp-server` builds the host: the same factory as `mcp.serve` and the MCP hosts of the apps."
+        }
+      },
+      {
+        "host": "metadata.fsroot",
+        "at": {
+          "line": 69,
+          "text": "- A tool keeps its paths in the root. The host examines the path inputs of its rules (`metadata.fsRoot`) before it starts. The nested `fs.*` calls are confined too."
+        }
+      },
+      {
+        "host": "procedure.define",
+        "at": {
+          "line": 94,
+          "text": "…A `ProcedureServer` serves the registry with that rule as its `expose` rule. A data-driven procedure (`client.chain`, `client.eval`, a procedure of `procedure.define`) can use only exposed procedures."
+        }
+      },
+      {
+        "host": "procedure.new",
+        "at": {
+          "line": 80,
+          "text": "| `procedure.new` | Confined: `path` |"
+        }
+      },
+      {
+        "host": "readme.md",
+        "at": {
+          "line": 106,
+          "text": "…and. To change the tools, change `bundle-mcp` and `tools.snapshot.txt` in one commit. The [bundle-mcp README](../bundle-mcp/README.md) lists the tools and the reasons for the procedures that stay out."
+        }
+      },
+      {
+        "host": "register.js",
+        "at": {
+          "line": 42,
+          "text": "…UNDLES` | `@procedures/bundle-mcp` | The bundles to load, separated by commas. The server imports `<bundle>/register.js` for each one. `@procedures/bundle-assistant` adds the tools of the assistant. |"
+        }
+      },
+      {
+        "host": "server.js",
+        "at": {
+          "line": 26,
+          "text": "\"args\": [\"/path/to/client/packages/impl-mcp-dev/dist/server.js\"]"
+        }
+      },
+      {
+        "host": "shell.exec",
+        "at": {
+          "line": 100,
+          "text": "> A bundle without `mcpNamespaces` exposes every registered procedure, `shell.exec` too. `bundle-dev` has no `mcpNamespaces`. Thus `MCP_BUNDLES=@procedures/bundle-dev` gives Claude shell access throug…"
+        }
+      },
+      {
+        "host": "tools.snapshot.txt",
+        "at": {
+          "line": 68,
+          "text": "- The list of the tools and `tools.snapshot.txt` do not change. The host refuses some tools under a root."
+        }
+      },
+      {
+        "host": "tools.test.ts",
+        "at": {
+          "line": 106,
+          "text": "`tools.snapshot.txt` has the names of the 91 tools. `src/tools.test.ts` starts the real server over stdio and compares its tools with the file. It also examines that a `docker.*` tool cannot start a s…"
+        }
+      },
+      {
+        "host": "vitest.coverage",
+        "at": {
+          "line": 84,
+          "text": "| `lib.new`, `vitest.run`, `vitest.coverage` | Refused: they start code of the project |"
+        }
+      },
+      {
+        "host": "vitest.run",
+        "at": {
+          "line": 84,
+          "text": "| `lib.new`, `vitest.run`, `vitest.coverage` | Refused: they start code of the project |"
+        }
+      },
+      {
+        "host": "www.npmjs.com",
+        "at": {
+          "line": 3,
+          "text": "[![npm](https://img.shields.io/npm/v/@procedures/mcp-dev-tools?color=2346c4&label=npm)](https://www.npmjs.com/package/@procedures/mcp-dev-tools)"
+        }
+      }
+    ],
+    "identifiers": []
+  },
+  "couldNotStart": null,
+  "serverInfo": {
+    "name": "impl-mcp-dev",
+    "version": "1.0.0"
+  },
+  "observed": {
+    "offered": [
+      "client.all",
+      "client.and",
+      "client.any",
+      "client.chain",
+      "client.conditional",
+      "client.constant",
+      "client.identity",
+      "client.map",
+      "client.none",
+      "client.not",
+      "client.or",
+      "client.parallel",
+      "client.reduce",
+      "client.throw",
+      "client.trace",
+      "client.tryCatch",
+      "cue.add",
+      "cue.generate",
+      "cue.init",
+      "cue.remove",
+      "cue.validate",
+      "docker.build",
+      "docker.compose.build",
+      "docker.compose.down",
+      "docker.compose.logs",
+      "docker.compose.ps",
+      "docker.compose.restart",
+      "docker.compose.up",
+      "docker.exec",
+      "docker.images",
+      "docker.inspect",
+      "docker.logs",
+      "docker.network.create",
+      "docker.network.list",
+      "docker.network.remove",
+      "docker.ps",
+      "docker.pull",
+      "docker.rm",
+      "docker.run",
+      "docker.stop",
+      "docker.tag",
+      "docker.volume.create",
+      "docker.volume.list",
+      "json.diff",
+      "json.merge",
+      "json.patch",
+      "json.query",
+      "json.validate",
+      "lib.audit",
+      "lib.graph",
+      "lib.importCycles",
+      "lib.new",
+      "lib.rename",
+      "lib.scan",
+      "logs.query",
+      "logs.store",
+      "mongo.collections.create",
+      "mongo.collections.drop",
+      "mongo.collections.list",
+      "mongo.collections.stats",
+      "mongo.database.info",
+      "mongo.database.ping",
+      "mongo.documents.aggregate",
+      "mongo.documents.count",
+      "mongo.documents.delete",
+      "mongo.documents.distinct",
+      "mongo.documents.explain",
+      "mongo.documents.find",
+      "mongo.documents.get",
+      "mongo.documents.insert",
+      "mongo.documents.update",
+      "mongo.indexes.create",
+      "mongo.indexes.drop",
+      "mongo.indexes.list",
+      "procedure.define",
+      "procedure.delete",
+      "procedure.export",
+      "procedure.get",
+      "procedure.list",
+      "procedure.manifest",
+      "procedure.new",
+      "program.check",
+      "program.compile",
+      "program.diagram",
+      "program.explain",
+      "sqlite.execute",
+      "sqlite.query",
+      "sqlite.schema",
+      "sqlite.tables",
+      "vitest.coverage",
+      "vitest.run",
+      "yaml.parse",
+      "yaml.stringify"
+    ],
+    "dnsNames": [],
+    "tlsHosts": [],
+    "connectAttempts": [],
+    "programsStarted": [
+      "mcp-dev-tools",
+      "node",
+      "setpriv"
+    ],
+    "filesWritten": [],
+    "installedDuringRun": []
+  },
+  "comparison": {
+    "tools": {
+      "rule": "A tool counts as documented only if its exact name appears in the README as a whole word. Asked once per offered tool, so the documented set is never derived from the offered set.",
+      "documented": [
+        {
+          "name": "client.chain",
+          "at": {
+            "line": 94,
+            "text": "…A `ProcedureServer` serves the registry with that rule as its `expose` rule. A data-driven procedure (`client.chain`, `client.eval`, a procedure of `procedure.define`) can use only exposed procedures."
+          }
+        },
+        {
+          "name": "docker.build",
+          "at": {
+            "line": 83,
+            "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+          }
+        },
+        {
+          "name": "docker.exec",
+          "at": {
+            "line": 83,
+            "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+          }
+        },
+        {
+          "name": "docker.images",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "name": "docker.inspect",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "name": "docker.logs",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "name": "docker.ps",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "name": "docker.pull",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "name": "docker.rm",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "name": "docker.run",
+          "at": {
+            "line": 83,
+            "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+          }
+        },
+        {
+          "name": "docker.stop",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "name": "docker.tag",
+          "at": {
+            "line": 82,
+            "text": "….ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a folder of the…"
+          }
+        },
+        {
+          "name": "lib.audit",
+          "at": {
+            "line": 79,
+            "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+          }
+        },
+        {
+          "name": "lib.graph",
+          "at": {
+            "line": 79,
+            "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+          }
+        },
+        {
+          "name": "lib.new",
+          "at": {
+            "line": 84,
+            "text": "| `lib.new`, `vitest.run`, `vitest.coverage` | Refused: they start code of the project |"
+          }
+        },
+        {
+          "name": "lib.rename",
+          "at": {
+            "line": 79,
+            "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+          }
+        },
+        {
+          "name": "lib.scan",
+          "at": {
+            "line": 79,
+            "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+          }
+        },
+        {
+          "name": "procedure.define",
+          "at": {
+            "line": 94,
+            "text": "…A `ProcedureServer` serves the registry with that rule as its `expose` rule. A data-driven procedure (`client.chain`, `client.eval`, a procedure of `procedure.define`) can use only exposed procedures."
+          }
+        },
+        {
+          "name": "procedure.new",
+          "at": {
+            "line": 80,
+            "text": "| `procedure.new` | Confined: `path` |"
+          }
+        },
+        {
+          "name": "vitest.coverage",
+          "at": {
+            "line": 84,
+            "text": "| `lib.new`, `vitest.run`, `vitest.coverage` | Refused: they start code of the project |"
+          }
+        },
+        {
+          "name": "vitest.run",
+          "at": {
+            "line": 84,
+            "text": "| `lib.new`, `vitest.run`, `vitest.coverage` | Refused: they start code of the project |"
+          }
+        }
+      ],
+      "undocumented": [
+        {
+          "name": "client.all",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.all\""
+          ]
+        },
+        {
+          "name": "client.and",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.and\""
+          ]
+        },
+        {
+          "name": "client.any",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.any\""
+          ]
+        },
+        {
+          "name": "client.conditional",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.conditional\""
+          ]
+        },
+        {
+          "name": "client.constant",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.constant\""
+          ]
+        },
+        {
+          "name": "client.identity",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.identity\""
+          ]
+        },
+        {
+          "name": "client.map",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.map\""
+          ]
+        },
+        {
+          "name": "client.none",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.none\""
+          ]
+        },
+        {
+          "name": "client.not",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.not\""
+          ]
+        },
+        {
+          "name": "client.or",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.or\""
+          ]
+        },
+        {
+          "name": "client.parallel",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.parallel\""
+          ]
+        },
+        {
+          "name": "client.reduce",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.reduce\""
+          ]
+        },
+        {
+          "name": "client.throw",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.throw\""
+          ]
+        },
+        {
+          "name": "client.trace",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.trace\""
+          ]
+        },
+        {
+          "name": "client.tryCatch",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"client.tryCatch\""
+          ]
+        },
+        {
+          "name": "cue.add",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"cue.add\""
+          ]
+        },
+        {
+          "name": "cue.generate",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"cue.generate\""
+          ]
+        },
+        {
+          "name": "cue.init",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"cue.init\""
+          ]
+        },
+        {
+          "name": "cue.remove",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"cue.remove\""
+          ]
+        },
+        {
+          "name": "cue.validate",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"cue.validate\""
+          ]
+        },
+        {
+          "name": "docker.compose.build",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.compose.build\""
+          ]
+        },
+        {
+          "name": "docker.compose.down",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.compose.down\""
+          ]
+        },
+        {
+          "name": "docker.compose.logs",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.compose.logs\""
+          ]
+        },
+        {
+          "name": "docker.compose.ps",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.compose.ps\""
+          ]
+        },
+        {
+          "name": "docker.compose.restart",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.compose.restart\""
+          ]
+        },
+        {
+          "name": "docker.compose.up",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.compose.up\""
+          ]
+        },
+        {
+          "name": "docker.network.create",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.network.create\""
+          ]
+        },
+        {
+          "name": "docker.network.list",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.network.list\""
+          ]
+        },
+        {
+          "name": "docker.network.remove",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.network.remove\""
+          ]
+        },
+        {
+          "name": "docker.volume.create",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.volume.create\""
+          ]
+        },
+        {
+          "name": "docker.volume.list",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"docker.volume.list\""
+          ]
+        },
+        {
+          "name": "json.diff",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"json.diff\""
+          ]
+        },
+        {
+          "name": "json.merge",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"json.merge\""
+          ]
+        },
+        {
+          "name": "json.patch",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"json.patch\""
+          ]
+        },
+        {
+          "name": "json.query",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"json.query\""
+          ]
+        },
+        {
+          "name": "json.validate",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"json.validate\""
+          ]
+        },
+        {
+          "name": "lib.importCycles",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"lib.importCycles\""
+          ]
+        },
+        {
+          "name": "logs.query",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"logs.query\""
+          ]
+        },
+        {
+          "name": "logs.store",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"logs.store\""
+          ]
+        },
+        {
+          "name": "mongo.collections.create",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.collections.create\""
+          ]
+        },
+        {
+          "name": "mongo.collections.drop",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.collections.drop\""
+          ]
+        },
+        {
+          "name": "mongo.collections.list",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.collections.list\""
+          ]
+        },
+        {
+          "name": "mongo.collections.stats",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.collections.stats\""
+          ]
+        },
+        {
+          "name": "mongo.database.info",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.database.info\""
+          ]
+        },
+        {
+          "name": "mongo.database.ping",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.database.ping\""
+          ]
+        },
+        {
+          "name": "mongo.documents.aggregate",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.documents.aggregate\""
+          ]
+        },
+        {
+          "name": "mongo.documents.count",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.documents.count\""
+          ]
+        },
+        {
+          "name": "mongo.documents.delete",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.documents.delete\""
+          ]
+        },
+        {
+          "name": "mongo.documents.distinct",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.documents.distinct\""
+          ]
+        },
+        {
+          "name": "mongo.documents.explain",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.documents.explain\""
+          ]
+        },
+        {
+          "name": "mongo.documents.find",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.documents.find\""
+          ]
+        },
+        {
+          "name": "mongo.documents.get",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.documents.get\""
+          ]
+        },
+        {
+          "name": "mongo.documents.insert",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.documents.insert\""
+          ]
+        },
+        {
+          "name": "mongo.documents.update",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.documents.update\""
+          ]
+        },
+        {
+          "name": "mongo.indexes.create",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.indexes.create\""
+          ]
+        },
+        {
+          "name": "mongo.indexes.drop",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.indexes.drop\""
+          ]
+        },
+        {
+          "name": "mongo.indexes.list",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"mongo.indexes.list\""
+          ]
+        },
+        {
+          "name": "procedure.delete",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"procedure.delete\""
+          ]
+        },
+        {
+          "name": "procedure.export",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"procedure.export\""
+          ]
+        },
+        {
+          "name": "procedure.get",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"procedure.get\""
+          ]
+        },
+        {
+          "name": "procedure.list",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"procedure.list\""
+          ]
+        },
+        {
+          "name": "procedure.manifest",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"procedure.manifest\""
+          ]
+        },
+        {
+          "name": "program.check",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"program.check\""
+          ]
+        },
+        {
+          "name": "program.compile",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"program.compile\""
+          ]
+        },
+        {
+          "name": "program.diagram",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"program.diagram\""
+          ]
+        },
+        {
+          "name": "program.explain",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"program.explain\""
+          ]
+        },
+        {
+          "name": "sqlite.execute",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"sqlite.execute\""
+          ]
+        },
+        {
+          "name": "sqlite.query",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"sqlite.query\""
+          ]
+        },
+        {
+          "name": "sqlite.schema",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"sqlite.schema\""
+          ]
+        },
+        {
+          "name": "sqlite.tables",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"sqlite.tables\""
+          ]
+        },
+        {
+          "name": "yaml.parse",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"yaml.parse\""
+          ]
+        },
+        {
+          "name": "yaml.stringify",
+          "evidence": [
+            "offered in tools/list by @procedures/mcp-dev-tools@0.46.0",
+            "absent from README.md (113 lines, sha256 620878e13941…): no whole-word match for \"yaml.stringify\""
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "rule": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
+      "declared": [
+        {
+          "host": "capabilities-2026-10.md",
+          "at": {
+            "line": 87,
+            "text": "The rules and the table of all the procedures are in [CAPABILITIES-2026-10.md](../documentation/CAPABILITIES-2026-10.md#the-root-of-the-files-roadmap-r33)."
+          }
+        },
+        {
+          "host": "client.chain",
+          "at": {
+            "line": 94,
+            "text": "…A `ProcedureServer` serves the registry with that rule as its `expose` rule. A data-driven procedure (`client.chain`, `client.eval`, a procedure of `procedure.define`) can use only exposed procedures."
+          }
+        },
+        {
+          "host": "client.eval",
+          "at": {
+            "line": 94,
+            "text": "…A `ProcedureServer` serves the registry with that rule as its `expose` rule. A data-driven procedure (`client.chain`, `client.eval`, a procedure of `procedure.define`) can use only exposed procedures."
+          }
+        },
+        {
+          "host": "console.log",
+          "at": {
+            "line": 102,
+            "text": "The server sends `console.log` output to stderr, because stdout carries the MCP protocol."
+          }
+        },
+        {
+          "host": "docker.build",
+          "at": {
+            "line": 83,
+            "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+          }
+        },
+        {
+          "host": "docker.compose",
+          "at": {
+            "line": 83,
+            "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+          }
+        },
+        {
+          "host": "docker.exec",
+          "at": {
+            "line": 83,
+            "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+          }
+        },
+        {
+          "host": "docker.images",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "host": "docker.inspect",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "host": "docker.logs",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "host": "docker.network",
+          "at": {
+            "line": 82,
+            "text": "…ocker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a folder of the root. |"
+          }
+        },
+        {
+          "host": "docker.ps",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "host": "docker.pull",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "host": "docker.rm",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "host": "docker.run",
+          "at": {
+            "line": 83,
+            "text": "| `docker.run`, `docker.exec`, `docker.build`, `docker.compose.*` | Refused: a volume, a compose file or a Dockerfile reaches host folders, or runs a program |"
+          }
+        },
+        {
+          "host": "docker.stop",
+          "at": {
+            "line": 82,
+            "text": "| `docker.ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a fold…"
+          }
+        },
+        {
+          "host": "docker.tag",
+          "at": {
+            "line": 82,
+            "text": "….ps`, `docker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a folder of the…"
+          }
+        },
+        {
+          "host": "docker.volume",
+          "at": {
+            "line": 82,
+            "text": "…ocker.logs`, `docker.stop`, `docker.rm`, `docker.images`, `docker.inspect`, `docker.pull`, `docker.tag`, `docker.volume.*`, `docker.network.*` | Confined: `cwd`. Docker runs in a folder of the root. |"
+          }
+        },
+        {
+          "host": "events.md",
+          "at": {
+            "line": 61,
+            "text": "The server serves no remote events (`documentation/EVENTS.md`). Its transport carries only MCP, and `events.subscribe` is not a tool. Thus the host has no variable for the topics."
+          }
+        },
+        {
+          "host": "events.subscribe",
+          "at": {
+            "line": 61,
+            "text": "The server serves no remote events (`documentation/EVENTS.md`). Its transport carries only MCP, and `events.subscribe` is not a tool. Thus the host has no variable for the topics."
+          }
+        },
+        {
+          "host": "img.shields.io",
+          "at": {
+            "line": 3,
+            "text": "[![npm](https://img.shields.io/npm/v/@procedures/mcp-dev-tools?color=2346c4&label=npm)](https://www.npmjs.com/package/@procedures/mcp-dev-tools)"
+          }
+        },
+        {
+          "host": "lib.audit",
+          "at": {
+            "line": 79,
+            "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+          }
+        },
+        {
+          "host": "lib.graph",
+          "at": {
+            "line": 79,
+            "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+          }
+        },
+        {
+          "host": "lib.new",
+          "at": {
+            "line": 84,
+            "text": "| `lib.new`, `vitest.run`, `vitest.coverage` | Refused: they start code of the project |"
+          }
+        },
+        {
+          "host": "lib.rename",
+          "at": {
+            "line": 79,
+            "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+          }
+        },
+        {
+          "host": "lib.scan",
+          "at": {
+            "line": 79,
+            "text": "| `lib.scan`, `lib.graph`, `lib.audit`, `lib.rename` | Confined: `rootPath`. Their nested git calls are refused, and `lib.scan` gives a warning. |"
+          }
+        },
+        {
+          "host": "mcp.serve",
+          "at": {
+            "line": 96,
+            "text": "`createMcpHost()` of `@procedures/mcp-server` builds the host: the same factory as `mcp.serve` and the MCP hosts of the apps."
+          }
+        },
+        {
+          "host": "metadata.fsroot",
+          "at": {
+            "line": 69,
+            "text": "- A tool keeps its paths in the root. The host examines the path inputs of its rules (`metadata.fsRoot`) before it starts. The nested `fs.*` calls are confined too."
+          }
+        },
+        {
+          "host": "procedure.define",
+          "at": {
+            "line": 94,
+            "text": "…A `ProcedureServer` serves the registry with that rule as its `expose` rule. A data-driven procedure (`client.chain`, `client.eval`, a procedure of `procedure.define`) can use only exposed procedures."
+          }
+        },
+        {
+          "host": "procedure.new",
+          "at": {
+            "line": 80,
+            "text": "| `procedure.new` | Confined: `path` |"
+          }
+        },
+        {
+          "host": "readme.md",
+          "at": {
+            "line": 106,
+            "text": "…and. To change the tools, change `bundle-mcp` and `tools.snapshot.txt` in one commit. The [bundle-mcp README](../bundle-mcp/README.md) lists the tools and the reasons for the procedures that stay out."
+          }
+        },
+        {
+          "host": "register.js",
+          "at": {
+            "line": 42,
+            "text": "…UNDLES` | `@procedures/bundle-mcp` | The bundles to load, separated by commas. The server imports `<bundle>/register.js` for each one. `@procedures/bundle-assistant` adds the tools of the assistant. |"
+          }
+        },
+        {
+          "host": "server.js",
+          "at": {
+            "line": 26,
+            "text": "\"args\": [\"/path/to/client/packages/impl-mcp-dev/dist/server.js\"]"
+          }
+        },
+        {
+          "host": "shell.exec",
+          "at": {
+            "line": 100,
+            "text": "> A bundle without `mcpNamespaces` exposes every registered procedure, `shell.exec` too. `bundle-dev` has no `mcpNamespaces`. Thus `MCP_BUNDLES=@procedures/bundle-dev` gives Claude shell access throug…"
+          }
+        },
+        {
+          "host": "tools.snapshot.txt",
+          "at": {
+            "line": 68,
+            "text": "- The list of the tools and `tools.snapshot.txt` do not change. The host refuses some tools under a root."
+          }
+        },
+        {
+          "host": "tools.test.ts",
+          "at": {
+            "line": 106,
+            "text": "`tools.snapshot.txt` has the names of the 91 tools. `src/tools.test.ts` starts the real server over stdio and compares its tools with the file. It also examines that a `docker.*` tool cannot start a s…"
+          }
+        },
+        {
+          "host": "vitest.coverage",
+          "at": {
+            "line": 84,
+            "text": "| `lib.new`, `vitest.run`, `vitest.coverage` | Refused: they start code of the project |"
+          }
+        },
+        {
+          "host": "vitest.run",
+          "at": {
+            "line": 84,
+            "text": "| `lib.new`, `vitest.run`, `vitest.coverage` | Refused: they start code of the project |"
+          }
+        },
+        {
+          "host": "www.npmjs.com",
+          "at": {
+            "line": 3,
+            "text": "[![npm](https://img.shields.io/npm/v/@procedures/mcp-dev-tools?color=2346c4&label=npm)](https://www.npmjs.com/package/@procedures/mcp-dev-tools)"
+          }
+        }
+      ],
+      "undeclared": []
+    }
+  },
+  "findings": [
+    {
+      "id": "credential:note:enumerated",
+      "kind": "credential",
+      "security": false,
+      "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
+      "evidence": [
+        "at Object.getEnvironmentVariable (/srv/brydge-measure/procedures--mcp-dev-tools-1793455427588/install/node_modules/@ts-morph/common/dist/typescript.js:8312:27) read 10 variables"
+      ]
+    },
+    {
+      "id": "install:integrity",
+      "kind": "install",
+      "security": false,
+      "says": "Installed at a pinned integrity, recorded so the exact bytes can be fetched again.",
+      "evidence": [
+        "npm @procedures/mcp-dev-tools@0.46.0",
+        "integrity sha512-C0d8M4Coq9xiNgZcFAdN+KURXShkOHXn7iVk5p/7B7XRDWE1gDqRp7ZtVJI7tivhkzSRALqDJJIS13zS9HLDiQ==",
+        "tarball https://registry.npmjs.org/@procedures/mcp-dev-tools/-/mcp-dev-tools-0.46.0.tgz"
+      ]
+    }
+  ]
+}

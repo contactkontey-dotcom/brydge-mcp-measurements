@@ -132,6 +132,15 @@ export function renderReport(e: Level1Evidence): string {
     p(e.couldNotStart.because.trim());
     p("```");
     p();
+    /* And what the install said, which is usually where the reason really is. */
+    if (e.couldNotStart.installSaid) {
+      p(`The install that preceded it said:`);
+      p();
+      p("```");
+      p(e.couldNotStart.installSaid.trim());
+      p("```");
+      p();
+    }
     p(
       `That is the whole result. Nothing is concluded about what the package would have done, ` +
         `because it did not run.`,
