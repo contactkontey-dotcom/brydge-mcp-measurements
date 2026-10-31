@@ -9,13 +9,13 @@
   "heroui--react-mcp": {
     "notifiedAt": "2026-10-31",
     "outcome": "closed as not planned",
-    "outcomeAt": null,
-    "url": null
+    "outcomeAt": "2026-10-31",
+    "url": "https://github.com/heroui-inc/heroui-mcp/issues/106"
   },
   "react-aria--mcp": {
     "notifiedAt": "2026-10-31",
     "outcome": "closed as not planned",
-    "outcomeAt": null,
-    "url": null
+    "outcomeAt": "2026-10-31",
+    "url": "https://github.com/adobe/react-spectrum/issues/10896"
   }
 }

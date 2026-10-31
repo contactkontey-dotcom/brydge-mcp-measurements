@@ -169,8 +169,10 @@ test("the upstream record is read, and an entry without a link is visible as suc
   for (const [slug, entry] of Object.entries(u)) {
     assert.match(entry.notifiedAt, /^\d{4}-\d{2}-\d{2}$/, `${slug}: no notification date`);
     assert.ok(entry.outcome.length > 0, `${slug}: no outcome`);
-    /* `url` may be null — that is what blocks the build rather than the page. */
-    assert.ok(entry.url === null || /^https:\/\//.test(entry.url), `${slug}: url is neither null nor a link`);
+    /* `url` may be null in the type — that is what blocks the build rather than
+     * letting a page say it. Nothing recorded today is missing one, and this
+     * fails the moment somebody adds a response without the thread behind it. */
+    assert.match(entry.url ?? "", /^https:\/\/github\.com\/.+\/issues\/\d+$/, `${slug}: no link to the thread`);
   }
 });
 
