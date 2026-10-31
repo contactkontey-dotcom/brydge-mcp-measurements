@@ -112,3 +112,47 @@ test("the site is ink only, and never calls anything safe, unsafe or dangerous i
     assert.equal(hit, null, `${f}: the page's own words use "${hit?.[0]}"`);
   }
 });
+
+test("the built site carries search, the two forms, pricing, a badge and a card", { skip: !built }, () => {
+  const index = page("index.html");
+  assert.match(index, /class="search"/, "no search box");
+  assert.match(index, /id="q"/, "no search input");
+  /* Every row is in the HTML, so a reader without scripting sees them all. */
+  const rows = (index.match(/<tr>/g) ?? []).length - 1;
+  assert.equal(rows, readdirSync(join(DIST, "s")).length, "the table is not the published set");
+
+  for (const f of ["request.html", "alerts.html", "pricing.html", "method.html"]) {
+    assert.ok(existsSync(join(DIST, f)), `${f} is missing`);
+    assert.match(page(f), /og:image/, `${f} has no preview card`);
+  }
+  /* The forms go somewhere that already keeps a public record. */
+  assert.match(page("request.html"), /issues\/new\?title=/, "the request form posts nowhere");
+  assert.match(page("alerts.html"), /issues\/new\?title=/, "the alert form posts nowhere");
+
+  /* Pricing leads with the free thing and quotes no figure it has not been given. */
+  const pricing = page("pricing.html");
+  assert.match(pricing, /Level 1 is free/, "pricing buries the free tier");
+  assert.doesNotMatch(pricing, /[$£€]\s?\d/, "pricing quotes a figure nobody set");
+
+  /* A badge and a card per published page, and for nothing else. */
+  const slugs = readdirSync(join(DIST, "s")).map((n) => n.replace(/\.html$/, ""));
+  for (const slug of slugs) {
+    assert.ok(existsSync(join(DIST, "b", `${slug}.svg`)), `${slug}: no badge`);
+    assert.ok(existsSync(join(DIST, "p", `${slug}.svg`)), `${slug}: no preview card`);
+    const svg = readFileSync(join(DIST, "b", `${slug}.svg`), "utf8");
+    assert.match(svg, /measured \d{4}-\d{2}-\d{2}/, `${slug}: the badge states no date`);
+    /* A badge is read at a glance; a glance cannot carry limits, so it carries
+     * no verdict and no colour that means one. */
+    /* Whole words: "measured" is not a verdict, and a substring match says it is. */
+    assert.doesNotMatch(svg, /\b(pass(ed)?|fail(ed)?|verified|approved|secure|trusted|green|red)\b/i, `${slug}: the badge reads as a verdict`);
+    assert.doesNotMatch(svg, /#(2e[0-9a-f]{4}|0a0|[0-9a-f]{0,2}c8a96b)/i, `${slug}: the badge carries a colour that means something`);
+  }
+  for (const e of publishable(
+    readdirSync(join(import.meta.dirname, "..", "level1", "evidence"))
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => JSON.parse(readFileSync(join(import.meta.dirname, "..", "level1", "evidence", f), "utf8")) as Level1Evidence),
+  ).withheld) {
+    assert.ok(!existsSync(join(DIST, "b", `${e.slug}.svg`)), `${e.slug}: a withheld page has a badge`);
+    assert.ok(!existsSync(join(DIST, "p", `${e.slug}.svg`)), `${e.slug}: a withheld page has a card`);
+  }
+});

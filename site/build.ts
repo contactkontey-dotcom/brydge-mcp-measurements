@@ -33,6 +33,7 @@ import { renderReport } from "../level1/report.ts";
 import { renderIndex } from "../level1/index.ts";
 import type { Level1Evidence } from "../level1/run.ts";
 import { escapeHtml, markdownToHtml } from "./md.ts";
+import { badgeSvg, previewLines, previewSvg } from "./assets.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const EVIDENCE = join(ROOT, "level1", "evidence");
@@ -120,10 +121,32 @@ tbody tr:last-child td{border-bottom:0}
 .foot{margin-top:56px; padding-top:20px; border-top:1px solid var(--line-strong); font-size:13px; color:var(--ink-muted)}
 .foot a{display:inline-block; margin-right:18px}
 .report{font-family:var(--f-mono); font-size:12px}
+.search{margin:0 0 18px}
+.search label{display:block; font-family:var(--f-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:6px}
+.search input{width:100%; max-width:26rem; font:inherit; font-size:15px; color:var(--ink); background:var(--raised); border:1px solid var(--line-strong); padding:9px 12px}
+.search input:focus-visible{outline:2px solid var(--ink); outline-offset:1px}
+.count{font-family:var(--f-mono); font-size:12px; color:var(--ink-faint); margin:8px 0 0}
+tr[hidden]{display:none}
+.badge{display:block; margin:10px 0 18px}
+.snippet{background:var(--raised); border:1px solid var(--line); padding:10px 12px; overflow-x:auto; font-family:var(--f-mono); font-size:12px; white-space:pre; margin:0 0 20px}
+.cols{display:grid; gap:28px; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); margin:0 0 24px; max-width:var(--measure)}
+.cols h3{margin-top:0}
+.tier{border-top:2px solid var(--ink); padding-top:12px}
+.tier p{margin-bottom:10px}
+.free{font-family:var(--f-mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint)}
 @media (max-width:420px){ th,td{white-space:normal} }
 `;
 
-function shell(opts: { title: string; description: string; canonical: string; body: string; mistakeTitle: string }): string {
+function shell(opts: {
+  title: string;
+  description: string;
+  canonical: string;
+  body: string;
+  mistakeTitle: string;
+  /** The card a link unfurls into. Every page has one; none is decorative. */
+  preview?: string;
+}): string {
+  const card = opts.preview ?? "/p/index.png";
   return `<!doctype html>
 <html lang="en">
 <meta charset="utf-8">
@@ -131,6 +154,12 @@ function shell(opts: { title: string; description: string; canonical: string; bo
 <title>${escapeHtml(opts.title)}</title>
 <meta name="description" content="${escapeHtml(opts.description)}">
 <link rel="canonical" href="${opts.canonical}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${escapeHtml(opts.title)}">
+<meta property="og:description" content="${escapeHtml(opts.description)}">
+<meta property="og:url" content="${opts.canonical}">
+<meta property="og:image" content="${SITE}${card}">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400&display=swap">
 <style>${CSS}</style>
 <div class="band"><div class="wrap">
@@ -140,12 +169,178 @@ function shell(opts: { title: string; description: string; canonical: string; bo
 <main class="wrap">
 ${opts.body}
 <div class="foot">
-  <a href="/">All measurements</a><a href="/method.html">Method and limits</a><a href="${REPO}">Harness and raw evidence</a><a href="${MAIN}">BRYDGE&rsquo;s calibrated measurements</a>
+  <a href="/">All measurements</a><a href="/method.html">How we measure</a><a href="/request.html">Request a measurement</a><a href="/alerts.html">Get an alert</a><a href="/pricing.html">Pricing</a><a href="${REPO}">Harness and raw evidence</a><a href="${MAIN}">BRYDGE&rsquo;s calibrated measurements</a>
   <p class="report"><a href="${REPO}/issues/new?title=${encodeURIComponent(opts.mistakeTitle)}">Report a mistake on this page &rarr;</a></p>
 </div>
 </main>
 </html>
 `;
+}
+
+/*
+ * SEARCH THAT CANNOT HIDE A ROW FROM SOMEBODY WITHOUT JAVASCRIPT.
+ *
+ * The table is complete in the HTML. This filters rows that are already there
+ * and says how many are showing; with scripting off, every row stays visible
+ * and the box simply does not appear. No index file, no fetch, no service —
+ * 38 rows is a list, not a corpus, and a search that needs a server would make
+ * this a site that runs something.
+ */
+const SEARCH = `
+<form class="search" role="search" onsubmit="return false" hidden>
+  <label for="q">Find a server</label>
+  <input id="q" type="search" autocomplete="off" placeholder="package name, or a host it reached for">
+  <p class="count" id="count" aria-live="polite"></p>
+</form>
+<script>
+(function(){
+  var form=document.querySelector('.search'), box=document.getElementById('q'),
+      out=document.getElementById('count'), table=document.querySelector('table');
+  if(!form||!box||!table) return;
+  form.hidden=false;
+  var rows=[].slice.call(table.tBodies[0].rows);
+  rows.forEach(function(r){ r.dataset.hay=r.textContent.toLowerCase(); });
+  function run(){
+    var q=box.value.trim().toLowerCase(), shown=0;
+    rows.forEach(function(r){
+      var hit=!q||r.dataset.hay.indexOf(q)>-1;
+      r.hidden=!hit; if(hit) shown++;
+    });
+    out.textContent=q?(shown+' of '+rows.length+' shown'):'';
+  }
+  box.addEventListener('input',run); run();
+})();
+</script>
+`;
+
+
+/*
+ * THE TWO FORMS, AND NEITHER OF THEM IS A FORM THAT POSTS SOMEWHERE.
+ *
+ * There is no account, no database and nothing running behind this site, so a
+ * request or an alert is a message to a place that already exists and already
+ * keeps a public record: an issue on the measurement repository, prefilled, or
+ * an email. That is less slick than a box that says "thanks, we got it", and it
+ * is honest about where the message lands and who can read it — which for a
+ * project whose whole claim is "check this yourself" is the point.
+ */
+function requestPage(): string {
+  const issue = (title: string, body: string) =>
+    `${REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+  const body = markdownToHtml(
+    [
+      `# Request a measurement`,
+      ``,
+      `Name an npm package and it goes on the list. There is no queue position to check and no promise of a date: measurements run in batches, and a package that will not start without a credential cannot be measured at Level 1 at all — that limit is in the [method](/method.html).`,
+      ``,
+      `## What gets measured`,
+      ``,
+      `- It installs from npm and starts without a credential.`,
+      `- It speaks the Model Context Protocol over stdio.`,
+      `- It ships a README, which is what the comparison reads.`,
+      ``,
+      `A package missing any of those gets a reply saying which, rather than a page.`,
+      ``,
+      `## Ask`,
+      ``,
+      `[Open a request on GitHub](${issue("Measure: <package name>", "Package on npm:\n\nWhy it is worth measuring:\n\nAnything that needs setting up before it starts:\n")}) — the issue is public, like everything else here.`,
+      ``,
+      `Or email <measurements@brydge-ai.com> with the package name. A request by email is answered by email; it does not appear in public until the page does.`,
+    ].join("\n"),
+  );
+  return shell({
+    title: "Request a measurement — Level 1",
+    description: "Ask for an npm MCP server to be measured at Level 1.",
+    canonical: `${SITE}/request.html`,
+    body,
+    mistakeTitle: "Mistake on the Level 1 request page",
+    preview: "/p/request.png",
+  });
+}
+
+function alertsPage(): string {
+  const issue = (title: string, body: string) =>
+    `${REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+  const body = markdownToHtml(
+    [
+      `# Get an alert when a measurement changes`,
+      ``,
+      `A measurement is one run of one version on one date. The next version can do something different, and the page you read last month may no longer describe the package you are installing. Three ways to find out, none of which needs an account here.`,
+      ``,
+      `## Watch the repository`,
+      ``,
+      `Every page is built from an evidence file in [the public repository](${REPO}). Watching it — *Custom → Releases*, or the whole repository — tells you when any measurement lands, including a re-measurement of a package you care about. The diff shows exactly what changed, because the evidence is the file.`,
+      ``,
+      `## Ask to be told about one package`,
+      ``,
+      `[Open an alert request](${issue("Alert: <package name>", "Package on npm:\n\nTell me when: (a new version is measured / a finding changes / either)\n\nHow to reach you:\n")}). You will be notified on that issue when the package is measured again, and the thread stays public so anyone can see what was said.`,
+      ``,
+      `Or email <measurements@brydge-ai.com> and say which package and what should trigger the message.`,
+      ``,
+      `## Re-run it yourself, on your own schedule`,
+      ``,
+      `Nothing here is privileged. The harness is public and a measurement is one command:`,
+      ``,
+      "```",
+      `git clone ${REPO}`,
+      `cd brydge-mcp-measurements && node level1/run.ts <package>@<version>`,
+      "```",
+      ``,
+      `If your run disagrees with a page here, that is a finding about us and we would like the issue.`,
+    ].join("\n"),
+  );
+  return shell({
+    title: "Alerts — Level 1 measurements",
+    description: "How to find out when an MCP server's Level 1 measurement changes.",
+    canonical: `${SITE}/alerts.html`,
+    body,
+    mistakeTitle: "Mistake on the Level 1 alerts page",
+    preview: "/p/alerts.png",
+  });
+}
+
+/*
+ * PRICING, WITH THE FREE THING FIRST AND NO NUMBER INVENTED.
+ *
+ * Level 1 is free and is the whole of this site; saying so plainly is the
+ * honest headline, because a reader arriving at a pricing page from a free
+ * measurement wants to know what the catch is. The paid work is the curated
+ * measurement — probes, oracles, a calibration — which is a different claim
+ * and a different cost, and this page does not quote a figure the business has
+ * not set. An invented price is a lie that costs a sale.
+ */
+function pricingPage(count: number): string {
+  const body = markdownToHtml(
+    [
+      `# Pricing`,
+      ``,
+      `**Level 1 is free, and it is all of this site.** Every one of the ${count} pages, every evidence file behind them, the badge, the harness and the code that renders the pages: free to read, free to re-run, free to quote, MIT-licensed. There is no account, no sign-up and nothing to buy here. If that is all you came for, you are done.`,
+      ``,
+      `## What free buys you, and what it does not`,
+      ``,
+      `A Level 1 page says what a server did at startup before any tool was used, and where its own README is silent about it. It calls no tool, so it tests no claim any tool makes. It is **not calibration-backed**: the calibration that proves the instrument catches a planted lie covers the curated measurements, not these. Both limits are printed on every page, and neither is a tease for an upsell — they are what the method can and cannot establish.`,
+      ``,
+      `## The curated measurement`,
+      ``,
+      `A different piece of work, and the one BRYDGE charges for. A person reads the server's documentation, traces its destinations through its source, writes probes with an independent oracle for each claimed behaviour — the files on disk, the kernel's syscall trace, a local server's request log — and the whole harness is calibrated against two servers that lie on purpose before any result may be published. That is what lets a page say *this claim held*, which no Level 1 page says. [The ten published so far](${MAIN}).`,
+      ``,
+      `Scope decides the price: how many tools, how much of the behaviour is observable without credentials, and whether findings are to be disclosed privately first. It is quoted per engagement rather than per server, and the quote names the number of claims that will be tested before the work starts.`,
+      ``,
+      `**To get a quote:** email <measurements@brydge-ai.com> with the server and what you need established. You will get a scope and a figure, or a reason the work cannot establish what you want — which is free and is sometimes the whole answer.`,
+      ``,
+      `## If you maintain a server measured here`,
+      ``,
+      `Nothing is for sale to you. Corrections are free and always will be: if a page is wrong, [say so](${REPO}/issues) and it is fixed, with the correction recorded. We notify maintainers before publishing a finding and wait three days. Paying BRYDGE does not change what a page says — if it did, none of these pages would be worth reading.`,
+    ].join("\n"),
+  );
+  return shell({
+    title: "Pricing — Level 1 measurements",
+    description: "Level 1 is free. What the curated, calibration-backed measurement is, and how it is quoted.",
+    canonical: `${SITE}/pricing.html`,
+    body,
+    mistakeTitle: "Mistake on the Level 1 pricing page",
+    preview: "/p/pricing.png",
+  });
 }
 
 function methodPage(items: Level1Evidence[]): string {
@@ -217,7 +412,7 @@ function main(): void {
   }
 
   rmSync(DIST, { recursive: true, force: true });
-  mkdirSync(join(DIST, "s"), { recursive: true });
+  for (const d of ["s", "b", "p"]) mkdirSync(join(DIST, d), { recursive: true });
 
   /* The index headline counts every measured server; only cleared pages are
    * written and linked, and the withheld count is stated rather than hidden. */
@@ -246,21 +441,63 @@ function main(): void {
       description:
         "What popular MCP servers do at startup before any tool is used, and where their own README does not name it. Published method, published evidence, not a ranking.",
       canonical: `${SITE}/`,
-      body: markdownToHtml(indexBody + note),
+      body: markdownToHtml(indexBody + note).replace("<div class=\"scroll\">", SEARCH + "<div class=\"scroll\">"),
       mistakeTitle: "Mistake on the Level 1 index",
     }),
   );
   writeFileSync(join(DIST, "method.html"), methodPage(items));
+  writeFileSync(join(DIST, "request.html"), requestPage());
+  writeFileSync(join(DIST, "alerts.html"), alertsPage());
+  writeFileSync(join(DIST, "pricing.html"), pricingPage(out.length));
+
+  /* Cards for the pages that are not a server. */
+  writeFileSync(join(DIST, "p", "index.svg"), previewSvg({
+    title: "What MCP servers do at startup",
+    lines: [`${out.length} servers measured, every tool list compared with its README.`, "No tool called. Nothing left the machine.", "Published method, published evidence."],
+    foot: "mcp.brydge-ai.com",
+  }));
+  for (const [name, title, lines] of [
+    ["method", "How we measure, and what it cannot establish", ["Five steps, one stated standard.", "Not calibration-backed, and it says so.", "Run it yourself: the harness is public."]],
+    ["request", "Request a measurement", ["Name an npm package.", "It must start without a credential.", "The request is public."]],
+    ["alerts", "Get an alert when a measurement changes", ["Watch the repository.", "Or ask about one package.", "Or re-run it yourself."]],
+    ["pricing", "Pricing", ["Level 1 is free, and it is all of this site.", "The curated measurement is quoted per engagement.", "Corrections are free, always."]],
+  ] as Array<[string, string, string[]]>) {
+    writeFileSync(join(DIST, "p", `${name}.svg`), previewSvg({ title, lines, foot: "mcp.brydge-ai.com" }));
+  }
 
   for (const e of out) {
+    /* The badge, and the line a maintainer pastes to use it. Stated as a fact
+     * with a date, never as a verdict: a badge is read at a glance, and a
+     * glance cannot carry the limits that make the result honest. */
+    writeFileSync(join(DIST, "b", `${e.slug}.svg`), badgeSvg(e));
+    writeFileSync(join(DIST, "p", `${e.slug}.svg`), previewSvg({
+      title: e.package.name,
+      lines: previewLines(e),
+      foot: `measured ${e.measuredAt.slice(0, 10)} · level 1 · not calibration-backed`,
+    }));
+
+    const md = `[![BRYDGE level 1, measured ${e.measuredAt.slice(0, 10)}](${SITE}/b/${e.slug}.svg)](${SITE}/s/${e.slug}.html)`;
+    const badgeBlock = [
+      `## The badge for this measurement`,
+      ``,
+      `<img class="badge" src="/b/${e.slug}.svg" alt="BRYDGE level 1, measured ${e.measuredAt.slice(0, 10)}" width="251" height="20">`,
+      ``,
+      `It states that a measurement happened and when — not a verdict, not a score, and no colour that means anything. It links to this page, where the limits are. Anyone may use it; nobody needs permission, and nobody can buy a different one.`,
+      ``,
+      `<div class="snippet">${escapeHtml(md)}</div>`,
+      ``,
+      `The badge is regenerated when the package is measured again, so an old badge in a README cannot show a date that has moved on.`,
+    ].join("\n");
+
     writeFileSync(
       join(DIST, "s", `${e.slug}.html`),
       shell({
         title: `${e.package.name} ${e.package.version} — Level 1 measurement`,
         description: `What ${e.package.name} did at startup before any tool was used, and where its own README does not name it.`,
         canonical: `${SITE}/s/${e.slug}.html`,
-        body: markdownToHtml(renderReport(e)),
+        body: markdownToHtml(renderReport(e) + "\n\n" + badgeBlock),
         mistakeTitle: `Mistake on the Level 1 page for ${e.package.name}`,
+        preview: `/p/${e.slug}.png`,
       }),
     );
   }
@@ -269,7 +506,7 @@ function main(): void {
   writeFileSync(
     join(DIST, "sitemap.xml"),
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-      [`${SITE}/`, `${SITE}/method.html`, ...out.map((e) => `${SITE}/s/${e.slug}.html`)]
+      [`${SITE}/`, `${SITE}/method.html`, `${SITE}/request.html`, `${SITE}/alerts.html`, `${SITE}/pricing.html`, ...out.map((e) => `${SITE}/s/${e.slug}.html`)]
         .map((u) => `  <url><loc>${u}</loc><lastmod>${day}</lastmod></url>`)
         .join("\n") +
       `\n</urlset>\n`,
@@ -277,8 +514,9 @@ function main(): void {
   writeFileSync(join(DIST, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 
   console.error(
-    `site: ${out.length} page(s) published, ${withheld.length} withheld pending notice, ` +
-      `plus index, method, sitemap and robots → ${DIST.replace(ROOT + "/", "")}`,
+    `site: ${out.length} server page(s), ${withheld.length} withheld pending notice, ` +
+      `plus index, method, request, alerts, pricing, ${out.length} badge(s), ${out.length + 5} preview card(s), ` +
+      `sitemap and robots → ${DIST.replace(ROOT + "/", "")}`,
   );
 }
 
