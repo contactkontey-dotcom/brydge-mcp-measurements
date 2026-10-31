@@ -124,3 +124,34 @@ test("each row names where the package says it is published", () => {
   assert.ok(md.includes("github.com/x/alpha"));
   assert.ok(md.includes("is not verified"), "and the page says it is not verified");
 });
+
+test("the headline is the first thing a visitor reads, and its numbers are the table's", () => {
+  /* Two with findings, one clean, one that did not start. */
+  const clean = ran("quiet", {
+    observed: { offered: ["a_tool"], dnsNames: [], tlsHosts: [], connectAttempts: [], programsStarted: [], filesWritten: [], installedDuringRun: [] },
+    comparison: {
+      tools: { rule: "r", documented: [{ name: "a_tool", at: { line: 1, text: "`a_tool`" } }], undocumented: [] },
+      hosts: { rule: "r", declared: [], undeclared: [] },
+    },
+  });
+  const md = renderIndex([ran("alpha"), ran("gamma"), clean, stuck("beta", "initialize", "BETA_TOKEN is required")]);
+
+  /* First heading after the title is the headline, before any prose. */
+  const lines = md.split("\n").filter((l) => l.trim());
+  assert.match(lines[0], /^# Level 1 measurements$/);
+  assert.match(lines[1], /^## 2 of 3 servers did something at startup, or offered a tool, that its own README does not mention$/);
+
+  /* Each fixture with findings has both a tool and a host unnamed, so both=2. */
+  assert.ok(md.includes("2 servers offered a tool the README does not name"), md);
+  assert.ok(md.includes("2 servers reached for a website the README does not name"), md);
+  assert.ok(md.includes("2 did both"), md);
+  assert.ok(md.includes("The remaining 1 had nothing found"), md);
+  /* alpha and gamma offer two tools each, quiet offers one. */
+  assert.ok(md.includes("5 tools were offered and **none was called**"), md);
+  assert.ok(md.includes("1 package could not start"), md);
+
+  /* And with nothing held back, the index says nothing about could-not-start. */
+  /* The closing line legitimately says "no row says could not start"; what must
+   * not appear is a counted sentence about none. */
+  assert.doesNotMatch(renderIndex([ran("alpha")]), /^\d+ packages? could not start/m, "no empty could-not-start line");
+});

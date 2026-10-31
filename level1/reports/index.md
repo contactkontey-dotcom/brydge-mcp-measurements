@@ -1,5 +1,9 @@
 # Level 1 measurements
 
+## 29 of 67 servers did something at startup, or offered a tool, that its own README does not mention
+
+24 servers offered a tool the README does not name. 7 servers reached for a website the README does not name. 2 did both. The remaining 38 had nothing found, which is not the same as a clean sweep — see below. Across all of them, 1,143 tools were offered and **none was called**.
+
 67 npm packages, each measured from its name alone: installed, started in a room with no route to the internet and no real credentials, asked for its list of tools, and compared against its own README. No tool was called. Measured 2026-10-31.
 
 **Not calibration-backed.** The calibration behind the ten curated measurements proves the instrument catches planted claims about what a tool *did*. Level 1 calls no tool and reads each README by a stated rule rather than by a person, so nothing in that calibration speaks to these pages.

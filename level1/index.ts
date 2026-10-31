@@ -51,6 +51,44 @@ export function renderIndex(items: Level1Evidence[]): string {
 
   p(`# Level 1 measurements`);
   p();
+
+  /*
+   * THE HEADLINE, AND IT IS A COUNT RATHER THAN A CLAIM.
+   *
+   * It is the first thing a visitor reads, so it has to be the thing the
+   * measurement actually establishes: how often a server's own README is
+   * silent about something the server did or offered. Every number in it is
+   * computed from the rows below — nothing here is written by hand, so the
+   * sentence cannot drift from the table underneath it, which is the failure
+   * the sandbox's narration had.
+   */
+  const toolRows = ran.filter((e) => e.comparison!.tools.undocumented.length);
+  const hostRows = ran.filter((e) => e.comparison!.hosts.undeclared.length);
+  const either = new Set([...toolRows, ...hostRows].map((e) => e.slug));
+  const both = toolRows.filter((e) => e.comparison!.hosts.undeclared.length).length;
+  const offered = ran.reduce((n, e) => n + e.observed!.offered.length, 0);
+  p(
+    `## ${either.size} of ${plural(ran.length, "server")} did something at startup, or offered a tool, that its own README does not mention`,
+  );
+  p();
+  p(
+    `${plural(toolRows.length, "server")} offered a tool the README does not name. ` +
+      `${plural(hostRows.length, "server")} reached for a website the README does not name. ` +
+      `${both === 0 ? "None did both." : `${both} did both.`} ` +
+      `The remaining ${ran.length - either.size} had nothing found, which is not the same as a clean sweep — see below. ` +
+      `Across all of them, ${offered.toLocaleString("en-GB")} tools were offered and **none was called**.`,
+  );
+  p();
+  /* Only when there are any. A line reading "0 packages could not start" is
+   * noise, and the index is built from what is publishable rather than from
+   * everything minus a list, so it has nothing to say about what it cannot see. */
+  if (stuck.length) {
+    p(
+      `${plural(stuck.length, "package")} could not start; ${stuck.length === 1 ? "its row says" : "their rows say"} ` +
+        `so, with the reason where one is known.`,
+    );
+    p();
+  }
   p(
     `${plural(rows.length, "npm package")}, each measured from its name alone: installed, started in a room with ` +
       `no route to the internet and no real credentials, asked for its list of tools, and compared against its own ` +
