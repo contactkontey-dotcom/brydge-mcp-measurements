@@ -26,7 +26,7 @@
  * the output.
  * ═══════════════════════════════════════════════════════════════════════════
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderReport } from "../level1/report.ts";
@@ -529,6 +529,24 @@ function main(): void {
     );
   }
 
+  /*
+   * The committed PNG cards, copied in. They are drawn by `site/rasterize.mjs`
+   * on a machine that has a browser; this build runs where there is none, and a
+   * picture of text only changes when the measurement does.
+   */
+  const CARDS = join(ROOT, "site", "cards");
+  let cards = 0;
+  if (existsSync(CARDS)) {
+    for (const f of readdirSync(CARDS).filter((n) => n.endsWith(".png"))) {
+      const slug = f.replace(/\.png$/, "");
+      const isPage = ["index", "method", "request", "alerts", "pricing"].includes(slug);
+      if (isPage || out.some((e) => e.slug === slug)) {
+        copyFileSync(join(CARDS, f), join(DIST, "p", f));
+        cards++;
+      }
+    }
+  }
+
   const day = (items[0]?.measuredAt ?? new Date().toISOString()).slice(0, 10);
   writeFileSync(
     join(DIST, "sitemap.xml"),
@@ -543,7 +561,7 @@ function main(): void {
   console.error(
     `site: ${out.length} server page(s), ${withheld.length} withheld pending notice, ` +
       `plus index, method, request, alerts, pricing, ${out.length} badge(s), ${out.length + 5} preview card(s), ` +
-      `sitemap and robots → ${DIST.replace(ROOT + "/", "")}`,
+      `${cards} committed card image(s), sitemap and robots → ${DIST.replace(ROOT + "/", "")}`,
   );
 }
 

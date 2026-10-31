@@ -6,13 +6,22 @@
  *
  *   node site/build.ts && node site/rasterize.mjs
  */
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import pw from "/opt/node-tools/node_modules/playwright/index.js";
 
-const DIST = join(dirname(fileURLToPath(import.meta.url)), "dist");
-const P = join(DIST, "p");
+const HERE = dirname(fileURLToPath(import.meta.url));
+const P = join(HERE, "dist", "p");
+/*
+ * The PNGs are COMMITTED, to `site/cards/`, and the build copies them in.
+ * Vercel's build image has no browser, so a build that rasterised its own cards
+ * would fail there — and a card is a picture of text that only changes when the
+ * measurement changes, so there is nothing to gain by redrawing it on every
+ * deploy. Re-run this whenever a measurement is published.
+ */
+const CARDS = join(HERE, "cards");
+mkdirSync(CARDS, { recursive: true });
 const svgs = readdirSync(P).filter((f) => f.endsWith(".svg"));
 if (!svgs.length) {
   console.error("no preview cards; run `node site/build.ts` first");
@@ -30,7 +39,9 @@ for (const f of svgs) {
     { waitUntil: "load" },
   );
   await page.waitForTimeout(350); /* let the webfonts land before the shot */
-  writeFileSync(join(P, f.replace(/\.svg$/, ".png")), await page.screenshot({ type: "png" }));
+  const png = await page.screenshot({ type: "png" });
+  writeFileSync(join(P, f.replace(/\.svg$/, ".png")), png);
+  writeFileSync(join(CARDS, f.replace(/\.svg$/, ".png")), png);
 }
 await browser.close();
-console.error(`rasterised ${svgs.length} preview card(s) → site/dist/p/*.png`);
+console.error(`rasterised ${svgs.length} preview card(s) → site/cards/*.png (committed) and site/dist/p/`);
