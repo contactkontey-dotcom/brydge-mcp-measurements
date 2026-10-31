@@ -36,6 +36,18 @@ export interface Resolved {
   readmeFile: string | null;
   /** How the package's own documentation says to run it, when it says. */
   bin: Record<string, string> | string | null;
+  /**
+   * WHO SHIPPED IT, IN THE PACKAGE'S OWN MANIFEST.
+   *
+   * Two packages on this list are called Playwright and are not by the same
+   * people: `@playwright/mcp` and `playwright-mcp`. A page that names only the
+   * tool would let a reader attribute one's findings to the other's author, so
+   * the manifest's own `repository` and `homepage` are recorded and printed.
+   * Neither is verified — a manifest can say anything — so the report says
+   * where the line came from rather than asserting it as a fact about people.
+   */
+  repository: string | null;
+  homepage: string | null;
 }
 
 export class CouldNotResolve extends Error {}
@@ -65,8 +77,18 @@ export function resolvePackage(ref: string): Resolved {
   const name = hasVersion ? ref.slice(0, at) : ref;
   const wanted = hasVersion ? ref.slice(at + 1) : "latest";
 
-  const meta = JSON.parse(npm(["view", `${name}@${wanted}`, "name", "version", "dist.tarball", "dist.integrity", "bin", "--json"])) as
-    | { name: string; version: string; "dist.tarball": string; "dist.integrity": string; bin?: Record<string, string> | string }
+  const meta = JSON.parse(
+    npm(["view", `${name}@${wanted}`, "name", "version", "dist.tarball", "dist.integrity", "bin", "repository", "homepage", "--json"]),
+  ) as
+    | {
+        name: string;
+        version: string;
+        "dist.tarball": string;
+        "dist.integrity": string;
+        bin?: Record<string, string> | string;
+        repository?: string | { url?: string };
+        homepage?: string;
+      }
     | Array<{ name: string; version: string }>;
 
   if (Array.isArray(meta)) {
@@ -101,6 +123,8 @@ export function resolvePackage(ref: string): Resolved {
       readme,
       readmeFile,
       bin: meta.bin ?? null,
+      repository: (typeof meta.repository === "string" ? meta.repository : meta.repository?.url) ?? null,
+      homepage: meta.homepage ?? null,
     };
   } finally {
     rmSync(dir, { recursive: true, force: true });

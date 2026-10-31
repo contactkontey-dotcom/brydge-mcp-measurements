@@ -43,7 +43,8 @@ function countsOf(e: Level1Evidence): { offered: string; reached: string; unname
 export function renderIndex(items: Level1Evidence[]): string {
   const out: string[] = [];
   const p = (s = "") => out.push(s);
-  const rows = [...items].sort((a, b) => a.slug.localeCompare(b.slug));
+  /* Alphabetical by package, because any other order would read as a ranking. */
+  const rows = [...items].sort((a, b) => a.package.name.localeCompare(b.package.name));
   const ran = rows.filter((e) => !e.couldNotStart);
   const stuck = rows.filter((e) => e.couldNotStart);
   const days = [...new Set(rows.map((e) => e.measuredAt.slice(0, 10)))].sort();
@@ -71,21 +72,26 @@ export function renderIndex(items: Level1Evidence[]): string {
    * ranking behind the selection and the page must not imply one.
    */
   p(
-    `These are widely used npm MCP servers that start without credentials, chosen by hand. The registry's download ` +
-      `figures were not reachable from the machine that ran these measurements, so this is not a measured ranking ` +
-      `and nothing here says these are the most used. Each version measured is pinned in the table.`,
+    `**This is not a ranking of the most-used servers.** The set measured is whatever two registry searches ` +
+      `returned, read by hand for whether each package is a server that starts without a credential. Download ` +
+      `figures decided nothing about the order of this table, which is alphabetical by package, and four widely ` +
+      `used servers are measured here that neither search returned at all. Nothing on this page says one server ` +
+      `is more used, better or worse than another.`,
   );
   p();
 
   /* ── The ten rows. ────────────────────────────────────────────────────── */
-  p(`| Package | Version | Tools offered | Websites reached for | Not named in the README | Report |`);
-  p(`| --- | --- | --: | --: | --- | --- |`);
+  p(`| Package | Version | Published at | Tools offered | Websites reached for | Not named in the README | Report |`);
+  p(`| --- | --- | --- | --: | --: | --- | --- |`);
   for (const e of rows) {
     const c = countsOf(e);
     const name = `\`${e.package.name}\``;
     const version = e.package.version ? `\`${e.package.version}\`` : "—";
+    /* Two packages here are called Playwright and are not by the same people. */
+    const maker = (e.package.repository ?? e.package.homepage ?? "").replace(/^git\+/, "").replace(/\.git$/, "");
+    const at = maker ? maker.replace(/^https?:\/\/(www\.)?/, "") : "not stated";
     const unnamed = e.couldNotStart ? `**could not start** — ${e.couldNotStart.stage}` : c.unnamed;
-    p(`| ${name} | ${version} | ${c.offered} | ${c.reached} | ${unnamed} | [report](${e.slug}.md) |`);
+    p(`| ${name} | ${version} | ${at} | ${c.offered} | ${c.reached} | ${unnamed} | [report](${e.slug}.md) |`);
   }
   p();
 
@@ -111,6 +117,11 @@ export function renderIndex(items: Level1Evidence[]): string {
   /* ── What the table is and is not. ────────────────────────────────────── */
   p(`## Reading the table`);
   p();
+  p(
+    `- **Published at** is the repository or homepage the package's own manifest points at, printed because two ` +
+      `packages measured here are called Playwright and are not by the same people. It is what each package says ` +
+      `about itself and is not verified.`,
+  );
   p(`- **Tools offered** is what each server answered to one \`tools/list\` request. None was called.`);
   p(
     `- **Websites reached for** counts the distinct names a server looked up or opened an encrypted connection to ` +
@@ -154,6 +165,12 @@ export function renderIndex(items: Level1Evidence[]): string {
  * from it, as often as the words need changing.
  */
 function main(): void {
+  /*
+   * Only `level1/evidence/` is read. A held package's evidence is written to
+   * the git-ignored `level1/held/` instead, so it cannot reach the index by
+   * being forgotten about here — the index is built from what is publishable,
+   * rather than from everything minus a list.
+   */
   const files = readdirSync(EVIDENCE).filter((f) => f.endsWith(".json")).sort();
   const items = files.map((f) => JSON.parse(readFileSync(join(EVIDENCE, f), "utf8")) as Level1Evidence);
   mkdirSync(REPORTS, { recursive: true });

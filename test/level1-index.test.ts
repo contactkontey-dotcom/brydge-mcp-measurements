@@ -23,7 +23,7 @@ function ran(slug: string, over: Partial<Level1Evidence> = {}): Level1Evidence {
     notCalibrationBacked: true,
     asked: `${slug}@1.0.0`,
     slug,
-    package: { name: slug, version: "1.0.0", tarball: "t", integrity: "sha512-A" },
+    package: { name: slug, version: "1.0.0", tarball: "t", integrity: "sha512-A", repository: `https://github.com/x/${slug}`, homepage: null },
     measuredAt: "2026-10-30T00:00:00.000Z",
     instrumentFingerprint: "ca9170df",
     standard: {},
@@ -65,7 +65,7 @@ test("every package measured gets a row, including the ones that did not start",
 
   for (const name of ["alpha", "beta", "gamma"]) assert.match(md, new RegExp(`\\| \`${name}\` \\|`), `${name} is missing a row`);
   /* The row itself says so, so a reader skimming the table cannot miss it. */
-  assert.match(md, /\| `beta` \| `1\.0\.0` \| — \| — \| \*\*could not start\*\* — initialize \|/);
+  assert.match(md, /\| `beta` \| `1\.0\.0` \| github\.com\/x\/beta \| — \| — \| \*\*could not start\*\* — initialize \|/);
 });
 
 test("a package that did not start is explained in the tooling's own words", () => {
@@ -79,7 +79,7 @@ test("the counts in a row are the evidence's own", () => {
   const md = renderIndex([ran("alpha")]);
   /* Two tools offered, two distinct websites reached for (one looked up, one
    * both looked up and connected to), one tool and one website unnamed. */
-  assert.match(md, /\| `alpha` \| `1\.0\.0` \| 2 \| 2 \| 1 tool, 1 website \|/);
+  assert.match(md, /\| `alpha` \| `1\.0\.0` \| github\.com\/x\/alpha \| 2 \| 2 \| 1 tool, 1 website \|/);
 });
 
 test('a row with nothing found says "none", and the page says what that is not', () => {
@@ -91,7 +91,7 @@ test('a row with nothing found says "none", and the page says what that is not',
     },
   });
   const md = renderIndex([clean]);
-  assert.match(md, /\| `quiet` \| `1\.0\.0` \| 1 \| 0 \| none \|/);
+  assert.match(md, /\| `quiet` \| `1\.0\.0` \| github\.com\/x\/quiet \| 1 \| 0 \| none \|/);
   assert.ok(md.includes("An empty row is not a clean sweep"), "a quiet row must not read as a verdict");
 });
 
@@ -110,4 +110,17 @@ test("row order does not depend on the order the files were read", () => {
   const a = renderIndex([ran("gamma"), ran("alpha"), stuck("beta", "start", "x")]);
   const b = renderIndex([stuck("beta", "start", "x"), ran("alpha"), ran("gamma")]);
   assert.equal(a, b);
+});
+
+test("the index says it is not a ranking, in those words", () => {
+  const md = renderIndex([ran("alpha"), ran("beta")]);
+  assert.ok(md.includes("not a ranking of the most-used servers"));
+  /* And the order it claims is the order it uses. */
+  assert.ok(md.indexOf("| `alpha` |") < md.indexOf("| `beta` |"));
+});
+
+test("each row names where the package says it is published", () => {
+  const md = renderIndex([ran("alpha")]);
+  assert.ok(md.includes("github.com/x/alpha"));
+  assert.ok(md.includes("is not verified"), "and the page says it is not verified");
 });

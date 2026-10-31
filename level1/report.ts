@@ -52,6 +52,30 @@ export function renderReport(e: Level1Evidence): string {
       `Instrument fingerprint ${code(e.instrumentFingerprint.slice(0, 12))}.`,
   );
   p();
+
+  /*
+   * WHOSE PACKAGE THIS IS, FROM ITS OWN MANIFEST.
+   *
+   * Two packages on the measured list are called Playwright and are not by the
+   * same people. A page naming only "Playwright MCP" would let a reader hang
+   * one's findings on the other's author, so the full npm name and the
+   * repository the manifest points at are printed on every page. Neither is
+   * verified: it is what the package says about itself, and the sentence says
+   * so rather than vouching for it.
+   */
+  const maker = e.package.repository ?? e.package.homepage;
+  p(
+    `Published on npm as ${code(e.package.name)}. ` +
+      (maker
+        ? `Its own manifest points at ${maker.replace(/^git\+/, "").replace(/\.git$/, "")}, which is what the package says about itself and is not checked here.`
+        : `Its manifest names no repository or homepage, so this page cannot say who publishes it beyond the npm name.`),
+  );
+  p();
+  p(
+    `**This is not a ranking of the most-used servers.** This package was measured because it appeared in a ` +
+      `candidate list built from registry searches, and the order of those searches is not a measure of use.`,
+  );
+  p();
   p(
     `**Level 1, and not calibration-backed.** No tool was called, so this report makes no claim ` +
       `about any tool doing what it says. The calibration that backs the ten curated measurements ` +
@@ -316,6 +340,10 @@ function renderLimits(e: Level1Evidence): string {
       `fact about this rule and not about the package.`,
   );
   p(`- **It is not calibration-backed**, for the reason at the top.`);
+  p(
+    `- **It is not a ranking.** No page here says a server is more used, better or worse than another, and the ` +
+      `set measured is whatever the candidate searches returned.`,
+  );
   p(
     `- **The harness is BRYDGE's own**, and BRYDGE has an interest in the question of whether tools ` +
       `do what they say.`,

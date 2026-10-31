@@ -23,7 +23,14 @@ function evidence(over: Partial<Level1Evidence> = {}): Level1Evidence {
     notCalibrationBacked: true,
     asked: "thing-mcp@1.0.0",
     slug: "thing-mcp",
-    package: { name: "thing-mcp", version: "1.0.0", tarball: "https://registry.npmjs.org/thing-mcp/-/thing-mcp-1.0.0.tgz", integrity: "sha512-AAAA" },
+    package: {
+      name: "thing-mcp",
+      version: "1.0.0",
+      tarball: "https://registry.npmjs.org/thing-mcp/-/thing-mcp-1.0.0.tgz",
+      integrity: "sha512-AAAA",
+      repository: "git+https://github.com/someone/thing-mcp.git",
+      homepage: null,
+    },
     measuredAt: "2026-10-30T00:00:00.000Z",
     instrumentFingerprint: "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
     standard: {},
@@ -166,4 +173,26 @@ test("plain words for a server that did not start concludes nothing", () => {
   assert.ok(para.includes("because it did not run"), para);
   /* No counts, because there is nothing to count. */
   assert.ok(!para.includes("offered"), para);
+});
+
+test("every page names the package in full and where its manifest points", () => {
+  /* Two packages on the measured list are called Playwright and are not by the
+   * same people; a page that named only the tool would misattribute one. */
+  const md = renderReport(evidence());
+  assert.ok(md.includes("Published on npm as `thing-mcp`"), md.split("\n").slice(0, 8).join("\n"));
+  assert.ok(md.includes("github.com/someone/thing-mcp"), "the manifest's repository is printed");
+  assert.ok(md.includes("is not checked here"), "and is not vouched for");
+
+  /* And when the manifest says nothing, the page says that instead of guessing. */
+  const bare = renderReport(evidence({ package: { ...evidence().package, repository: null, homepage: null } }));
+  assert.ok(bare.includes("names no repository or homepage"), bare.split("\n").slice(0, 8).join("\n"));
+});
+
+test("every page says it is not a ranking", () => {
+  for (const e of [evidence(), evidence({ couldNotStart: { stage: "start", because: "x" } })]) {
+    assert.ok(
+      renderReport(e).includes("not a ranking of the most-used servers"),
+      "a reader must not take the measured set for a league table",
+    );
+  }
 });

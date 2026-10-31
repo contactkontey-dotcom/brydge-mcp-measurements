@@ -107,9 +107,18 @@ test("the same README gives the same reading, digest included", () => {
   assert.match(a.digest, /^[0-9a-f]{64}$/);
 });
 
-test("slugs match the shape the curated results already use", () => {
-  assert.equal(slugOf("@wonderwhy-er/desktop-commander"), "wonderwhy-er-desktop-commander");
-  assert.equal(slugOf("@modelcontextprotocol/server-filesystem"), "modelcontextprotocol-server-filesystem");
+test("a slug cannot be two packages at once", () => {
+  /* THE BUG THIS REPLACES. `@playwright/mcp` and `playwright-mcp` are two
+   * different packages by two different authors, both on the measured list,
+   * and the old rule gave them one filename — so the second run would have
+   * published one's findings under the other's name. The scope separator now
+   * survives as a double dash, which a single dash can never produce. */
+  assert.equal(slugOf("@playwright/mcp"), "playwright--mcp");
+  assert.equal(slugOf("playwright-mcp"), "playwright-mcp");
+  assert.notEqual(slugOf("@playwright/mcp"), slugOf("playwright-mcp"));
+
+  assert.equal(slugOf("@wonderwhy-er/desktop-commander"), "wonderwhy-er--desktop-commander");
+  assert.equal(slugOf("@modelcontextprotocol/server-filesystem"), "modelcontextprotocol--server-filesystem");
   assert.equal(slugOf("mcp-server-fetch"), "mcp-server-fetch");
 });
 
