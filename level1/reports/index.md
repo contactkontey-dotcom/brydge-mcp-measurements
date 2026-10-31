@@ -1,8 +1,12 @@
 # Level 1 measurements
 
-## 29 of 67 servers did something at startup, or offered a tool, that its own README does not mention
+## 7 of 67 servers reached for a website their own README does not name
 
-24 servers offered a tool the README does not name. 7 servers reached for a website the README does not name. 2 did both. The remaining 38 had nothing found, which is not the same as a clean sweep — see below. Across all of them, 1,143 tools were offered and **none was called**.
+Each of those 7 servers is recorded with the name it asked for and the line of its README that does not contain it. Nothing left the machine: the room has no route off the host, so every name answered to the loopback address and no connection completed.
+
+**24 servers offered a tool their README does not name** — 1,143 tools were offered in total and **none was called**. Read that second figure with the caveat attached: this rule reads only the README that shipped in the package, so a server documenting its tools in a reference file beside it shows every tool as unnamed, and 10 of those servers have a README under three kilobytes. A large count here is a fact about the rule as much as about the package.
+
+2 did both. The remaining 38 had nothing found, which is not the same as a clean sweep — see below.
 
 67 npm packages, each measured from its name alone: installed, started in a room with no route to the internet and no real credentials, asked for its list of tools, and compared against its own README. No tool was called. Measured 2026-10-31.
 

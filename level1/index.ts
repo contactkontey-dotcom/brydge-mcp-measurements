@@ -67,16 +67,40 @@ export function renderIndex(items: Level1Evidence[]): string {
   const either = new Set([...toolRows, ...hostRows].map((e) => e.slug));
   const both = toolRows.filter((e) => e.comparison!.hosts.undeclared.length).length;
   const offered = ran.reduce((n, e) => n + e.observed!.offered.length, 0);
+  /*
+   * THE NETWORK FIGURE LEADS, AND THE TOOL FIGURE CARRIES ITS WARNING.
+   *
+   * "Reached for a website its README does not name" is the finding this
+   * measurement can stand behind without qualification: the kernel saw the
+   * lookup, and the README either contains the hostname or it does not.
+   *
+   * "Offered a tool its README does not name" is the larger number and the
+   * softer one — a server documenting its tools in a reference file beside the
+   * README shows every tool as unnamed. Printing it second, with the caveat
+   * attached rather than filed under a heading further down, is the difference
+   * between a figure and a figure somebody will quote at a maintainer.
+   */
+  const shortReadme = toolRows.filter((e) => (e.readme.bytes ?? 0) < 3000).length;
+  p(`## ${plural(hostRows.length, "of " + String(ran.length) + " server", "of " + String(ran.length) + " servers")} reached for a website their own README does not name`);
+  p();
   p(
-    `## ${either.size} of ${plural(ran.length, "server")} did something at startup, or offered a tool, that its own README does not mention`,
+    `Each of those ${plural(hostRows.length, "lookup", "servers")} is recorded with the name it asked for and the ` +
+      `line of its README that does not contain it. Nothing left the machine: the room has no route off the host, ` +
+      `so every name answered to the loopback address and no connection completed.`,
   );
   p();
   p(
-    `${plural(toolRows.length, "server")} offered a tool the README does not name. ` +
-      `${plural(hostRows.length, "server")} reached for a website the README does not name. ` +
-      `${both === 0 ? "None did both." : `${both} did both.`} ` +
-      `The remaining ${ran.length - either.size} had nothing found, which is not the same as a clean sweep — see below. ` +
-      `Across all of them, ${offered.toLocaleString("en-GB")} tools were offered and **none was called**.`,
+    `**${plural(toolRows.length, "server")} offered a tool their README does not name** — ${offered.toLocaleString("en-GB")} ` +
+      `tools were offered in total and **none was called**. Read that second figure with the caveat attached: this ` +
+      `rule reads only the README that shipped in the package, so a server documenting its tools in a reference ` +
+      `file beside it shows every tool as unnamed` +
+      `${shortReadme ? `, and ${plural(shortReadme, "of those servers has", "of those servers have")} a README under three kilobytes` : ""}. ` +
+      `A large count here is a fact about the rule as much as about the package.`,
+  );
+  p();
+  p(
+    `${both === 0 ? "No server did both." : `${both} did both.`} ` +
+      `The remaining ${ran.length - either.size} had nothing found, which is not the same as a clean sweep — see below.`,
   );
   p();
   /* Only when there are any. A line reading "0 packages could not start" is

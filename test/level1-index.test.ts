@@ -139,15 +139,19 @@ test("the headline is the first thing a visitor reads, and its numbers are the t
   /* First heading after the title is the headline, before any prose. */
   const lines = md.split("\n").filter((l) => l.trim());
   assert.match(lines[0], /^# Level 1 measurements$/);
-  assert.match(lines[1], /^## 2 of 3 servers did something at startup, or offered a tool, that its own README does not mention$/);
+  /* The network figure leads: it is the one this measurement can state without
+   * qualification. The tool figure follows, carrying its caveat. */
+  assert.match(lines[1], /^## 2 of 3 servers reached for a website their own README does not name$/);
+  const headline = md.indexOf("2 of 3 servers reached for a website");
+  const tools = md.indexOf("2 servers offered a tool their README does not name");
+  assert.ok(headline >= 0 && tools > headline, "the tool figure comes second");
+  assert.ok(md.includes("a fact about the rule as much as about the package"), "the caveat sits beside the figure");
+  assert.ok(md.includes("README under three kilobytes"), "and names how many have a short README");
 
-  /* Each fixture with findings has both a tool and a host unnamed, so both=2. */
-  assert.ok(md.includes("2 servers offered a tool the README does not name"), md);
-  assert.ok(md.includes("2 servers reached for a website the README does not name"), md);
   assert.ok(md.includes("2 did both"), md);
   assert.ok(md.includes("The remaining 1 had nothing found"), md);
   /* alpha and gamma offer two tools each, quiet offers one. */
-  assert.ok(md.includes("5 tools were offered and **none was called**"), md);
+  assert.ok(md.includes("5 tools were offered in total and **none was called**"), md);
   assert.ok(md.includes("1 package could not start"), md);
 
   /* And with nothing held back, the index says nothing about could-not-start. */
