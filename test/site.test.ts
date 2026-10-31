@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { markdownToHtml, escapeHtml } from "../site/md.ts";
-import { hasFinding, publishable } from "../site/build.ts";
+import { hasFinding, publishable, upstreamFor } from "../site/build.ts";
 import type { Level1Evidence } from "../level1/run.ts";
 
 /*
@@ -63,6 +63,11 @@ test("markdown is converted, and anything else is escaped rather than trusted", 
   assert.equal(escapeHtml(`<&">`), "&lt;&amp;&quot;&gt;");
   /* Tables and fences, the two shapes the reports lean on. */
   assert.match(markdownToHtml("| a | b |\n| --- | --- |\n| 1 | 2 |"), /<table>.*<th>a<\/th>.*<td>1<\/td>/s);
+  /* An address in angle brackets is a thing to click, not an escaped entity. */
+  assert.match(markdownToHtml("email <who@example.com> for a quote"), /<a href="mailto:who@example\.com">who@example\.com<\/a>/);
+  assert.ok(!markdownToHtml("email <who@example.com>").includes("&lt;who@"));
+  /* And a stray angle bracket is still escaped rather than trusted. */
+  assert.match(markdownToHtml("a < b and <notanemail>"), /&lt;/);
   assert.match(markdownToHtml("```\nx\n```"), /<pre><code>x<\/code><\/pre>/);
 });
 
@@ -155,4 +160,34 @@ test("the built site carries search, the two forms, pricing, a badge and a card"
     assert.ok(!existsSync(join(DIST, "b", `${e.slug}.svg`)), `${e.slug}: a withheld page has a badge`);
     assert.ok(!existsSync(join(DIST, "p", `${e.slug}.svg`)), `${e.slug}: a withheld page has a card`);
   }
+});
+
+test("the upstream record is read, and an entry without a link is visible as such", () => {
+  const u = upstreamFor();
+  /* Comment keys are notes to a reader of the file, not slugs. */
+  assert.ok(!Object.keys(u).some((k) => k.startsWith("_")), "a comment leaked into the data");
+  for (const [slug, entry] of Object.entries(u)) {
+    assert.match(entry.notifiedAt, /^\d{4}-\d{2}-\d{2}$/, `${slug}: no notification date`);
+    assert.ok(entry.outcome.length > 0, `${slug}: no outcome`);
+    /* `url` may be null — that is what blocks the build rather than the page. */
+    assert.ok(entry.url === null || /^https:\/\//.test(entry.url), `${slug}: url is neither null nor a link`);
+  }
+});
+
+test("the contact address is the one on the tin, everywhere", { skip: !built }, () => {
+  const pages = ["index.html", "method.html", "request.html", "alerts.html", "pricing.html"];
+  let seen = 0;
+  for (const f of pages) {
+    const html = page(f);
+    assert.ok(!html.includes("measurements@brydge-ai.com"), `${f}: the old address survives`);
+    if (html.includes("contact@brydge-ai.com")) seen++;
+  }
+  assert.ok(seen >= 3, "the contact address is on fewer pages than expected");
+  /* Both routes, side by side, on each form. */
+  for (const f of ["request.html", "alerts.html"]) {
+    assert.match(page(f), /contact@brydge-ai\.com/, `${f}: no email route`);
+    assert.match(page(f), /issues\/new\?title=/, `${f}: no GitHub route`);
+  }
+  assert.match(page("pricing.html"), /Level 1 is free/, "pricing does not lead with the free tier");
+  assert.match(page("pricing.html"), /monthly monitoring/, "pricing does not name what is paid for");
 });

@@ -28,6 +28,21 @@
  */
 import type { Level1Evidence } from "./run.ts";
 
+/**
+ * What happened when the finding was put to the package's maintainers.
+ *
+ * Recorded as facts with dates — notified on, outcome, link — never as a
+ * characterisation of the reply. A maintainer who disagrees is entitled to have
+ * the disagreement shown beside the finding, and a reader is entitled to click
+ * through and judge it themselves, which is why `url` is not optional.
+ */
+export interface Upstream {
+  notifiedAt: string;
+  outcome: string;
+  outcomeAt?: string | null;
+  url: string | null;
+}
+
 /** Programs the harness itself starts, named so a reader is not puzzled. */
 const HARNESS_PROGRAMS = new Set(["setpriv", "strace"]);
 
@@ -40,7 +55,7 @@ function cite(file: string | null, at: { line: number; text: string }): string {
   return `${file ?? "README"} line ${at.line}: \`${at.text.replace(/`/g, "'")}\``;
 }
 
-export function renderReport(e: Level1Evidence): string {
+export function renderReport(e: Level1Evidence, upstream?: Upstream | null): string {
   const out: string[] = [];
   const p = (s = "") => out.push(s);
 
@@ -76,6 +91,16 @@ export function renderReport(e: Level1Evidence): string {
       `candidate list built from registry searches, and the order of those searches is not a measure of use.`,
   );
   p();
+
+  /* What the maintainers said, where they have said anything. Stated flat, with
+   * the link, so a reader can read the exchange rather than this summary of it. */
+  if (upstream?.url) {
+    p(
+      `**Raised with the maintainers.** They were notified on ${upstream.notifiedAt} and the report was ` +
+        `${upstream.outcome}${upstream.outcomeAt ? ` on ${upstream.outcomeAt}` : ""}: ${upstream.url}`,
+    );
+    p();
+  }
   p(
     `**Level 1, and not calibration-backed.** No tool was called, so this report makes no claim ` +
       `about any tool doing what it says. The calibration that backs the ten curated measurements ` +

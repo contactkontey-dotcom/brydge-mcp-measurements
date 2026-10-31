@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Where a finding was raised with a package's maintainers, and what happened.",
+    "One entry per slug. `url` is required before the line can be published: a",
+    "page that reports a maintainer's response without a link to it is hearsay,",
+    "and `site/build.ts` refuses to build a page whose entry has no url.",
+    "Every field is a fact with a date, never a characterisation of the reply."
+  ],
+  "heroui--react-mcp": {
+    "notifiedAt": "2026-10-31",
+    "outcome": "closed as not planned",
+    "outcomeAt": null,
+    "url": null
+  },
+  "react-aria--mcp": {
+    "notifiedAt": "2026-10-31",
+    "outcome": "closed as not planned",
+    "outcomeAt": null,
+    "url": null
+  }
+}

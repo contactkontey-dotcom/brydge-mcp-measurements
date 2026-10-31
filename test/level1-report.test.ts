@@ -196,3 +196,27 @@ test("every page says it is not a ranking", () => {
     );
   }
 });
+
+test("a maintainer's response is printed with its link, or not at all", () => {
+  const e = evidence();
+  /* With a link: the facts and the thread, so a reader can judge it themselves. */
+  const withLink = renderReport(e, {
+    notifiedAt: "2026-10-31",
+    outcome: "closed as not planned",
+    outcomeAt: "2026-11-01",
+    url: "https://github.com/x/y/issues/12",
+  });
+  assert.match(withLink, /Raised with the maintainers/);
+  assert.match(withLink, /notified on 2026-10-31/);
+  assert.match(withLink, /closed as not planned on 2026-11-01/);
+  assert.match(withLink, /https:\/\/github\.com\/x\/y\/issues\/12/);
+
+  /* Without one, nothing is said: "they closed it as not planned" with no
+   * thread to read is hearsay, and the maintainer is the one it is unfair to. */
+  const noLink = renderReport(e, { notifiedAt: "2026-10-31", outcome: "closed as not planned", url: null });
+  assert.ok(!noLink.includes("Raised with the maintainers"), noLink.split("\n").slice(0, 12).join("\n"));
+  assert.ok(!noLink.includes("not planned"));
+
+  /* And a page with no entry at all is unchanged. */
+  assert.equal(renderReport(e), noLink);
+});

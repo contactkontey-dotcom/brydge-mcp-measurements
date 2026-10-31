@@ -25,7 +25,20 @@ function inline(raw: string): string {
     code.push(`<code>${escapeHtml(c)}</code>`);
     return `\u0000${code.length - 1}\u0000`;
   });
+  /* Autolinks, before escaping turns the angle brackets into entities:
+   * `<contact@brydge-ai.com>` is an address a reader should be able to click,
+   * and it appeared on three pages as literal &lt;…&gt; until this existed. */
+  const links: string[] = [];
+  s = s.replace(/<([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})>/gi, (_m, addr: string) => {
+    links.push(`<a href="mailto:${addr}">${escapeHtml(addr)}</a>`);
+    return `\u0001${links.length - 1}\u0001`;
+  });
+  s = s.replace(/<(https?:\/\/[^\s>]+)>/g, (_m, url: string) => {
+    links.push(`<a href="${url}">${escapeHtml(url)}</a>`);
+    return `\u0001${links.length - 1}\u0001`;
+  });
   s = escapeHtml(s);
+  s = s.replace(/\u0001(\d+)\u0001/g, (_m, i: string) => links[Number(i)]);
   s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_m, t: string, u: string) => `<a href="${u}">${t}</a>`);
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");

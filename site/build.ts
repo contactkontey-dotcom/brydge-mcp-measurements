@@ -34,6 +34,7 @@ import { renderIndex } from "../level1/index.ts";
 import type { Level1Evidence } from "../level1/run.ts";
 import { escapeHtml, markdownToHtml } from "./md.ts";
 import { badgeSvg, previewLines, previewSvg } from "./assets.ts";
+import type { Upstream } from "../level1/report.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const EVIDENCE = join(ROOT, "level1", "evidence");
@@ -41,6 +42,24 @@ const DIST = join(ROOT, "site", "dist");
 export const SITE = "https://mcp.brydge-ai.com";
 const REPO = "https://github.com/contactkontey-dotcom/brydge-mcp-measurements";
 const MAIN = "https://www.brydge-ai.com/mcp";
+
+/*
+ * A MAINTAINER'S RESPONSE IS PUBLISHED WITH ITS LINK OR NOT AT ALL.
+ *
+ * `level1/upstream.json` records what happened when a finding was put to the
+ * people who ship the package. If an entry exists for a page being built and it
+ * has no url, the build fails rather than publishing "they closed it as not
+ * planned" with nothing to click: that sentence is hearsay without the thread,
+ * and the maintainer is the one it would be unfair to.
+ */
+export function upstreamFor(): Record<string, Upstream> {
+  const p = join(ROOT, "level1", "upstream.json");
+  if (!existsSync(p)) return {};
+  const raw = JSON.parse(readFileSync(p, "utf8")) as Record<string, unknown>;
+  const out: Record<string, Upstream> = {};
+  for (const [slug, v] of Object.entries(raw)) if (!slug.startsWith("_")) out[slug] = v as Upstream;
+  return out;
+}
 
 export function hasFinding(e: Level1Evidence): boolean {
   if (e.couldNotStart || !e.comparison) return false;
@@ -245,7 +264,7 @@ function requestPage(): string {
       ``,
       `[Open a request on GitHub](${issue("Measure: <package name>", "Package on npm:\n\nWhy it is worth measuring:\n\nAnything that needs setting up before it starts:\n")}) — the issue is public, like everything else here.`,
       ``,
-      `Or email <measurements@brydge-ai.com> with the package name. A request by email is answered by email; it does not appear in public until the page does.`,
+      `Or email <contact@brydge-ai.com> with the package name. A request by email is answered by email; it does not appear in public until the page does.`,
     ].join("\n"),
   );
   return shell({
@@ -275,7 +294,7 @@ function alertsPage(): string {
       ``,
       `[Open an alert request](${issue("Alert: <package name>", "Package on npm:\n\nTell me when: (a new version is measured / a finding changes / either)\n\nHow to reach you:\n")}). You will be notified on that issue when the package is measured again, and the thread stays public so anyone can see what was said.`,
       ``,
-      `Or email <measurements@brydge-ai.com> and say which package and what should trigger the message.`,
+      `Or email <contact@brydge-ai.com> and say which package and what should trigger the message.`,
       ``,
       `## Re-run it yourself, on your own schedule`,
       ``,
@@ -314,28 +333,24 @@ function pricingPage(count: number): string {
     [
       `# Pricing`,
       ``,
-      `**Level 1 is free, and it is all of this site.** Every one of the ${count} pages, every evidence file behind them, the badge, the harness and the code that renders the pages: free to read, free to re-run, free to quote, MIT-licensed. There is no account, no sign-up and nothing to buy here. If that is all you came for, you are done.`,
+      `**Level 1 is free.** Fast private reports and monthly monitoring are available: email <contact@brydge-ai.com> for a quote.`,
       ``,
-      `## What free buys you, and what it does not`,
+      `## What free means here`,
       ``,
-      `A Level 1 page says what a server did at startup before any tool was used, and where its own README is silent about it. It calls no tool, so it tests no claim any tool makes. It is **not calibration-backed**: the calibration that proves the instrument catches a planted lie covers the curated measurements, not these. Both limits are printed on every page, and neither is a tease for an upsell — they are what the method can and cannot establish.`,
+      `All ${count} pages, every evidence file behind them, the badge, the harness and the code that renders the pages: free to read, free to re-run, free to quote, MIT-licensed. There is no account, no sign-up and nothing to buy on this site. If that is what you came for, you are done.`,
       ``,
-      `## The curated measurement`,
+      `## What a free page does not establish`,
       ``,
-      `A different piece of work, and the one BRYDGE charges for. A person reads the server's documentation, traces its destinations through its source, writes probes with an independent oracle for each claimed behaviour — the files on disk, the kernel's syscall trace, a local server's request log — and the whole harness is calibrated against two servers that lie on purpose before any result may be published. That is what lets a page say *this claim held*, which no Level 1 page says. [The ten published so far](${MAIN}).`,
-      ``,
-      `Scope decides the price: how many tools, how much of the behaviour is observable without credentials, and whether findings are to be disclosed privately first. It is quoted per engagement rather than per server, and the quote names the number of claims that will be tested before the work starts.`,
-      ``,
-      `**To get a quote:** email <measurements@brydge-ai.com> with the server and what you need established. You will get a scope and a figure, or a reason the work cannot establish what you want — which is free and is sometimes the whole answer.`,
+      `A Level 1 page says what a server did at startup before any tool was used, and where its own README is silent about it. It calls no tool, so it tests no claim any tool makes, and it is **not calibration-backed** — the calibration that proves the instrument catches a planted lie covers [the curated measurements](${MAIN}), not these. Both limits are printed on every page. Neither is a tease for an upsell; they are what this method can and cannot establish.`,
       ``,
       `## If you maintain a server measured here`,
       ``,
-      `Nothing is for sale to you. Corrections are free and always will be: if a page is wrong, [say so](${REPO}/issues) and it is fixed, with the correction recorded. We notify maintainers before publishing a finding and wait three days. Paying BRYDGE does not change what a page says — if it did, none of these pages would be worth reading.`,
+      `Nothing is for sale to you. Corrections are free and always will be: if a page is wrong, [open an issue](${REPO}/issues) or email <contact@brydge-ai.com>, and it is fixed with the correction recorded. Maintainers are notified before a finding is published and the page waits three days. Paying BRYDGE does not change what a page says — if it did, none of these pages would be worth reading.`,
     ].join("\n"),
   );
   return shell({
     title: "Pricing — Level 1 measurements",
-    description: "Level 1 is free. What the curated, calibration-backed measurement is, and how it is quoted.",
+    description: "Level 1 is free. Private reports and monthly monitoring are quoted on request.",
     canonical: `${SITE}/pricing.html`,
     body,
     mistakeTitle: "Mistake on the Level 1 pricing page",
@@ -411,6 +426,18 @@ function main(): void {
     return;
   }
 
+  const upstream = upstreamFor();
+  for (const e of out) {
+    const u = upstream[e.slug];
+    if (u && !u.url) {
+      console.error(
+        `site: ${e.slug} has an upstream entry with no url. A page cannot say a maintainer "${u.outcome}" ` +
+          `without linking the thread. Add the url to level1/upstream.json, or remove the entry.`,
+      );
+      process.exit(2);
+    }
+  }
+
   rmSync(DIST, { recursive: true, force: true });
   for (const d of ["s", "b", "p"]) mkdirSync(join(DIST, d), { recursive: true });
 
@@ -460,7 +487,7 @@ function main(): void {
     ["method", "How we measure, and what it cannot establish", ["Five steps, one stated standard.", "Not calibration-backed, and it says so.", "Run it yourself: the harness is public."]],
     ["request", "Request a measurement", ["Name an npm package.", "It must start without a credential.", "The request is public."]],
     ["alerts", "Get an alert when a measurement changes", ["Watch the repository.", "Or ask about one package.", "Or re-run it yourself."]],
-    ["pricing", "Pricing", ["Level 1 is free, and it is all of this site.", "The curated measurement is quoted per engagement.", "Corrections are free, always."]],
+    ["pricing", "Pricing", ["Level 1 is free.", "Private reports and monthly monitoring: quoted on request.", "Corrections are free, always."]],
   ] as Array<[string, string, string[]]>) {
     writeFileSync(join(DIST, "p", `${name}.svg`), previewSvg({ title, lines, foot: "mcp.brydge-ai.com" }));
   }
@@ -495,7 +522,7 @@ function main(): void {
         title: `${e.package.name} ${e.package.version} — Level 1 measurement`,
         description: `What ${e.package.name} did at startup before any tool was used, and where its own README does not name it.`,
         canonical: `${SITE}/s/${e.slug}.html`,
-        body: markdownToHtml(renderReport(e) + "\n\n" + badgeBlock),
+        body: markdownToHtml(renderReport(e, upstream[e.slug]) + "\n\n" + badgeBlock),
         mistakeTitle: `Mistake on the Level 1 page for ${e.package.name}`,
         preview: `/p/${e.slug}.png`,
       }),
