@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { markdownToHtml, escapeHtml } from "../site/md.ts";
+import { readConfig, packageOf, match, toMarkdown, splitSpec } from "../site/paste-client.js";
 import { hasFinding, publishable, upstreamFor } from "../site/build.ts";
 import type { Level1Evidence } from "../level1/run.ts";
 
@@ -192,4 +193,103 @@ test("the contact address is the one on the tin, everywhere", { skip: !built }, 
   }
   assert.match(page("pricing.html"), /Level 1 is free/, "pricing does not lead with the free tier");
   assert.match(page("pricing.html"), /monthly monitoring/, "pricing does not name what is paid for");
+});
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * THE PASTE PAGE HOLDS SOMEBODY'S CREDENTIALS FOR A MOMENT. THESE ARE THE
+ * TESTS THAT SAY IT NEVER HOLDS THEM FOR TWO.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+const CONFIG = JSON.stringify({
+  mcpServers: {
+    memory: { command: "npx", args: ["-y", "@modelcontextprotocol/server-memory@2.0.1"], env: { GITHUB_PERSONAL_ACCESS_TOKEN: "ghp_thisIsTheSecret", DATABASE_URL: "postgres://user:hunter2@db/x" } },
+    figma: { command: "figma-developer-mcp" },
+    py: { command: "uvx", args: ["mcp-server-fetch"] },
+    remote: { type: "http", url: "https://mcp.example.com/x" },
+    docker: { command: "docker", args: ["run", "-i", "ghcr.io/x/y"] },
+    dlx: { command: "pnpm", args: ["dlx", "wikipedia-mcp"] },
+  },
+});
+
+test("an env value does not survive being read, anywhere", () => {
+  const parsed = readConfig(CONFIG);
+  assert.equal(parsed.ok, true);
+  const dumped = JSON.stringify(parsed);
+  for (const secret of ["ghp_thisIsTheSecret", "hunter2", "postgres://"]) {
+    assert.ok(!dumped.includes(secret), `"${secret}" survived the parse`);
+  }
+  /* The key NAMES are kept: which credentials a server asks for is the point. */
+  assert.deepEqual(parsed.servers[0].envKeys, ["GITHUB_PERSONAL_ACCESS_TOKEN", "DATABASE_URL"]);
+
+  /* And the summary somebody copies into a ticket carries neither. */
+  const rows = parsed.servers.map((s) => ({ server: s, result: match(s, {}) }));
+  const md = toMarkdown(rows, "https://example.test");
+  for (const secret of ["ghp_thisIsTheSecret", "hunter2"]) assert.ok(!md.includes(secret), `"${secret}" reached the clipboard`);
+});
+
+test("the shapes a config comes in are read, and the ones we cannot measure say so", () => {
+  const servers = readConfig(CONFIG).servers;
+  const by = Object.fromEntries(servers.map((s) => [s.label, s.found]));
+  assert.deepEqual(by.memory, { kind: "npm", name: "@modelcontextprotocol/server-memory", version: "2.0.1" });
+  assert.deepEqual(by.dlx, { kind: "npm", name: "wikipedia-mcp", version: null });
+  assert.equal(by.figma.kind, "binary");
+  assert.equal(by.py.kind, "other");
+  assert.equal(by.py.detail, "Python");
+  assert.equal(by.remote.kind, "remote");
+  assert.equal(by.docker.detail, "Docker");
+
+  /* `servers:` and `mcp.servers:` are the other two shapes in the wild. */
+  assert.equal(readConfig(JSON.stringify({ servers: { a: { command: "npx", args: ["x"] } } })).servers.length, 1);
+  assert.equal(readConfig(JSON.stringify({ mcp: { servers: { a: { command: "npx", args: ["x"] } } } })).servers.length, 1);
+  /* Nonsense is reported, not thrown. */
+  assert.equal(readConfig("{not json").ok, false);
+  assert.equal(readConfig(JSON.stringify({ hello: 1 })).ok, false);
+});
+
+test("a version split keeps a scope intact", () => {
+  assert.deepEqual(splitSpec("@scope/name@1.2.3"), { name: "@scope/name", version: "1.2.3" });
+  assert.deepEqual(splitSpec("@scope/name"), { name: "@scope/name", version: null });
+  assert.deepEqual(splitSpec("plain@0.1.0"), { name: "plain", version: "0.1.0" });
+});
+
+test("a match reports a version that is not the one measured, rather than hiding it", () => {
+  const index = { "a-mcp": { name: "a-mcp", slug: "a-mcp", version: "2.0.0", measuredAt: "2026-10-31", offered: 3, undocumentedTools: 0, undeclaredHosts: 0, websites: 0 } };
+  const one = readConfig(JSON.stringify({ mcpServers: { a: { command: "npx", args: ["-y", "a-mcp@1.0.0"] } } })).servers[0];
+  assert.equal(match(one, index).state, "measured-other-version");
+  const same = readConfig(JSON.stringify({ mcpServers: { a: { command: "npx", args: ["-y", "a-mcp@2.0.0"] } } })).servers[0];
+  assert.equal(match(same, index).state, "measured");
+  const none = readConfig(JSON.stringify({ mcpServers: { a: { command: "npx", args: ["-y", "unheard-of"] } } })).servers[0];
+  assert.equal(match(none, index).state, "unmeasured");
+});
+
+test("the built paste page cannot send anything, and carries its index with it", { skip: !built }, () => {
+  const html = page("paste.html");
+  /* The rule the browser keeps, whatever the code does. */
+  assert.match(html, /connect-src 'none'/, "no CSP forbidding connections");
+  assert.match(html, /form-action 'none'/, "a form could still post");
+
+  /* No call that could leave the page — in CODE. The file's own comment names
+   * these APIs to say it does not use them, so comments are stripped first. */
+  const code = html.slice(html.indexOf("<script type=\"module\">")).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  for (const api of ["fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket", "EventSource", "localStorage", "sessionStorage", "indexedDB", "document.cookie"]) {
+    assert.ok(!code.includes(api), `the page's code uses ${api}`);
+  }
+  /* Inlined, so the page fetches nothing after it loads. */
+  assert.match(html, /"slug":/, "the measurement index is not inlined");
+  assert.ok(!/src="[^"]*paste-client/.test(html), "the parser is loaded over the network instead of inlined");
+
+  /* A withheld measurement reads the same as one that was never made. Saying
+   * "not measured" about something we measured would be false; saying
+   * "withheld" would announce the finding before its maintainer heard it. */
+  assert.ok(!html.includes("Not measured."), "the page calls a withheld measurement unmeasured");
+  assert.match(html, /No page for this yet/, "no wording for a package without a page");
+
+  /* Withheld measurements are not in the index either. */
+  const withheld = publishable(
+    readdirSync(join(import.meta.dirname, "..", "level1", "evidence"))
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => JSON.parse(readFileSync(join(import.meta.dirname, "..", "level1", "evidence", f), "utf8")) as Level1Evidence),
+  ).withheld;
+  for (const e of withheld) assert.ok(!html.includes(`"${e.package.name}"`), `${e.slug} leaked into the paste index`);
 });

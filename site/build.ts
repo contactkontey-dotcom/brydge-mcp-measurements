@@ -152,6 +152,16 @@ tr[hidden]{display:none}
 .cols h3{margin-top:0}
 .tier{border-top:2px solid var(--ink); padding-top:12px}
 .tier p{margin-bottom:10px}
+.paste{margin:0 0 24px; max-width:var(--measure)}
+.paste label{display:block; font-size:13px; color:var(--ink-muted); margin-bottom:8px}
+.paste textarea{width:100%; font-family:var(--f-mono); font-size:12.5px; line-height:1.5; color:var(--ink); background:var(--raised); border:1px solid var(--line-strong); padding:10px 12px; resize:vertical}
+.paste textarea:focus-visible{outline:2px solid var(--ink); outline-offset:1px}
+.paste button{margin-top:10px; font:inherit; font-size:13px; color:var(--ground); background:var(--ink); border:1px solid var(--ink); padding:7px 14px; cursor:pointer}
+.paste button:hover{background:var(--ink-muted); border-color:var(--ink-muted)}
+#out table td{white-space:normal; max-width:34rem}
+#out td:first-child{font-family:var(--f-mono); font-size:12px; white-space:nowrap}
+.keys{margin:6px 0 0; font-size:12.5px; color:var(--ink-faint)}
+.note{color:var(--ink-muted)}
 .free{font-family:var(--f-mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint)}
 @media (max-width:420px){ th,td{white-space:normal} }
 `;
@@ -164,12 +174,15 @@ function shell(opts: {
   mistakeTitle: string;
   /** The card a link unfurls into. Every page has one; none is decorative. */
   preview?: string;
+  /** Only the paste page sets this: a rule the browser keeps, not a promise. */
+  csp?: string;
 }): string {
   const card = opts.preview ?? "/p/index.png";
   return `<!doctype html>
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+${opts.csp ? `<meta http-equiv="Content-Security-Policy" content="${opts.csp}">` : ""}
 <title>${escapeHtml(opts.title)}</title>
 <meta name="description" content="${escapeHtml(opts.description)}">
 <link rel="canonical" href="${opts.canonical}">
@@ -188,7 +201,7 @@ function shell(opts: {
 <main class="wrap">
 ${opts.body}
 <div class="foot">
-  <a href="/">All measurements</a><a href="/method.html">How we measure</a><a href="/request.html">Request a measurement</a><a href="/alerts.html">Get an alert</a><a href="/pricing.html">Pricing</a><a href="${REPO}">Harness and raw evidence</a><a href="${MAIN}">BRYDGE&rsquo;s calibrated measurements</a>
+  <a href="/">All measurements</a><a href="/method.html">How we measure</a><a href="/paste.html">Paste your config</a><a href="/request.html">Request a measurement</a><a href="/alerts.html">Get an alert</a><a href="/pricing.html">Pricing</a><a href="${REPO}">Harness and raw evidence</a><a href="${MAIN}">BRYDGE&rsquo;s calibrated measurements</a>
   <p class="report"><a href="${REPO}/issues/new?title=${encodeURIComponent(opts.mistakeTitle)}">Report a mistake on this page &rarr;</a></p>
 </div>
 </main>
@@ -243,6 +256,158 @@ const SEARCH = `
  * is honest about where the message lands and who can read it — which for a
  * project whose whole claim is "check this yourself" is the point.
  */
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PASTE YOUR CONFIG. IT DOES NOT LEAVE THE PAGE, AND THAT IS ENFORCED.
+ *
+ * An MCP config holds the keys to a developer's accounts. This page therefore
+ * takes three precautions and tells the reader about all three in a line they
+ * can check in ten seconds:
+ *
+ *   `connect-src 'none'` — a Content-Security-Policy rule the BROWSER enforces.
+ *   No fetch, no XHR, no beacon, no WebSocket can leave this page even if the
+ *   code below is wrong. A promise is worth what its enforcement is worth.
+ *
+ *   The index and the parser are INLINED at build time, so after the page
+ *   loads it makes no request at all — the Network tab stays empty while you
+ *   paste, which is the thing a cautious reader will actually check.
+ *
+ *   Env VALUES are discarded in `readConfig` before anything is rendered. Key
+ *   names are shown, because which credentials a server asks for is the
+ *   interesting part; the credentials themselves never exist past the parse.
+ *
+ * The one request the page makes is the webfont stylesheet, at load, before
+ * anything is pasted. The page says so rather than claiming a purity it does
+ * not have.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+function pastePage(items: Level1Evidence[]): string {
+  /* Only published measurements. A withheld finding is not public, and this
+   * page is as public as the index is. */
+  const index: Record<string, unknown> = {};
+  for (const e of items) {
+    if (!e.observed || !e.comparison) continue;
+    const record = {
+      name: e.package.name,
+      slug: e.slug,
+      version: e.package.version,
+      measuredAt: e.measuredAt.slice(0, 10),
+      offered: e.observed.offered.length,
+      undocumentedTools: e.comparison.tools.undocumented.length,
+      undeclaredHosts: e.comparison.hosts.undeclared.length,
+      websites: [...new Set([...e.observed.dnsNames, ...e.observed.tlsHosts])].length,
+    };
+    index[e.package.name] = record;
+    /* A bare command in a config is usually the package's unscoped tail. */
+    index[`bin:${e.package.name.replace(/^@[^/]+\//, "")}`] = record;
+  }
+
+  const client = readFileSync(join(ROOT, "site", "paste-client.js"), "utf8");
+  const ui = `
+const INDEX = ${JSON.stringify(index)};
+const box = document.getElementById('cfg');
+const out = document.getElementById('out');
+const copy = document.getElementById('copy');
+let rows = [];
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function render(){
+  const text = box.value.trim();
+  if(!text){ out.innerHTML = ''; copy.hidden = true; rows = []; return; }
+  const parsed = readConfig(text);
+  if(!parsed.ok){
+    out.innerHTML = '<p class="note">That did not read as an MCP config: ' + esc(parsed.error) + '</p>';
+    copy.hidden = true; rows = []; return;
+  }
+  rows = parsed.servers.map(function(server){ return { server: server, result: match(server, INDEX) }; });
+  const body = rows.map(function(r){
+    const s = r.server, m = r.result;
+    let pkg = '—', said = '', cls = '';
+    if(m.record){
+      pkg = '<a href="/s/' + esc(m.record.slug) + '.html"><code>' + esc(m.record.name) + '</code></a>';
+      const t = m.record.undocumentedTools, h = m.record.undeclaredHosts;
+      said = t === 0 && h === 0
+        ? 'Measured ' + esc(m.record.measuredAt) + '. ' + m.record.offered + ' tools offered, ' + m.record.websites + ' websites reached for, nothing found that its README does not name.'
+        : 'Measured ' + esc(m.record.measuredAt) + '. Not named in its README: ' + [t ? t + ' tool' + (t===1?'':'s') : '', h ? h + ' website' + (h===1?'':'s') : ''].filter(Boolean).join(', ') + '.';
+      if(m.state === 'measured-other-version') said += ' Your config asks for ' + esc(m.wanted) + '; the page is for ' + esc(m.record.version) + '.';
+    } else if(m.state === 'unmeasured'){
+      pkg = '<code>' + esc(m.name) + '</code>';
+      said = 'No page for this yet. <a href="/request.html">Ask for it</a>.';
+    } else if(m.state === 'remote'){
+      said = 'A remote server. Level 1 installs and starts a package; there is nothing here to install.';
+    } else if(m.state === 'other'){
+      said = esc(m.detail) + ' package. Level 1 measures npm packages only.';
+    } else {
+      said = 'Could not tell what this entry runs (' + esc(m.detail || '') + ').';
+    }
+    const keys = s.envKeys.length
+      ? '<p class="keys">Asks for ' + s.envKeys.map(function(k){ return '<code>' + esc(k) + '</code>'; }).join(', ') + '. Values were discarded when this was read.</p>'
+      : '';
+    return '<tr><td>' + esc(s.label) + '</td><td>' + pkg + '</td><td>' + said + keys + '</td></tr>';
+  }).join('');
+  out.innerHTML = '<div class="scroll"><table><thead><tr><th>In your config</th><th>Package</th><th>What is on record</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+  copy.hidden = rows.length === 0;
+}
+
+box.addEventListener('input', render);
+copy.addEventListener('click', function(){
+  navigator.clipboard.writeText(toMarkdown(rows, location.origin)).then(function(){
+    copy.textContent = 'Copied';
+    setTimeout(function(){ copy.textContent = 'Copy a summary'; }, 1500);
+  });
+});
+render();
+`;
+
+  const body = [
+    markdownToHtml(
+      [
+        `# Paste your MCP config`,
+        ``,
+        `See which of the servers you run have been measured, and what was found. **Nothing you paste leaves this page.**`,
+        ``,
+        `That is not a promise, it is a rule your browser enforces: this page is served with \`connect-src 'none'\`, so no request can be made from it at all. The measurement index and the parser are built into the page, so once it has loaded it fetches nothing — open your Network tab and watch it stay empty while you type. The one request it makes is the webfont stylesheet, at load, before you have pasted anything.`,
+        ``,
+        `Your \`env\` values are discarded as the config is read, before anything is drawn. The page lists which credentials each server asks for, by name, because that is the interesting part; the values never exist past the first step.`,
+      ].join("\n"),
+    ),
+    `<form class="paste" onsubmit="return false">`,
+    `<label for="cfg">Your config — <code>claude_desktop_config.json</code>, <code>.mcp.json</code>, or any file with an <code>mcpServers</code> or <code>servers</code> block</label>`,
+    `<textarea id="cfg" rows="10" spellcheck="false" autocomplete="off" placeholder='{
+  "mcpServers": {
+    "memory": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-memory"] }
+  }
+}'></textarea>`,
+    `<button type="button" id="copy" hidden>Copy a summary</button>`,
+    `</form>`,
+    `<div id="out"></div>`,
+    markdownToHtml(
+      [
+        `## What it can and cannot tell you`,
+        ``,
+        `- A match is on **package name**. If you run a fork, or pin a version other than the one measured, the row says so.`,
+        `- A **remote** server (\`url\`, or type \`http\`/\`sse\`) is not measurable at Level 1: there is nothing to install and start.`,
+        `- A **Python, Docker, Deno or Go** server is not measured here either. Level 1 measures npm packages.`,
+        `- **No page is not a verdict.** A server with no page here may never have been measured, or may have been measured with its page not yet published — a page reporting a finding waits until its maintainers have been notified. The two look the same from here, deliberately: telling them apart would announce which packages have a finding before the people who ship them have heard it.`,
+        `- Every row that links to a page carries that page's limits: one run, once, no tool called, not calibration-backed.`,
+      ].join("\n"),
+    ),
+    `<script type="module">${client.replace(/^export /gm, "")}
+${ui}</script>`,
+  ].join("\n");
+
+  return shell({
+    title: "Paste your MCP config — Level 1 measurements",
+    description: "See which MCP servers in your config have been measured, and what was found. Read entirely in your browser; nothing is uploaded.",
+    canonical: `${SITE}/paste.html`,
+    body,
+    mistakeTitle: "Mistake on the Level 1 paste page",
+    preview: "/p/paste.png",
+    csp: "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'",
+  });
+}
+
 function requestPage(): string {
   const issue = (title: string, body: string) =>
     `${REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
@@ -476,6 +641,7 @@ function main(): void {
   writeFileSync(join(DIST, "request.html"), requestPage());
   writeFileSync(join(DIST, "alerts.html"), alertsPage());
   writeFileSync(join(DIST, "pricing.html"), pricingPage(out.length));
+  writeFileSync(join(DIST, "paste.html"), pastePage(out));
 
   /* Cards for the pages that are not a server. */
   writeFileSync(join(DIST, "p", "index.svg"), previewSvg({
@@ -487,6 +653,7 @@ function main(): void {
     ["method", "How we measure, and what it cannot establish", ["Five steps, one stated standard.", "Not calibration-backed, and it says so.", "Run it yourself: the harness is public."]],
     ["request", "Request a measurement", ["Name an npm package.", "It must start without a credential.", "The request is public."]],
     ["alerts", "Get an alert when a measurement changes", ["Watch the repository.", "Or ask about one package.", "Or re-run it yourself."]],
+    ["paste", "Paste your MCP config", ["See which servers you run were measured.", "Read in your browser; nothing is uploaded.", "connect-src 'none', enforced by the browser."]],
     ["pricing", "Pricing", ["Level 1 is free.", "Private reports and monthly monitoring: quoted on request.", "Corrections are free, always."]],
   ] as Array<[string, string, string[]]>) {
     writeFileSync(join(DIST, "p", `${name}.svg`), previewSvg({ title, lines, foot: "mcp.brydge-ai.com" }));
@@ -539,7 +706,7 @@ function main(): void {
   if (existsSync(CARDS)) {
     for (const f of readdirSync(CARDS).filter((n) => n.endsWith(".png"))) {
       const slug = f.replace(/\.png$/, "");
-      const isPage = ["index", "method", "request", "alerts", "pricing"].includes(slug);
+      const isPage = ["index", "method", "request", "alerts", "pricing", "paste"].includes(slug);
       if (isPage || out.some((e) => e.slug === slug)) {
         copyFileSync(join(CARDS, f), join(DIST, "p", f));
         cards++;
@@ -551,7 +718,7 @@ function main(): void {
   writeFileSync(
     join(DIST, "sitemap.xml"),
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-      [`${SITE}/`, `${SITE}/method.html`, `${SITE}/request.html`, `${SITE}/alerts.html`, `${SITE}/pricing.html`, ...out.map((e) => `${SITE}/s/${e.slug}.html`)]
+      [`${SITE}/`, `${SITE}/method.html`, `${SITE}/request.html`, `${SITE}/alerts.html`, `${SITE}/pricing.html`, `${SITE}/paste.html`, ...out.map((e) => `${SITE}/s/${e.slug}.html`)]
         .map((u) => `  <url><loc>${u}</loc><lastmod>${day}</lastmod></url>`)
         .join("\n") +
       `\n</urlset>\n`,
