@@ -1,0 +1,92 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# DOES THE SEALED ROOM EXIST ON A HOSTED RUNNER?
+#
+# Before any measurement is trusted from GitHub Actions, the instrument has to
+# prove it still catches a liar there. `measure.ts calibrate` runs the two
+# servers that lie on purpose and fails if a single planted lie goes uncaught —
+# or if it accuses either of them of something that was not planted.
+#
+# This workflow MEASURES NOTHING REAL and PUBLISHES NOTHING. It answers one
+# question: on this runner, with these kernel namespaces, is the room the same
+# room? If the fingerprint it prints differs from the calibration committed
+# here, the instrument changed and the ten curated results would need redoing.
+# If calibration fails, that is the answer, and nothing proceeds from it.
+# ═══════════════════════════════════════════════════════════════════════════
+name: calibration (hosted runner proof)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [level1-measurement]
+    paths:
+      - ".github/workflows/calibration.yml"
+      - "engine/**"
+      - "harness/**"
+      - "measure.ts"
+      - "calibration/**"
+
+permissions:
+  contents: read
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # The room drops privileges to an unprivileged account before it starts
+      # anybody's code. The runner has no such account, so make the same one
+      # the harness expects.
+      - name: The unprivileged account the room drops into
+        run: |
+          sudo groupadd -g 995 brydge-measure || true
+          sudo useradd -u 996 -g 995 -M -s /usr/sbin/nologin brydge-measure || true
+          id brydge-measure
+
+      - name: strace, and uv for the Python liar
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq strace
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # Everything the room needs from the host, checked before it is needed,
+      # so a failure names the missing capability instead of surfacing as a
+      # server that "could not start".
+      - name: What this runner can do
+        run: |
+          set -x
+          uname -a
+          df -h /
+          node --version
+          sudo unshare -n -m true && echo "namespaces: ok"
+          sudo strace -f -o /dev/null /bin/true && echo "ptrace: ok"
+          sudo setpriv --reuid 996 --regid 995 --clear-groups /bin/true && echo "setpriv: ok"
+
+      - name: Calibrate
+        run: sudo --preserve-env=PATH env "PATH=$PATH" node measure.ts calibrate
+
+      - name: Is it the same instrument?
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const r = JSON.parse(fs.readFileSync("calibration/result.json", "utf8"));
+            console.log("pass:", r.pass, "fingerprint:", r.fingerprint.slice(0, 12), "ran:", r.ranAt);
+            for (const l of r.lines) console.log(" ", l);
+            if (!r.pass) { console.error("calibration did not pass on this runner"); process.exit(1); }
+          '
+
+      - name: Keep the raw runs, whatever happened
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-${{ github.run_id }}
+          path: |
+            calibration/result.json
+            calibration/runs/
+          retention-days: 14
