@@ -11,7 +11,7 @@
  * A page reporting a finding is written only if its slug is listed in
  * `site/cleared.txt`. Not listed means not written, not linked and not in the
  * sitemap — so forgetting to clear a page errs towards silence. The builder has
- * no clock: three days is a promise a person keeps by adding a line, which is
+ * no clock: clearing a finding is a person re-checking it and adding a line, which is
  * auditable in the repository's history, where a timer would not be.
  *
  * The index still counts ALL measured servers in its headline, and says plainly
@@ -74,7 +74,7 @@ export function cleared(): Set<string> {
   );
 }
 
-/** What may be published now: no finding, or a finding whose notice has gone. */
+/** What may be published now: no finding, or a finding re-checked and cleared. */
 export function publishable(items: Level1Evidence[]): { out: Level1Evidence[]; withheld: Level1Evidence[] } {
   const ok = cleared();
   const out: Level1Evidence[] = [];
@@ -389,7 +389,7 @@ render();
         `- A match is on **package name**. If you run a fork, or pin a version other than the one measured, the row says so.`,
         `- A **remote** server (\`url\`, or type \`http\`/\`sse\`) is not measurable at Level 1: there is nothing to install and start.`,
         `- A **Python, Docker, Deno or Go** server is not measured here either. Level 1 measures npm packages.`,
-        `- **No page is not a verdict.** A server with no page here may never have been measured, or may have been measured with its page not yet published — a page reporting a finding waits until its maintainers have been notified. The two look the same from here, deliberately: telling them apart would announce which packages have a finding before the people who ship them have heard it.`,
+        `- **No page is not a verdict.** A server with no page here may never have been measured, or may have been measured with its page not yet published — a page reporting a finding goes up only once it has been re-checked by hand. The two look the same from here, deliberately: telling them apart would announce which packages have a finding before the people who ship them have seen the page. A maintainer who wants to know can ask: email <contact@brydge-ai.com>.`,
         `- Every row that links to a page carries that page's limits: one run, once, no tool called, not calibration-backed.`,
       ].join("\n"),
     ),
@@ -510,7 +510,7 @@ function pricingPage(count: number): string {
       ``,
       `## If you maintain a server measured here`,
       ``,
-      `Nothing is for sale to you. Corrections are free and always will be: if a page is wrong, [open an issue](${REPO}/issues) or email <contact@brydge-ai.com>, and it is fixed with the correction recorded. Maintainers are notified before a finding is published and the page waits three days. Paying BRYDGE does not change what a page says — if it did, none of these pages would be worth reading.`,
+      `Nothing is for sale to you. Corrections are free and always will be: if a page is wrong, [open an issue](${REPO}/issues) or email <contact@brydge-ai.com>, and it is fixed with the correction recorded. Paying BRYDGE does not change what a page says — if it did, none of these pages would be worth reading.`,
     ].join("\n"),
   );
   return shell({
@@ -551,9 +551,11 @@ function methodPage(items: Level1Evidence[]): string {
       ``,
       `The set measured is whatever two registry searches returned, read by hand for whether each package is a server that starts without a credential. Download figures decided nothing about the order of the table, which is alphabetical by package. Nothing here says one server is more used, better or worse than another.`,
       ``,
-      `## Findings are sent to maintainers first`,
+      `## Before a finding is published`,
       ``,
-      `A page that reports a finding is not published until that package's maintainers have been notified and three days have passed. The notice carries the same evidence lines as the page, states the standard in full so a maintainer can say it is the wrong standard, and names the two answers that would both be fair: documented elsewhere, or a documentation gap. A page cleared for publication is listed by hand in \`site/cleared.txt\`, so the clearing is in the repository's history.`,
+      `A page that reports a finding is not published until the finding has been re-checked by hand and its package listed in \`site/cleared.txt\`. There is no clock in the code: a page that is not listed is not written, not linked and not in the sitemap, so forgetting to clear one errs towards silence. The clearing is a line in the repository's history, so when a page appeared is a matter of record.`,
+      ``,
+      `**Maintainers are not told in advance.** A package's maintainers find out when the page does, like anybody else, and that is a weaker arrangement than writing to them first — it is stated here rather than dressed up. Two things are offered instead. If you maintain one of the 67 packages measured and want to know whether yours is among the pages not yet published, email <contact@brydge-ai.com> and you will be told. And if a page about your package is wrong, the correction route is on every page, costs nothing, and the correction is recorded.`,
       ``,
       `## What a page does not say`,
       ``,
@@ -590,7 +592,7 @@ function main(): void {
   const { out, withheld } = publishable(items);
 
   if (process.argv.includes("--withheld")) {
-    console.error(`${withheld.length} page(s) waiting on a maintainer notice:`);
+    console.error(`${withheld.length} page(s) waiting on a hand re-check:`);
     for (const e of withheld) console.error(`  ${e.slug}\t${e.package.name}@${e.package.version}`);
     return;
   }
@@ -627,7 +629,7 @@ function main(): void {
     .join("\n");
 
   const note = withheld.length
-    ? `\n\n**${withheld.length} pages are not published yet.** Each reports a finding, and a finding page goes up only after I have re-checked it by hand. If you maintain a package in this list, email <contact@brydge-ai.com> and I will tell you whether yours is one of them. The counts above include them; the pages and the package names do not appear until then.\n`
+    ? `\n\n**${withheld.length} pages are not published yet.** Each reports a finding, and a finding page goes up only after I have re-checked it by hand. If you maintain a package among the 67 measured, email <contact@brydge-ai.com> and I will tell you whether yours is one of them. The counts above include them; the pages and the package names do not appear until then.\n`
     : "";
 
   writeFileSync(
@@ -730,7 +732,7 @@ function main(): void {
   writeFileSync(join(DIST, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 
   console.error(
-    `site: ${out.length} server page(s), ${withheld.length} withheld pending notice, ` +
+    `site: ${out.length} server page(s), ${withheld.length} withheld pending re-check, ` +
       `plus index, method, request, alerts, pricing, ${out.length} badge(s), ${out.length + 5} preview card(s), ` +
       `${cards} committed card image(s), sitemap and robots → ${DIST.replace(ROOT + "/", "")}`,
   );

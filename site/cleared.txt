@@ -1,11 +1,14 @@
 # Slugs cleared for publication.
 #
-# A page with no finding publishes on the first deploy: there is nobody to
-# notify. A page that reports a finding publishes only once its maintainer has
-# been notified and the stated three days have passed — and the way it does that
-# is by being listed here, by hand, after the notice is filed. The builder has
-# no clock and no default: a finding page that is not listed is not written, not
-# linked and not in the sitemap, so forgetting to clear a page errs towards
-# silence rather than towards publishing.
+# A page with no finding publishes on the first deploy. A page that reports a
+# finding publishes only once the finding has been re-checked by hand and its
+# slug added here. The builder has no clock and no default: a finding page that
+# is not listed is not written, not linked and not in the sitemap, so
+# forgetting to clear a page errs towards silence rather than towards
+# publishing. The line added here is the record of when it was cleared.
+#
+# Maintainers are not written to in advance. A maintainer who asks is told
+# whether their package is among the ones waiting; every page carries a
+# correction route.
 #
 # Add one slug per line. `node site/build.ts --withheld` prints what is waiting.
