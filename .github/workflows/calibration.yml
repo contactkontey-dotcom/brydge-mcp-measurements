@@ -39,14 +39,25 @@ jobs:
         with:
           node-version: "22"
 
-      # The room drops privileges to an unprivileged account before it starts
-      # anybody's code. The runner has no such account, so make the same one
-      # the harness expects.
-      - name: The unprivileged account the room drops into
+      # The room drops privileges before it starts anybody's code, to uid 996
+      # and gid 995 — numbers hardcoded in harness/session.ts and measure.ts,
+      # both inside the fingerprint, so they cannot be changed here without
+      # owing a recalibration. `chown` and `setpriv` both take numbers, so no
+      # passwd entry is required; a dedicated account is simply tidier where
+      # the ids are free. On this runner they are not, so the step says who
+      # holds them instead of failing, and the job carries on with the numbers.
+      - name: The unprivileged ids the room drops into
         run: |
-          sudo groupadd -g 995 brydge-measure || true
-          sudo useradd -u 996 -g 995 -M -s /usr/sbin/nologin brydge-measure || true
-          id brydge-measure
+          echo "uid 996 is: $(getent passwd 996 || echo '(free)')"
+          echo "gid 995 is: $(getent group 995 || echo '(free)')"
+          if ! getent passwd 996 >/dev/null; then
+            sudo groupadd -g 995 brydge-measure 2>/dev/null || true
+            sudo useradd -u 996 -g 995 -M -s /usr/sbin/nologin brydge-measure
+            echo "created a dedicated brydge-measure account"
+          else
+            echo "NOTE: uid 996 already belongs to a system account on this runner."
+            echo "The room still drops to that uid; it is simply not a dedicated one here."
+          fi
 
       - name: strace, and uv for the Python liar
         run: |
