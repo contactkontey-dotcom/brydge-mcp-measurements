@@ -627,7 +627,7 @@ function main(): void {
     .join("\n");
 
   const note = withheld.length
-    ? `\n\n**${withheld.length} pages are not published yet.** Each reports a finding, and a page reporting a finding goes up only after its maintainers have been notified and three days have passed. The counts above include them; the pages and the package names do not appear until then. [How that works](/method.html)\n`
+    ? `\n\n**${withheld.length} pages are not published yet.** Each reports a finding, and a finding page goes up only after I have re-checked it by hand. If you maintain a package in this list, email <contact@brydge-ai.com> and I will tell you whether yours is one of them. The counts above include them; the pages and the package names do not appear until then.\n`
     : "";
 
   writeFileSync(
