@@ -138,7 +138,7 @@ test("the headline is the first thing a visitor reads, and its numbers are the t
 
   /* First heading after the title is the headline, before any prose. */
   const lines = md.split("\n").filter((l) => l.trim());
-  assert.match(lines[0], /^# Level 1 measurements$/);
+  assert.match(lines[0], /^# What the servers on every best-of list do at startup$/);
   /* The network figure leads: it is the one this measurement can state without
    * qualification. The tool figure follows, carrying its caveat. */
   assert.match(lines[1], /^## 2 of 3 servers reached for a website their own README does not name$/);

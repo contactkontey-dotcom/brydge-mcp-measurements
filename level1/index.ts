@@ -49,7 +49,7 @@ export function renderIndex(items: Level1Evidence[]): string {
   const stuck = rows.filter((e) => e.couldNotStart);
   const days = [...new Set(rows.map((e) => e.measuredAt.slice(0, 10)))].sort();
 
-  p(`# Level 1 measurements`);
+  p(`# What the servers on every best-of list do at startup`);
   p();
 
   /*

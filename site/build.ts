@@ -202,7 +202,7 @@ ${opts.csp ? `<meta http-equiv="Content-Security-Policy" content="${opts.csp}">`
 ${opts.body}
 <div class="foot">
   <a href="/">All measurements</a><a href="/method.html">How we measure</a><a href="/paste.html">Paste your config</a><a href="/request.html">Request a measurement</a><a href="/alerts.html">Get an alert</a><a href="/pricing.html">Pricing</a><a href="${REPO}">Harness and raw evidence</a><a href="${MAIN}">BRYDGE&rsquo;s calibrated measurements</a>
-  <p class="report"><a href="${REPO}/issues/new?title=${encodeURIComponent(opts.mistakeTitle)}">Report a mistake on this page &rarr;</a></p>
+  <p class="report">Something on this page wrong? Email <a href="mailto:contact@brydge-ai.com?subject=${encodeURIComponent(opts.mistakeTitle)}">contact@brydge-ai.com</a>, or <a href="${REPO}/issues/new?title=${encodeURIComponent(opts.mistakeTitle)}">open an issue</a>. Corrections are free, and the correction is recorded.</p>
 </div>
 </main>
 </html>
@@ -564,6 +564,10 @@ function methodPage(items: Level1Evidence[]): string {
       `- "Declared" means named in the README, nothing more.`,
       `- The harness is BRYDGE's own, and BRYDGE has an interest in the question of whether tools do what they say.`,
       ``,
+      `## Where these runs happened`,
+      ``,
+      `Every measurement on this site was made on BRYDGE's own machine. None came from a hosted CI runner. The same harness has been shown to pass its calibration on a GitHub Actions runner, which matters for keeping these pages current, but one difference is known and is the reason nothing from there is published here: the harness asks for a specific unprivileged account id, and on a runner that id already belongs to a system account, so the measured server would run as that account rather than a dedicated one. Until the id is made configurable — an instrument change, which would owe a fresh calibration — a runner result would not be the same measurement as the ones on these pages.`,
+      ``,
       `## Run it yourself`,
       ``,
       `The harness, the two lying servers it is calibrated against, every evidence file behind these pages and the code that renders them are public: ${REPO}. Instrument fingerprint \`${fp.slice(0, 12)}\`.`,
@@ -629,7 +633,7 @@ function main(): void {
   writeFileSync(
     join(DIST, "index.html"),
     shell({
-      title: "Level 1 measurements — MCP servers at startup",
+      title: "What the servers on every best-of list do at startup",
       description:
         "What popular MCP servers do at startup before any tool is used, and where their own README does not name it. Published method, published evidence, not a ranking.",
       canonical: `${SITE}/`,

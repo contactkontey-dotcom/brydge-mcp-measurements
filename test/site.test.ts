@@ -98,7 +98,11 @@ test("every built page carries the standard, the label, the maker and a way to r
     assert.ok(html.includes("A website counts as declared only if the README names it."), `${f}: no standard`);
     assert.match(html, /not calibration-backed/i, `${f}: no label`);
     assert.match(html, /not a ranking/i, `${f}: no ranking disclaimer`);
-    assert.match(html, /Report a mistake on this page/, `${f}: no way to report a mistake`);
+    /* An email a person can answer, and the issue tracker beside it. A page
+     * whose finding is wrong is worth nothing if the only way to say so is to
+     * hold a GitHub account. */
+    assert.match(html, /mailto:contact@brydge-ai\.com/, `${f}: no email to report a mistake to`);
+    assert.match(html, /issues\/new\?title=/, `${f}: no issue route to report a mistake`);
     assert.match(html, /<title>[^<]+<\/title>/, `${f}: no title`);
     assert.match(html, /name="viewport"/, `${f}: not usable on a phone`);
     if (f.startsWith("s/")) assert.match(html, /Published on npm as/, `${f}: does not name the maker`);

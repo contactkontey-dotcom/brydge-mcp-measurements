@@ -39,7 +39,11 @@ function inline(raw: string): string {
   });
   s = escapeHtml(s);
   s = s.replace(/\u0001(\d+)\u0001/g, (_m, i: string) => links[Number(i)]);
-  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_m, t: string, u: string) => `<a href="${u}">${t}</a>`);
+  /* Absolute URLs and root-relative paths both. Without the `\/` arm, an
+   * in-site link such as `[How that works](/method.html)` rendered as its own
+   * literal brackets on the index, in the one paragraph explaining why 29
+   * pages are missing — the place a reader is most likely to follow it. */
+  s = s.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g, (_m, t: string, u: string) => `<a href="${u}">${t}</a>`);
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
   /* Bare URLs, after links, so a link's href is not linkified twice. */
