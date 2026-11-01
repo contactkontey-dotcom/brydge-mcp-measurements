@@ -328,7 +328,7 @@ function render(){
       pkg = '<a href="/s/' + esc(m.record.slug) + '.html"><code>' + esc(m.record.name) + '</code></a>';
       const t = m.record.undocumentedTools, h = m.record.undeclaredHosts;
       said = t === 0 && h === 0
-        ? 'Measured ' + esc(m.record.measuredAt) + '. ' + m.record.offered + ' tools offered, ' + m.record.websites + ' websites reached for, nothing found that its README does not name.'
+        ? 'Measured ' + esc(m.record.measuredAt) + '. ' + m.record.offered + ' tool' + (m.record.offered===1?'':'s') + ' offered, ' + m.record.websites + ' website' + (m.record.websites===1?'':'s') + ' reached for, nothing found that its README does not name.'
         : 'Measured ' + esc(m.record.measuredAt) + '. Not named in its README: ' + [t ? t + ' tool' + (t===1?'':'s') : '', h ? h + ' website' + (h===1?'':'s') : ''].filter(Boolean).join(', ') + '.';
       if(m.state === 'measured-other-version') said += ' Your config asks for ' + esc(m.wanted) + '; the page is for ' + esc(m.record.version) + '.';
     } else if(m.state === 'unmeasured'){
