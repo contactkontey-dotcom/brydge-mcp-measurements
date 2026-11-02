@@ -79,6 +79,21 @@ function split(ref: string): { name: string; version: string | null } {
   return { name: ref.slice(0, at), version: ref.slice(at + 1) };
 }
 
+/** Did the run record that the package could not start? */
+function recordedFailure(ref: string): boolean {
+  const slug = slugOf(split(ref).name);
+  for (const dir of DIRS) {
+    const path = join(dir, `${slug}.json`);
+    if (!existsSync(path)) continue;
+    try {
+      return Boolean((JSON.parse(readFileSync(path, "utf8")) as { couldNotStart?: unknown }).couldNotStart);
+    } catch {
+      return true; /* unreadable evidence is not a measurement either */
+    }
+  }
+  return true; /* no evidence written at all */
+}
+
 function alreadyDone(ref: string): string | null {
   const { name, version } = split(ref);
   const slug = slugOf(name);
@@ -185,12 +200,20 @@ function main(): void {
     });
     const secs = Math.round((Date.now() - t0) / 1000);
     const code = r.status ?? -1;
+    /*
+     * "EXITED 0" IS NOT "MEASURED". `run.ts` exits 0 when a package could not
+     * start, because that is a result and not a crash. The first sweep under
+     * this rule therefore deleted the one sandbox worth keeping: npm hit its
+     * own arborist bug on a single package, the evidence recorded
+     * `couldNotStart`, and the trace that would have shown it went with the
+     * scaffolding. The question is not how the child exited; it is whether
+     * there is a measurement on disk.
+     */
+    const measured = code === 0 && !recordedFailure(ref);
     if (code === 0) {
       tally.done++;
-      /* Rule 1: the evidence is written, so the scaffolding goes. Rule 2 is
-       * the `else` below, which keeps it. */
       const before = freeBytes(RUN_BASE);
-      for (const dir of sandboxesFor(slugOf(split(ref).name), t0)) {
+      for (const dir of measured ? sandboxesFor(slugOf(split(ref).name), t0) : []) {
         try {
           rmSync(dir, { recursive: true, force: true });
         } catch (e) {
@@ -199,7 +222,13 @@ function main(): void {
       }
       const freed = freeBytes(RUN_BASE) - before;
       if (freed > 0) tally.freedGb += freed / 2 ** 30;
-      appendFileSync(LOG, `OK    ${ref} (${secs}s, freed ${gb(Math.max(0, freed))} GB)\n`);
+      appendFileSync(
+        LOG,
+        measured
+          ? `OK    ${ref} (${secs}s, freed ${gb(Math.max(0, freed))} GB)\n`
+          : `OK*   ${ref} (${secs}s, could not start — sandbox kept)\n`,
+      );
+      if (!measured) console.error(`${head} — recorded as unable to start; sandbox kept for diagnosis`);
     } else {
       tally.failed.push({ ref, code });
       appendFileSync(LOG, `FAIL  ${ref} exit=${code}${r.signal ? ` signal=${r.signal}` : ""} (${secs}s, sandbox kept)\n`);

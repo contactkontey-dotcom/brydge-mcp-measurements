@@ -2,7 +2,7 @@
   "level": 1,
   "notCalibrationBacked": true,
   "asked": "puppeteer-mcp-server@0.7.2",
-  "measuredAt": "2026-10-31T14:22:29.902Z",
+  "measuredAt": "2026-11-02T03:59:34.982Z",
   "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "standard": {
     "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
@@ -183,6 +183,16 @@
         }
       }
     ]
+  },
+  "startup": {
+    "startedAt": 1793592062394,
+    "answeredAt": 1793592063785,
+    "initializedAt": 1793592063781,
+    "toToolListMs": 1391,
+    "toInitializeMs": 1387,
+    "definition": "From the execve of setpriv, which is where this harness hands the process to an unprivileged user and the server's own work begins, to the timestamp on the reply to tools/list. One run, under a kernel tracer that slows what it watches.",
+    "underKernelTrace": true,
+    "runs": 1
   },
   "couldNotStart": null,
   "serverInfo": {
@@ -379,7 +389,7 @@
       "security": false,
       "says": "Copied the whole environment at 1 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
       "evidence": [
-        "at getBooleanEnvVar (file:///srv/brydge-measure/puppeteer-mcp-server-1793456550931/install/node_modules/puppeteer/lib/esm/puppeteer/getConfiguration.js:10:28) read 7 variables"
+        "at getBooleanEnvVar (file:///srv/brydge-measure/puppeteer-mcp-server-1793591976234/install/node_modules/puppeteer/lib/esm/puppeteer/getConfiguration.js:10:28) read 7 variables"
       ]
     },
     {

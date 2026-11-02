@@ -1,4 +1,4 @@
-# Level 1 measurements
+# What the servers on every best-of list do at startup
 
 ## 7 of 67 servers reached for a website their own README does not name
 
@@ -8,7 +8,7 @@ Each of those 7 servers is recorded with the name it asked for and the line of i
 
 2 did both. The remaining 38 had nothing found, which is not the same as a clean sweep — see below.
 
-67 npm packages, each measured from its name alone: installed, started in a room with no route to the internet and no real credentials, asked for its list of tools, and compared against its own README. No tool was called. Measured 2026-10-31.
+67 npm packages, each measured from its name alone: installed, started in a room with no route to the internet and no real credentials, asked for its list of tools, and compared against its own README. No tool was called. Measured 2026-10-31 to 2026-11-02.
 
 **Not calibration-backed.** The calibration behind the ten curated measurements proves the instrument catches planted claims about what a tool *did*. Level 1 calls no tool and reads each README by a stated rule rather than by a person, so nothing in that calibration speaks to these pages.
 

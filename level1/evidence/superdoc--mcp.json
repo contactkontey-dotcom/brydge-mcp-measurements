@@ -2,7 +2,7 @@
   "level": 1,
   "notCalibrationBacked": true,
   "asked": "@superdoc/mcp@1.12.0",
-  "measuredAt": "2026-10-31T14:06:05.610Z",
+  "measuredAt": "2026-11-02T04:04:42.708Z",
   "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "standard": {
     "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
@@ -239,6 +239,16 @@
         }
       }
     ]
+  },
+  "startup": {
+    "startedAt": 1793592310379,
+    "answeredAt": 1793592312646,
+    "initializedAt": 1793592312405,
+    "toToolListMs": 2267,
+    "toInitializeMs": 2026,
+    "definition": "From the execve of setpriv, which is where this harness hands the process to an unprivileged user and the server's own work begins, to the timestamp on the reply to tools/list. One run, under a kernel tracer that slows what it watches.",
+    "underKernelTrace": true,
+    "runs": 1
   },
   "couldNotStart": null,
   "serverInfo": {

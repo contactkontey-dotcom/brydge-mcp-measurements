@@ -1,8 +1,10 @@
 {
-  "started": "2026-10-31T14:51:15.901Z",
-  "finished": "2026-10-31T14:51:37.155Z",
-  "done": 1,
+  "started": "2026-11-02T03:39:23.242Z",
+  "finished": "2026-11-02T04:10:43.134Z",
+  "done": 67,
   "skipped": 0,
   "failed": [],
-  "list": "/tmp/claude-0/-home-user-BRYDGE-/5daaf828-c95b-57c9-bbcb-2c0cbfc97288/scratchpad/one.txt"
+  "freedGb": 13.594490051269531,
+  "stopped": null,
+  "list": "level1/steps-startup.txt"
 }

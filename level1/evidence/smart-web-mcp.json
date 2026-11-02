@@ -2,7 +2,7 @@
   "level": 1,
   "notCalibrationBacked": true,
   "asked": "smart-web-mcp@1.10.19",
-  "measuredAt": "2026-10-31T14:23:53.528Z",
+  "measuredAt": "2026-11-02T04:03:25.947Z",
   "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "standard": {
     "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
@@ -176,6 +176,16 @@
         }
       }
     ]
+  },
+  "startup": {
+    "startedAt": 1793592227774,
+    "answeredAt": 1793592229972,
+    "initializedAt": 1793592229953,
+    "toToolListMs": 2198,
+    "toInitializeMs": 2179,
+    "definition": "From the execve of setpriv, which is where this harness hands the process to an unprivileged user and the server's own work begins, to the timestamp on the reply to tools/list. One run, under a kernel tracer that slows what it watches.",
+    "underKernelTrace": true,
+    "runs": 1
   },
   "couldNotStart": null,
   "serverInfo": {
@@ -363,9 +373,9 @@
       "security": false,
       "says": "Copied the whole environment at 4 site(s) — normal when starting a subprocess, and NOT counted as reading any one secret.",
       "evidence": [
-        "at getFromENV (/srv/brydge-measure/smart-web-mcp-1793456634809/install/node_modules/playwright-core/lib/coreBundle.js:8836:27) read 8 variables",
-        "at getFromENV (/srv/brydge-measure/smart-web-mcp-1793456634809/install/node_modules/playwright-core/lib/coreBundle.js:8837:43) read 8 variables",
-        "at getFromENV (/srv/brydge-measure/smart-web-mcp-1793456634809/install/node_modules/playwright-core/lib/coreBundle.js:8838:43) read 8 variables"
+        "at getFromENV (/srv/brydge-measure/smart-web-mcp-1793592207246/install/node_modules/playwright-core/lib/coreBundle.js:8836:27) read 8 variables",
+        "at getFromENV (/srv/brydge-measure/smart-web-mcp-1793592207246/install/node_modules/playwright-core/lib/coreBundle.js:8837:43) read 8 variables",
+        "at getFromENV (/srv/brydge-measure/smart-web-mcp-1793592207246/install/node_modules/playwright-core/lib/coreBundle.js:8838:43) read 8 variables"
       ]
     },
     {

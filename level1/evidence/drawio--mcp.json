@@ -2,7 +2,7 @@
   "level": 1,
   "notCalibrationBacked": true,
   "asked": "@drawio/mcp@1.10.1",
-  "measuredAt": "2026-10-31T13:53:31.915Z",
+  "measuredAt": "2026-11-02T03:46:53.973Z",
   "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
   "standard": {
     "hosts": "A host counts as declared only if the README contains that exact hostname. Prose about telemetry that names no host declares no host. A subdomain is not its parent.",
@@ -274,6 +274,16 @@
         }
       }
     ]
+  },
+  "startup": {
+    "startedAt": 1793591227201,
+    "answeredAt": 1793591228011,
+    "initializedAt": 1793591228007,
+    "toToolListMs": 810,
+    "toInitializeMs": 806,
+    "definition": "From the execve of setpriv, which is where this harness hands the process to an unprivileged user and the server's own work begins, to the timestamp on the reply to tools/list. One run, under a kernel tracer that slows what it watches.",
+    "underKernelTrace": true,
+    "runs": 1
   },
   "couldNotStart": null,
   "serverInfo": {

@@ -1,6 +1,6 @@
 # @agentmemory/mcp 0.9.31 — Level 1 measurement
 
-Measured 2026-10-31. Asked for `@agentmemory/mcp@0.9.31`. Instrument fingerprint `ca9170dfaeae`.
+Measured 2026-11-02. Asked for `@agentmemory/mcp@0.9.31`. Instrument fingerprint `ca9170dfaeae`.
 
 Published on npm as `@agentmemory/mcp`. Its own manifest points at https://github.com/rohitg00/agentmemory, which is what the package says about itself and is not checked here.
 
@@ -10,7 +10,7 @@ Published on npm as `@agentmemory/mcp`. Its own manifest points at https://githu
 
 ## In plain words
 
-We installed `@agentmemory/mcp 0.9.31` from the npm registry, started it in a room with no route to the internet, where every website name answers to this machine and every credential is fake, and asked it to list its tools without calling any of them. Before any tool was used it offered 7 tools, looked up 0 websites, started 2 programs and wrote 0 files; of those, 7 tools and 0 websites are not named in its own README. We called no tool and read the contents of no encrypted connection, so this page says nothing about whether any of its tools does what it says.
+We installed `@agentmemory/mcp 0.9.31` from the npm registry, started it in a room with no route to the internet, where every website name answers to this machine and every credential is fake, and asked it to list its tools without calling any of them. Before any tool was used it offered 7 tools, looked up 0 websites, started 2 programs and wrote 0 files; of those, 7 tools and 0 websites are not named in its own README. From starting to answering with that list took about 297 ms, measured once and while being watched, which makes it slower than it would be otherwise. We called no tool and read the contents of no encrypted connection, so this page says nothing about whether any of its tools does what it says.
 
 ## The standard this report uses
 
@@ -33,6 +33,9 @@ It started and identified itself as `agentmemory 0.9.31`.
 | Files it wrote | none |
 | Package-manager commands it ran | none |
 | Tools it offered | 7 |
+| Time to answer (approximate) | 297 ms |
+
+**Time to answer is approximate.** It is 297 ms measured once, from the moment this harness handed the process to an unprivileged user to the timestamp on its reply listing its tools; 208 ms of that was reaching the end of the opening handshake, and listing the tools took the remaining 89 ms. The process ran under a kernel tracer that stops it at every file it opens, so this is slower than the same start untraced, by an amount not measured and not estimated here. It includes whatever runtime the package brings with it. One run, one version, one machine: there is no second run, so there is no spread to quote and the figure carries no error bar.
 
 `setpriv` in that list is the harness's own launcher, not the package's doing.
 
