@@ -35,6 +35,7 @@ function evidence(over: Partial<Level1Evidence> = {}): Level1Evidence {
     instrumentFingerprint: "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
     standard: {},
     readme: { file: "README.md", digest: "a".repeat(64), lines: 40, bytes: 900 },
+    startup: null,
     readmeNotes: [],
     declaration: { hosts: [{ host: "thing.example", at: { line: 4, text: "Docs at https://thing.example/" } }], identifiers: [] },
     couldNotStart: null,

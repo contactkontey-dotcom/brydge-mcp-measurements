@@ -28,6 +28,7 @@ function ran(slug: string, over: Partial<Level1Evidence> = {}): Level1Evidence {
     instrumentFingerprint: "ca9170df",
     standard: {},
     readme: { file: "README.md", digest: "a".repeat(64), lines: 10, bytes: 100 },
+    startup: null,
     readmeNotes: [],
     declaration: { hosts: [], identifiers: [] },
     couldNotStart: null,

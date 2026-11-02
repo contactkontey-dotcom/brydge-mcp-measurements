@@ -27,6 +27,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import type { Level1Evidence } from "./run.ts";
+import { humanMs } from "./startup.ts";
 
 /**
  * What happened when the finding was put to the package's maintainers.
@@ -205,7 +206,33 @@ export function renderReport(e: Level1Evidence, upstream?: Upstream | null): str
    * registry` under the word "installed", which it is not. */
   p(`| Package-manager commands it ran | ${o.installedDuringRun.length ? list(o.installedDuringRun) : "none"} |`);
   p(`| Tools it offered | ${o.offered.length} |`);
+  if (e.startup?.toToolListMs !== null && e.startup?.toToolListMs !== undefined) {
+    p(`| Time to answer (approximate) | ${humanMs(e.startup.toToolListMs)} |`);
+  }
   p();
+
+  /*
+   * The definition sits beside the figure, not on the method page only. A
+   * duration with no stated endpoints is the kind of number somebody quotes
+   * out of context, and the two caveats that matter most — one run, and slowed
+   * by the tracer watching it — cannot be recovered from "1.2 s".
+   */
+  if (e.startup?.toToolListMs !== null && e.startup?.toToolListMs !== undefined) {
+    const parts = [
+      `**Time to answer is approximate.** It is ${humanMs(e.startup.toToolListMs)} measured once, ` +
+        `from the moment this harness handed the process to an unprivileged user to the timestamp on ` +
+        `its reply listing its tools`,
+    ];
+    if (e.startup.toInitializeMs !== null) parts.push(`it answered the opening handshake after ${humanMs(e.startup.toInitializeMs)}`);
+    p(
+      parts.join("; ") +
+        `. The process ran under a kernel tracer that stops it at every file it opens, so this is ` +
+        `slower than the same start untraced, by an amount not measured and not estimated here. ` +
+        `It includes whatever runtime the package brings with it. One run, one version, one machine: ` +
+        `there is no second run, so there is no spread to quote and the figure carries no error bar.`,
+    );
+    p();
+  }
 
   const ours = o.programsStarted.filter((x) => HARNESS_PROGRAMS.has(x));
   if (ours.length) {

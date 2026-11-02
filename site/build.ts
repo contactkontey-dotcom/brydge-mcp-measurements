@@ -152,6 +152,20 @@ tr[hidden]{display:none}
 .cols h3{margin-top:0}
 .tier{border-top:2px solid var(--ink); padding-top:12px}
 .tier p{margin-bottom:10px}
+.sum{margin:0 0 28px; padding:20px 22px; border:1px solid var(--line-strong); background:var(--raised)}
+.sum .figs{display:flex; flex-wrap:wrap; gap:28px 40px; margin-bottom:16px}
+.sum .figs>div{display:flex; flex-direction:column; gap:2px}
+.sum .figs b{font-family:var(--f-display); font-size:34px; font-weight:400; line-height:1; font-variant-numeric:tabular-nums}
+.sum .figs span{font-size:13px; color:var(--ink-muted)}
+.sum .missing{margin:0 0 10px; padding:12px 14px; border-left:3px solid var(--ink); background:var(--ground); font-size:14px; max-width:var(--measure)}
+.sum .note{margin:6px 0 0; font-size:13px; color:var(--ink-muted); max-width:var(--measure)}
+.card{margin:32px 0 0}
+.card h2{margin-bottom:6px}
+.card .note{font-size:13px; color:var(--ink-muted); max-width:var(--measure)}
+.cardwrap{margin:14px 0; overflow-x:auto; border:1px solid var(--line)}
+.cardwrap svg{display:block; max-width:100%; height:auto}
+.card button{font:inherit; font-size:13px; color:var(--ground); background:var(--ink); border:1px solid var(--ink); padding:7px 14px; cursor:pointer}
+.card button:hover{background:var(--ink-muted); border-color:var(--ink-muted)}
 .paste{margin:0 0 24px; max-width:var(--measure)}
 .paste label{display:block; font-size:13px; color:var(--ink-muted); margin-bottom:8px}
 .paste textarea{width:100%; font-family:var(--f-mono); font-size:12.5px; line-height:1.5; color:var(--ink); background:var(--raised); border:1px solid var(--line-strong); padding:10px 12px; resize:vertical}
@@ -296,6 +310,10 @@ function pastePage(items: Level1Evidence[]): string {
       undocumentedTools: e.comparison.tools.undocumented.length,
       undeclaredHosts: e.comparison.hosts.undeclared.length,
       websites: [...new Set([...e.observed.dnsNames, ...e.observed.tlsHosts])].length,
+      /* Null where the run has no figure. `totals` counts the package for its
+       * tools and adds it to `startupUnknown`, rather than treating a missing
+       * number as a zero and understating the sum. */
+      startupMs: e.startup?.toToolListMs ?? null,
     };
     index[e.package.name] = record;
     /* A bare command in a config is usually the package's unscoped tail. */
@@ -346,7 +364,50 @@ function render(){
       : '';
     return '<tr><td>' + esc(s.label) + '</td><td>' + pkg + '</td><td>' + said + keys + '</td></tr>';
   }).join('');
-  out.innerHTML = '<div class="scroll"><table><thead><tr><th>In your config</th><th>Package</th><th>What is on record</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+  const t = totals(rows);
+  const time = t.startupMs > 0 ? humanMs(t.startupMs) : '—';
+  const sum =
+    '<div class="sum">' +
+      '<div class="figs">' +
+        '<div><b>' + t.counted + ' of ' + t.servers + '</b><span>servers with a page here</span></div>' +
+        '<div><b>' + t.tools + '</b><span>tools offered, none called</span></div>' +
+        '<div><b>' + esc(time) + '</b><span>to answer, added up</span></div>' +
+      '</div>' +
+      '<p class="missing"><b>What this does not count.</b> ' + esc(uncountedLine(t)) + '</p>' +
+      (t.startupUnknown
+        ? '<p class="note">' + t.startupUnknown + ' of the measured servers ' + (t.startupUnknown===1?'has':'have') + ' no timing on record, so the time above is short by however long ' + (t.startupUnknown===1?'it':'those') + ' took.</p>'
+        : '') +
+      (t.otherVersion
+        ? '<p class="note">' + t.otherVersion + ' row' + (t.otherVersion===1?'':'s') + ' below are for a version other than the one your config asks for.</p>'
+        : '') +
+      '<p class="note">Each figure is one run of one version on one machine, under a kernel tracer that slows the start it times. Approximate, and not a ranking.</p>' +
+    '</div>';
+
+  out.innerHTML =
+    sum +
+    '<div class="scroll"><table><thead><tr><th>In your config</th><th>Package</th><th>What is on record</th></tr></thead><tbody>' + body + '</tbody></table></div>' +
+    '<div class="card"><h2>A card you can post</h2>' +
+      '<p class="note">Numbers only. No server name, no package name, no version, no credential name and no path — what you run says more about your work than the numbers do.</p>' +
+      '<div class="cardwrap">' + cardSvg(t, location.origin, new Date().toISOString().slice(0, 10)) + '</div>' +
+      '<p><button type="button" id="dl">Download the card</button> <button type="button" id="copysvg">Copy it as SVG</button></p>' +
+    '</div>';
+
+  const dl = document.getElementById('dl');
+  if (dl) dl.addEventListener('click', function(){
+    const svg = cardSvg(t, location.origin, new Date().toISOString().slice(0, 10));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    a.download = 'brydge-level1-my-servers.svg';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
+  });
+  const cs = document.getElementById('copysvg');
+  if (cs) cs.addEventListener('click', function(){
+    navigator.clipboard.writeText(cardSvg(t, location.origin, new Date().toISOString().slice(0, 10))).then(function(){
+      cs.textContent = 'Copied';
+      setTimeout(function(){ cs.textContent = 'Copy it as SVG'; }, 1500);
+    });
+  });
   copy.hidden = rows.length === 0;
 }
 
@@ -391,6 +452,14 @@ render();
         `- A **Python, Docker, Deno or Go** server is not measured here either. Level 1 measures npm packages.`,
         `- **No page is not a verdict.** A server with no page here may never have been measured, or may have been measured with its page not yet published — a page reporting a finding goes up only once it has been re-checked by hand. The two look the same from here, deliberately: telling them apart would announce which packages have a finding before the people who ship them have seen the page. A maintainer who wants to know can ask: email <contact@brydge-ai.com>.`,
         `- Every row that links to a page carries that page's limits: one run, once, no tool called, not calibration-backed.`,
+        ``,
+        `## About the total`,
+        ``,
+        `**It is a floor, not a figure.** It adds up only the servers that have a page here, and it says above exactly how many of yours it left out and why. A server with no page, one hosted somewhere else, and one written in Python all count for nothing in the sum — so your real tool count and your real startup time are higher, by an amount this page has no way to work out.`,
+        ``,
+        `**The time is a sum of single runs.** Each server's figure was measured once, on one machine, under a kernel tracer that stops the process at every file it opens, which makes it slower than the same start untraced. Adding such figures together compounds that, and nothing here corrects for it. Treat the total as an order of magnitude, not a measurement of your machine — your own startup depends on your hardware, your disk cache and which of these servers you start at once.`,
+        ``,
+        `**The card carries numbers and nothing else.** No server name, no package name, no version, no credential name, no path. Not because those are secrets exactly, but because a list of what you run tells a reader more about your work than you probably mean to share along with a number.`,
       ].join("\n"),
     ),
     `<script type="module">${client.replace(/^export /gm, "")}

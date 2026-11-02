@@ -47,6 +47,7 @@ import { LIMITS } from "../harness/limits.ts";
 import { programsSince, type TraceEvent } from "../harness/trace.ts";
 import type { ServerSpec } from "../harness/types.ts";
 import { notedWords, readDeclaration, whereNamed, type Declaration, type Mention } from "./declare.ts";
+import { startupOf, type Startup } from "./startup.ts";
 import { renderReport } from "./report.ts";
 import { executableOf, resolvePackage, type Resolved } from "./resolve.ts";
 
@@ -174,6 +175,15 @@ export interface Level1Evidence {
     filesWritten: string[];
     installedDuringRun: string[];
   } | null;
+  /*
+   * How long it took to answer, from timestamps the instrument was already
+   * recording and this file was already receiving: `strace -ff -ttt` stamps the
+   * execve of setpriv, and `harness/client.ts` stamps the reply to tools/list.
+   * Null when the process start was never traced, because a run with no anchor
+   * has no startup time and printing 0 ms for it would state a measurement that
+   * was not made. See `level1/startup.ts` for the two anchors and why.
+   */
+  startup: Startup | null;
   comparison: {
     tools: {
       rule: string;
@@ -283,6 +293,7 @@ export async function runLevel1(ref: string): Promise<Level1Evidence> {
       readme: { file: null, digest: null, lines: null, bytes: null },
       readmeNotes: [],
       declaration: null,
+      startup: null,
       couldNotStart: { stage: "resolve", because: e instanceof Error ? e.message : String(e) },
       serverInfo: null,
       observed: null,
@@ -312,6 +323,7 @@ export async function runLevel1(ref: string): Promise<Level1Evidence> {
     readme,
     readmeNotes: resolved.readme ? notedWords(resolved.readme) : [],
     declaration: declaration ? { hosts: declaration.hosts, identifiers: declaration.identifiers } : null,
+    startup: null as Startup | null,
   };
 
   /* ── Which executable. Level 1 never guesses between several. ──────────── */
@@ -346,15 +358,37 @@ export async function runLevel1(ref: string): Promise<Level1Evidence> {
    * the message is the server's own.
    */
   if (report.initError) {
+    /*
+     * WHOSE FAULT IT WAS. `measureServer` does not stop when npm exits
+     * non-zero: it goes on to start a binary that was never installed, and the
+     * session reports "the server process exited". Labelled `initialize`, that
+     * reads as a fact about somebody's package when it is a fact about our
+     * plumbing — which is how fifteen false "could not start" findings were
+     * nearly published after the disk filled, and how this very run read after
+     * `sudo` stripped NODE_EXTRA_CA_CERTS and every registry fetch failed with
+     * SELF_SIGNED_CERT_IN_CHAIN.
+     *
+     * So when npm's own output says the install failed, the stage says
+     * `install` and carries npm's words. Nothing is suppressed: the page still
+     * says the server did not start, and now it says why and whose end it was.
+     */
+    const said = (raw.installOut ?? "").trim();
+    const installBroke = /\b(npm (ERR!|error)|SELF_SIGNED_CERT_IN_CHAIN|ENOSPC|ETIMEDOUT|ECONNRESET|EAI_AGAIN|E40[34]|ERR_SOCKET)\b/.test(said);
     return {
       ...shell,
       couldNotStart: {
-        stage: "initialize",
-        because: report.initError.slice(0, 4000),
-        installSaid: (raw.installOut ?? "").trim().slice(-1500) || undefined,
+        stage: installBroke ? "install" : "initialize",
+        because: installBroke
+          ? `the install did not produce a working package, so what ran was not this package. The server then reported: ${report.initError.slice(0, 500)}`
+          : report.initError.slice(0, 4000),
+        installSaid: said.slice(-1500) || undefined,
       },
       serverInfo: report.serverInfo,
       observed: raw.session ? observeFrom(raw.session, report.offered) : null,
+      /* It started and would not talk, so there is a process start to time
+       * from and no tool list to time to. `toToolListMs` is null and the page
+       * says could not start; the started-at stamp is kept because it is true. */
+      startup: raw.session ? startupOf(raw.session) : null,
       comparison: null,
       findings: report.findings,
     };
@@ -400,6 +434,7 @@ export async function runLevel1(ref: string): Promise<Level1Evidence> {
     couldNotStart: null,
     serverInfo: report.serverInfo,
     observed,
+    startup: startupOf(raw.session ?? {}),
     comparison: {
       tools: { rule: STANDARD.tools, documented, undocumented },
       hosts: { rule: STANDARD.hosts, declared: declaration?.hosts ?? [], undeclared },

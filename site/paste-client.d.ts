@@ -66,7 +66,39 @@ export interface IndexRecord {
   undocumentedTools: number;
   undeclaredHosts: number;
   websites: number;
+  /** Null where the run produced no timing. Never treated as zero. */
+  startupMs: number | null;
 }
+
+/** Counted figures and the uncounted tally, returned together on purpose. */
+export interface Totals {
+  servers: number;
+  counted: number;
+  tools: number;
+  startupMs: number;
+  /** Counted for tools, with no timing on record. */
+  startupUnknown: number;
+  otherVersion: number;
+  /** Never measured, or measured and not yet published — indistinguishable here. */
+  noPage: number;
+  hosted: number;
+  nonNpm: number;
+  unreadable: number;
+}
+
+export declare function totals(rows: { server: ParsedServer; result: Match }[]): Totals;
+
+/** The sentence naming everything the total leaves out, and which way it errs. */
+export declare function uncountedLine(t: Totals): string;
+
+/** A shareable card: aggregates only, no name, version, credential or path. */
+export declare function cardSvg(t: Totals, origin: string, day: string): string;
+
+/** `1234` → `1.2 s`, the same rule the server pages use. */
+export declare function humanMs(ms: number): string;
+
+/** Greedy wrap to `width` characters, at most four lines. */
+export declare function wrap(s: string, width: number): string[];
 
 export interface Match {
   state: "measured" | "measured-other-version" | "unmeasured" | "remote" | "other" | "unknown";
