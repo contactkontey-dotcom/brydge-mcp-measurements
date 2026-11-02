@@ -12,34 +12,3 @@
 # correction route.
 #
 # Add one slug per line. `node site/build.ts --withheld` prints what is waiting.
-
-# Cleared 2026-11-02: all 67 report pages publish.
-agent-comms
-agentistics--mcp
-agentmemory--mcp
-algomap--mcp
-antv--mcp-server-chart
-aws--nx-plugin-mcp
-cachly-dev--mcp-server
-chrome-devtools-mcp
-ehrocks--fe-mcp-server
-eslint--mcp
-godxjp--ui-mcp
-heroui--react-mcp
-jpisnice--shadcn-ui-mcp-server
-kolbo--mcp
-maildev--mcp
-mastra--mcp-docs-server
-modelcontextprotocol--server-everything
-modelcontextprotocol--server-filesystem
-mozilla--firefox-devtools-mcp
-ooples--token-optimizer-mcp
-pptx-viewer-mcp
-primer--mcp
-procedures--mcp-dev-tools
-putervision--vision-memory-mcp
-react-aria--mcp
-sylphx--pdf-reader-mcp
-thallylabs--mcp
-wikipedia-mcp
-wonderwhy-er--desktop-commander

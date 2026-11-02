@@ -38,10 +38,13 @@ import { humanMs } from "./startup.ts";
  * through and judge it themselves, which is why `url` is not optional.
  */
 export interface Upstream {
+  /** The date a notice was sent. This project's own action; stands alone. */
   notifiedAt: string;
-  outcome: string;
+  /** What the maintainers did. Printed ONLY alongside `url`. */
+  outcome?: string | null;
   outcomeAt?: string | null;
-  url: string | null;
+  /** The thread. Required before any outcome is printed. */
+  url?: string | null;
 }
 
 /** Programs the harness itself starts, named so a reader is not puzzled. */
@@ -95,11 +98,24 @@ export function renderReport(e: Level1Evidence, upstream?: Upstream | null): str
 
   /* What the maintainers said, where they have said anything. Stated flat, with
    * the link, so a reader can read the exchange rather than this summary of it. */
-  if (upstream?.url) {
-    p(
-      `**Raised with the maintainers.** They were notified on ${upstream.notifiedAt} and the report was ` +
-        `${upstream.outcome}${upstream.outcomeAt ? ` on ${upstream.outcomeAt}` : ""}: ${upstream.url}`,
-    );
+  /*
+   * TWO CLAIMS WITH DIFFERENT EVIDENCE, SO TWO RULES.
+   *
+   * That a notice was SENT is this project's own action, and its date stands
+   * on its own. That a maintainer REPLIED, and what they said, is a claim
+   * about somebody else — printed only with a link to the thread, so a reader
+   * checks the exchange rather than taking this summary of it. Without a link
+   * no reply is stated at all, however well known it may be here.
+   */
+  if (upstream?.notifiedAt) {
+    const sent = `**Raised with the maintainers.** They were notified on ${upstream.notifiedAt}`;
+    if (upstream.url && upstream.outcome) {
+      p(`${sent} and the report was ${upstream.outcome}${upstream.outcomeAt ? ` on ${upstream.outcomeAt}` : ""}: ${upstream.url}`);
+    } else if (upstream.url) {
+      p(`${sent}: ${upstream.url}`);
+    } else {
+      p(`${sent}. Nothing is recorded here about a reply.`);
+    }
     p();
   }
   p(

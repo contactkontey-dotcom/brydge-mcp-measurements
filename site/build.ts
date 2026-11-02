@@ -699,10 +699,13 @@ function main(): void {
   const upstream = upstreamFor();
   for (const e of out) {
     const u = upstream[e.slug];
-    if (u && !u.url) {
+    /* The gate guards the REPLY, not the notice. A date we sent something on
+     * is our own act and needs no link; what a maintainer said about it is a
+     * claim about them, and goes up only with the thread behind it. */
+    if (u?.outcome && !u.url) {
       console.error(
-        `site: ${e.slug} has an upstream entry with no url. A page cannot say a maintainer "${u.outcome}" ` +
-          `without linking the thread. Add the url to level1/upstream.json, or remove the entry.`,
+        `site: ${e.slug} records that a maintainer "${u.outcome}" with no url. A page cannot say that ` +
+          `without linking the thread. Add the url to level1/upstream.json, or remove the outcome.`,
       );
       process.exit(2);
     }
@@ -735,11 +738,14 @@ function main(): void {
    * whose whole claim is that its numbers are checkable.
    */
   const heldLine = withheld.length
-    ? `\n\n**${withheld.length} more servers are measured and held back while I decide how to publish findings fairly.**\n`
+    ? `\n\nThe raw evidence for all ${items.length} servers is in [the public repository](${REPO}/tree/level1-measurement/level1/evidence). ` +
+      `**${withheld.length} report pages go up on Nov 3.** Seven makers were notified on Oct 31 and two of those closed their issues; ` +
+      `the other ${withheld.length - 7} findings go up without a prior notice. If you maintain one of these packages and something is ` +
+      `wrong, email <contact@brydge-ai.com> and I'll correct it publicly.\n`
     : "";
 
   const note = withheld.length
-    ? `\n\n**${withheld.length} pages are not published yet.** Each reports a finding, and a finding page goes up only after I have re-checked it by hand, under a policy I am still settling. If you maintain a package among the 67 measured, email <contact@brydge-ai.com> and I will tell you whether yours is one of them. The counts above include them; the pages and the package names do not appear until then.\n`
+    ? `\n\n**${withheld.length} pages are not published yet.** Each reports a finding, and they go up on Nov 3, as the line above the table says. The counts in the headline include them; the pages and the package names do not appear until then.\n`
     : "";
 
   writeFileSync(

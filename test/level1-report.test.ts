@@ -212,12 +212,21 @@ test("a maintainer's response is printed with its link, or not at all", () => {
   assert.match(withLink, /closed as not planned on 2026-11-01/);
   assert.match(withLink, /https:\/\/github\.com\/x\/y\/issues\/12/);
 
-  /* Without one, nothing is said: "they closed it as not planned" with no
-   * thread to read is hearsay, and the maintainer is the one it is unfair to. */
+  /* AN OUTCOME WITHOUT A THREAD IS NEVER PRINTED. "They closed it as not
+   * planned" with nothing to read is hearsay, and the maintainer is the one it
+   * is unfair to. The notice we sent still shows: that is our own act. */
   const noLink = renderReport(e, { notifiedAt: "2026-10-31", outcome: "closed as not planned", url: null });
-  assert.ok(!noLink.includes("Raised with the maintainers"), noLink.split("\n").slice(0, 12).join("\n"));
-  assert.ok(!noLink.includes("not planned"));
+  assert.match(noLink, /notified on 2026-10-31/, "our own notice is a fact about us and stands alone");
+  assert.ok(!noLink.includes("not planned"), "an outcome was printed with no thread behind it");
+  assert.match(noLink, /Nothing is recorded here about a reply/);
 
-  /* And a page with no entry at all is unchanged. */
-  assert.equal(renderReport(e), noLink);
+  /* A notice with no reply recorded reads the same way, and says so plainly. */
+  const sentOnly = renderReport(e, { notifiedAt: "2026-10-31" });
+  assert.match(sentOnly, /notified on 2026-10-31/);
+  assert.match(sentOnly, /Nothing is recorded here about a reply/);
+
+  /* And a page with no entry at all says nothing about maintainers. */
+  const none = renderReport(e);
+  assert.ok(!none.includes("Raised with the maintainers"));
+  assert.ok(!none.includes("2026-10-31"));
 });

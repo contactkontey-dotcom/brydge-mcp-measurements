@@ -183,11 +183,14 @@ test("the upstream record is read, and an entry without a link is visible as suc
   assert.ok(!Object.keys(u).some((k) => k.startsWith("_")), "a comment leaked into the data");
   for (const [slug, entry] of Object.entries(u)) {
     assert.match(entry.notifiedAt, /^\d{4}-\d{2}-\d{2}$/, `${slug}: no notification date`);
-    assert.ok(entry.outcome.length > 0, `${slug}: no outcome`);
-    /* `url` may be null in the type — that is what blocks the build rather than
-     * letting a page say it. Nothing recorded today is missing one, and this
-     * fails the moment somebody adds a response without the thread behind it. */
-    assert.match(entry.url ?? "", /^https:\/\/github\.com\/.+\/issues\/\d+$/, `${slug}: no link to the thread`);
+    /* A notice with no reply recorded is a legitimate entry: we sent something
+     * and nothing came back, or nothing came back that we can link. What is
+     * NOT legitimate is a reply with no thread behind it — that is hearsay
+     * about somebody else, and it fails here and stops the build. */
+    if (entry.outcome) {
+      assert.match(entry.url ?? "", /^https:\/\/github\.com\/.+\/issues\/\d+$/, `${slug}: states an outcome with no link to the thread`);
+    }
+    if (entry.url) assert.match(entry.url, /^https:\/\//, `${slug}: url is not a link`);
   }
 });
 
@@ -440,14 +443,20 @@ test("the index says at the top how many are held back, with a count it did not 
   ).withheld.length;
   if (!withheld) {
     /* With nothing held back the line must be absent, not stating zero. */
-    assert.ok(!/more servers are measured and held back/.test(html), "the held-back line is on a page with nothing held back");
+    assert.ok(!/report pages go up on Nov 3/.test(html), "the held-back line is on a page with nothing held back");
     return;
   }
   assert.match(
     html,
-    new RegExp(`${withheld} more servers are measured and held back while I decide how to publish findings fairly`),
+    new RegExp(`<strong>${withheld} report pages go up on Nov 3\\.</strong>`),
     "the held-back line is missing, or states a number the build did not compute",
   );
+  /* The arithmetic in the sentence has to hold too: seven were notified, and
+   * the rest are named as going up without one. A hardcoded 22 would go wrong
+   * the first time a page is cleared. */
+  assert.match(html, new RegExp(`the other ${withheld - 7} findings go up without a prior notice`));
+  assert.match(html, /Seven makers were notified on Oct 31 and two of those closed their issues/);
+  assert.match(html, /mailto:contact@brydge-ai\.com/);
   /* Above the table, where a reader first meets the gap between the number
    * measured and the number of rows — not only in the note underneath it. */
   assert.ok(html.indexOf("held back while I decide") < html.indexOf("<table"), "the line sits below the table");
