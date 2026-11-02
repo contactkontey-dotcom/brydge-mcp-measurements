@@ -421,3 +421,21 @@ test("the card grows to fit its paragraph instead of printing over its own foote
       Number(/height="(\d+)"/.exec(cardSvg(short, "https://x.test", "2026-11-02"))![1]),
   );
 });
+
+test("the index says at the top how many are held back, with a count it did not invent", { skip: !built }, () => {
+  const html = page("index.html");
+  const withheld = publishable(
+    readdirSync(join(import.meta.dirname, "..", "level1", "evidence"))
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => JSON.parse(readFileSync(join(import.meta.dirname, "..", "level1", "evidence", f), "utf8")) as Level1Evidence),
+  ).withheld.length;
+  assert.ok(withheld > 0, "this test is only meaningful while something is withheld");
+  assert.match(
+    html,
+    new RegExp(`${withheld} more servers are measured and held back while I decide how to publish findings fairly`),
+    "the held-back line is missing, or states a number the build did not compute",
+  );
+  /* Above the table, where a reader first meets the gap between the number
+   * measured and the number of rows — not only in the note underneath it. */
+  assert.ok(html.indexOf("held back while I decide") < html.indexOf("<table"), "the line sits below the table");
+});

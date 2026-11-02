@@ -592,6 +592,21 @@ function pricingPage(count: number): string {
   });
 }
 
+/**
+ * Put `line` directly after the paragraph that accounts for the servers with
+ * nothing found — the sentence where a reader first meets the gap between the
+ * number measured and the number of rows. Appended at the end if that
+ * paragraph is ever reworded, so the line is never silently dropped.
+ */
+function withHeldLine(md: string, line: string): string {
+  if (!line) return md;
+  const lines = md.split("\n");
+  const at = lines.findIndex((l) => l.includes("had nothing found"));
+  if (at === -1) return md + line;
+  lines.splice(at + 1, 0, line.replace(/^\n+|\n+$/g, "").replace(/^/, "\n"));
+  return lines.join("\n");
+}
+
 function methodPage(items: Level1Evidence[]): string {
   const fp = items[0]?.instrumentFingerprint ?? "";
   const body = markdownToHtml(
@@ -712,6 +727,17 @@ function main(): void {
     })
     .join("\n");
 
+  /*
+   * The same fact the reader needs at the top, where the gap between "67
+   * measured" and 38 rows first shows. The count is interpolated rather than
+   * typed, so the sentence cannot go on saying 29 after the number moves —
+   * a hardcoded figure on this page would be the one wrong number on a site
+   * whose whole claim is that its numbers are checkable.
+   */
+  const heldLine = withheld.length
+    ? `\n\n**${withheld.length} more servers are measured and held back while I decide how to publish findings fairly.**\n`
+    : "";
+
   const note = withheld.length
     ? `\n\n**${withheld.length} pages are not published yet.** Each reports a finding, and a finding page goes up only after I have re-checked it by hand. If you maintain a package among the 67 measured, email <contact@brydge-ai.com> and I will tell you whether yours is one of them. The counts above include them; the pages and the package names do not appear until then.\n`
     : "";
@@ -723,7 +749,7 @@ function main(): void {
       description:
         "What popular MCP servers do at startup before any tool is used, and where their own README does not name it. Published method, published evidence, not a ranking.",
       canonical: `${SITE}/`,
-      body: markdownToHtml(indexBody + note).replace("<div class=\"scroll\">", SEARCH + "<div class=\"scroll\">"),
+      body: markdownToHtml(withHeldLine(indexBody, heldLine) + note).replace("<div class=\"scroll\">", SEARCH + "<div class=\"scroll\">"),
       mistakeTitle: "Mistake on the Level 1 index",
     }),
   );
