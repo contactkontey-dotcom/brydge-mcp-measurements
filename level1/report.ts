@@ -218,12 +218,25 @@ export function renderReport(e: Level1Evidence, upstream?: Upstream | null): str
    * by the tracer watching it — cannot be recovered from "1.2 s".
    */
   if (e.startup?.toToolListMs !== null && e.startup?.toToolListMs !== undefined) {
+    /*
+     * The split, not the two totals. Printing "1.3 s, and it answered the
+     * handshake after 1.3 s" says one number twice and reads like a mistake.
+     * What the second anchor actually buys the reader is the SHAPE: almost all
+     * of that was getting to the point of answering at all, and the list
+     * itself took six milliseconds.
+     */
     const parts = [
       `**Time to answer is approximate.** It is ${humanMs(e.startup.toToolListMs)} measured once, ` +
         `from the moment this harness handed the process to an unprivileged user to the timestamp on ` +
         `its reply listing its tools`,
     ];
-    if (e.startup.toInitializeMs !== null) parts.push(`it answered the opening handshake after ${humanMs(e.startup.toInitializeMs)}`);
+    if (e.startup.toInitializeMs !== null) {
+      const rest = e.startup.toToolListMs - e.startup.toInitializeMs;
+      parts.push(
+        `${humanMs(e.startup.toInitializeMs)} of that was reaching the end of the opening handshake, ` +
+          `and listing the tools took the remaining ${humanMs(rest)}`,
+      );
+    }
     p(
       parts.join("; ") +
         `. The process ran under a kernel tracer that stops it at every file it opens, so this is ` +
@@ -371,8 +384,13 @@ function plainWords(e: Level1Evidence): string {
        * "1 tool and 0 websites is not named" was a grammar bug, not a count. */
       `of those, ${plural(c.tools.undocumented.length, "tool")} and ${plural(c.hosts.undeclared.length, "website")} ` +
       `are not named in its own README.`,
+    e.startup?.toToolListMs !== null && e.startup?.toToolListMs !== undefined
+      ? `From starting to answering with that list took about ${humanMs(e.startup.toToolListMs)}, measured once and while being watched, which makes it slower than it would be otherwise.`
+      : ``,
     `We called no tool and read the contents of no encrypted connection, so this page says nothing about whether any of its tools does what it says.`,
-  ].join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function renderLimits(e: Level1Evidence): string {
