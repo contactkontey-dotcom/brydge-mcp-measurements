@@ -83,7 +83,11 @@ test("the built site publishes only what is cleared", { skip: !built }, () => {
       .map((f) => JSON.parse(readFileSync(join(import.meta.dirname, "..", "level1", "evidence", f), "utf8")) as Level1Evidence),
   ).withheld;
 
-  assert.ok(withheld.length > 0, "this test is only meaningful while something is withheld");
+  /* Nothing withheld is a legitimate state — every page cleared — and there is
+   * then nothing for this to check. It must not pass by being vacuous while
+   * something IS withheld, which is why the loop below still runs on every
+   * entry the build actually held. */
+  if (!withheld.length) return;
   for (const e of withheld) {
     assert.ok(!names.includes(`${e.slug}.html`), `${e.slug} has a page and should not`);
     assert.ok(!index.includes(`/s/${e.slug}.html`), `${e.slug} is linked from the index`);
@@ -114,11 +118,16 @@ test("the site is ink only, and never calls anything safe, unsafe or dangerous i
   const files = ["index.html", "method.html", ...readdirSync(join(DIST, "s")).map((n) => `s/${n}`)];
   for (const f of files) {
     const html = page(f);
+    /* Both checks read the page's OWN words. A package's README is quoted in
+     * `<code>`, and what somebody else wrote there is not this site speaking:
+     * `@kolbo/mcp` documents a tool taking "DeepDub accent/variance/tempo",
+     * which tripped the accent check until it stripped quotations the way the
+     * judging-word check below always has. */
+    const ownWords = html.replace(/<code>[\s\S]*?<\/code>/g, "").replace(/<pre>[\s\S]*?<\/pre>/g, "");
     /* BRYDGE's accent means one thing — established under a paid engagement —
      * and a Level 1 measurement is not that. */
-    assert.ok(!/#c8a96b|#d7c08a|#b8985c|accent/i.test(html), `${f}: carries BRYDGE's accent`);
-    /* The three words, excluding text quoted from somebody's own README. */
-    const ownWords = html.replace(/<code>[\s\S]*?<\/code>/g, "").replace(/<pre>[\s\S]*?<\/pre>/g, "");
+    assert.ok(!/#c8a96b|#d7c08a|#b8985c|accent/i.test(ownWords), `${f}: carries BRYDGE's accent`);
+    /* The three words, in the page's voice rather than a maintainer's. */
     const hit = /\b(safe|unsafe|dangerous)\b/i.exec(ownWords);
     assert.equal(hit, null, `${f}: the page's own words use "${hit?.[0]}"`);
   }
@@ -429,7 +438,11 @@ test("the index says at the top how many are held back, with a count it did not 
       .filter((f) => f.endsWith(".json"))
       .map((f) => JSON.parse(readFileSync(join(import.meta.dirname, "..", "level1", "evidence", f), "utf8")) as Level1Evidence),
   ).withheld.length;
-  assert.ok(withheld > 0, "this test is only meaningful while something is withheld");
+  if (!withheld) {
+    /* With nothing held back the line must be absent, not stating zero. */
+    assert.ok(!/more servers are measured and held back/.test(html), "the held-back line is on a page with nothing held back");
+    return;
+  }
   assert.match(
     html,
     new RegExp(`${withheld} more servers are measured and held back while I decide how to publish findings fairly`),
