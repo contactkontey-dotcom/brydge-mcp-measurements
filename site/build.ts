@@ -739,7 +739,7 @@ function main(): void {
     : "";
 
   const note = withheld.length
-    ? `\n\n**${withheld.length} pages are not published yet.** Each reports a finding, and a finding page goes up only after I have re-checked it by hand. If you maintain a package among the 67 measured, email <contact@brydge-ai.com> and I will tell you whether yours is one of them. The counts above include them; the pages and the package names do not appear until then.\n`
+    ? `\n\n**${withheld.length} pages are not published yet.** Each reports a finding, and a finding page goes up only after I have re-checked it by hand, under a policy I am still settling. If you maintain a package among the 67 measured, email <contact@brydge-ai.com> and I will tell you whether yours is one of them. The counts above include them; the pages and the package names do not appear until then.\n`
     : "";
 
   writeFileSync(
