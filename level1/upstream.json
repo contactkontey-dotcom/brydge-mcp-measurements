@@ -1,9 +1,12 @@
 {
   "_comment": [
     "Where a finding was raised with a package's maintainers, and what happened.",
-    "One entry per slug. `url` is required before the line can be published: a",
-    "page that reports a maintainer's response without a link to it is hearsay,",
-    "and `site/build.ts` refuses to build a page whose entry has no url.",
+    "One entry per slug. TWO CLAIMS WITH DIFFERENT EVIDENCE:",
+    "`notifiedAt` is a notice WE sent \u2014 our own act, so the date stands alone.",
+    "`outcome` is what a MAINTAINER did, which is a claim about somebody else and",
+    "is printed only alongside `url`. site/build.ts refuses to build a page whose",
+    "entry states an outcome with no thread behind it, and a page with a notice",
+    "and no recorded reply says exactly that rather than implying agreement.",
     "Every field is a fact with a date, never a characterisation of the reply."
   ],
   "heroui--react-mcp": {
@@ -17,5 +20,20 @@
     "outcome": "closed as not planned",
     "outcomeAt": "2026-10-31",
     "url": "https://github.com/adobe/react-spectrum/issues/10896"
+  },
+  "agent-comms": {
+    "notifiedAt": "2026-10-31"
+  },
+  "cachly-dev--mcp-server": {
+    "notifiedAt": "2026-10-31"
+  },
+  "chrome-devtools-mcp": {
+    "notifiedAt": "2026-10-31"
+  },
+  "putervision--vision-memory-mcp": {
+    "notifiedAt": "2026-10-31"
+  },
+  "wonderwhy-er--desktop-commander": {
+    "notifiedAt": "2026-10-31"
   }
 }
