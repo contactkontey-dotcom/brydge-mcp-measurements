@@ -47,6 +47,16 @@ export interface Upstream {
   url?: string | null;
 }
 
+/*
+ * ONE STRING, TWO PLACES. The method page and all 67 report pages carry this
+ * qualifier, and a reader who compares them must find it word for word, so it
+ * lives here and `site/build.ts` imports it. A test asserts it on every page.
+ */
+export const NOT_HIDDEN =
+  "**Not named in the README does not mean hidden.** A server's tool list can depend on its settings, " +
+  "and READMEs often describe the default setup. This run gave every server the same fake credentials " +
+  "and no settings of its own, so what it shows is that one configuration, not necessarily the one you would run.";
+
 /** Programs the harness itself starts, named so a reader is not puzzled. */
 const HARNESS_PROGRAMS = new Set(["setpriv", "strace"]);
 
@@ -125,6 +135,8 @@ export function renderReport(e: Level1Evidence, upstream?: Upstream | null): str
       `checks, and reads the package's own documentation by a stated rule rather than by a person, ` +
       `so nothing in that calibration speaks to this page.`,
   );
+  p();
+  p(NOT_HIDDEN);
   p();
 
   /*

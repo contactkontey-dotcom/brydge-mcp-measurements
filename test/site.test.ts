@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { markdownToHtml, escapeHtml } from "../site/md.ts";
 import { readConfig, packageOf, match, toMarkdown, splitSpec, totals, cardSvg, uncountedLine, humanMs } from "../site/paste-client.js";
 import { hasFinding, publishable, upstreamFor } from "../site/build.ts";
+import { NOT_HIDDEN } from "../level1/report.ts";
+import { PLANTED_ENV, PLANTED_FILES } from "../harness/canaries.ts";
 import type { Level1Evidence } from "../level1/run.ts";
 
 /*
@@ -460,4 +462,29 @@ test("the index says at the top how many are held back, with a count it did not 
   /* Above the table, where a reader first meets the gap between the number
    * measured and the number of rows — not only in the note underneath it. */
   assert.ok(html.indexOf("held back while I decide") < html.indexOf("<table"), "the line sits below the table");
+});
+
+test("the settings caveat is on every report page and the method page, word for word", { skip: !built }, () => {
+  /* The same sentence in two places invites two slightly different sentences.
+   * It is one exported constant, and this is what stops a later edit to one
+   * copy from leaving the other saying something subtly else. */
+  const plain = NOT_HIDDEN.replace(/\*\*/g, "");
+  const pages = ["method.html", ...readdirSync(join(DIST, "s")).map((n) => `s/${n}`)];
+  const missing = pages.filter((f) => !page(f).replace(/<\/?strong>/g, "").includes(escapeHtml(plain)));
+  assert.deepEqual(missing, [], `${missing.length} page(s) do not carry the caveat`);
+  assert.ok(pages.length >= 68, `only ${pages.length} pages checked`);
+});
+
+test("the method page lists what the room plants, taken from the instrument", { skip: !built }, () => {
+  /* The page claims a reader can see exactly what each server was given. That
+   * is only true while the list and the planting agree, so the page is built
+   * from the same arrays the harness plants from, and this checks every one
+   * arrived rather than trusting the join. */
+  const html = page("method.html");
+  for (const name of PLANTED_ENV) assert.ok(html.includes(name), `method page omits the planted variable ${name}`);
+  for (const f of PLANTED_FILES) assert.ok(html.includes(escapeHtml(f.path)), `method page omits the planted file ${f.path}`);
+  assert.match(html, new RegExp(`<strong>${PLANTED_ENV.length} environment variables</strong>`), "the count disagrees with the list");
+  assert.match(html, new RegExp(`<strong>${PLANTED_FILES.length} files</strong>`), "the count disagrees with the list");
+  /* And no planted VALUE is on the page — those are secrets by construction. */
+  assert.ok(!/BRYDGECANARY/.test(html), "a planted value reached the method page");
 });

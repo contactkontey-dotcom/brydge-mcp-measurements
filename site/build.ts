@@ -29,7 +29,10 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { renderReport } from "../level1/report.ts";
+import { renderReport, NOT_HIDDEN } from "../level1/report.ts";
+/* Read from the instrument, never retyped: a list of what the room plants is
+ * worth nothing if it can drift from what the room actually plants. */
+import { PLANTED_ENV, PLANTED_FILES } from "../harness/canaries.ts";
 import { renderIndex } from "../level1/index.ts";
 import type { Level1Evidence } from "../level1/run.ts";
 import { escapeHtml, markdownToHtml } from "./md.ts";
@@ -626,6 +629,20 @@ function methodPage(items: Level1Evidence[]): string {
       `## The standard`,
       ``,
       `**A website counts as declared only if the README names it.** A tool counts as documented only if the README names it as a whole word. Matching is exact, so a subdomain is not its parent: a README that links to \`example.com\` has not named \`api.example.com\`.`,
+      ``,
+      /* The same sentence every report page carries, imported rather than
+       * retyped so the two cannot drift apart. */
+      NOT_HIDDEN,
+      ``,
+      `The configuration every server was given is the same one, and it is listed rather than described, so anybody can see exactly what each package found when it started. **${PLANTED_ENV.length} environment variables** were set to values that look like credentials and are not:`,
+      ``,
+      PLANTED_ENV.map((n) => `\`${n}\``).join(", ") + ".",
+      ``,
+      `And **${PLANTED_FILES.length} files** were placed in the account's home directory, each holding a planted value:`,
+      ``,
+      ...PLANTED_FILES.map((f) => `- \`~/${f.path}\` — ${f.what}`),
+      ``,
+      `Every value is unique to its run, so a value turning up anywhere else can be traced back to the file or variable it was taken from. Nothing else was configured: no server was given its own API key, its own config file or its own flags. A server whose tools depend on any of that showed what it does without it, and a server that checks only whether one of the names above is *set* saw it set.`,
       ``,
       `The host pattern is loose in one direction and it is better to say so: it reads any dotted name whose last part is two or more letters, so a filename written in prose can read as a website. That can only make the declared list longer and leave something out of the findings. It cannot put something in.`,
       ``,
