@@ -3,8 +3,12 @@
     "target": "ES2023",
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "lib": ["ES2023"],
-    "types": ["node"],
+    "lib": [
+      "ES2023"
+    ],
+    "types": [
+      "node"
+    ],
     "strict": true,
     "noUncheckedIndexedAccess": false,
     "allowImportingTsExtensions": true,
@@ -13,5 +17,14 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["harness/**/*.ts", "engine/**/*.ts", "measure.ts", "servers/**/*.ts", "calibration/**/*.ts", "test/**/*.ts", "level1/**/*.ts"]
+  "include": [
+    "harness/**/*.ts",
+    "engine/**/*.ts",
+    "measure.ts",
+    "servers/**/*.ts",
+    "calibration/**/*.ts",
+    "test/**/*.ts",
+    "level1/**/*.ts",
+    "watch/**/*.ts"
+  ]
 }
