@@ -28,3 +28,8 @@ watch/customers/
 # rebuilds every one of them from watch/runs/. Kept out until there is a
 # decision about publishing them, since the format does not change either way.
 watch/log/
+# The default approved list is state that `approve` writes, not source. It
+# names what somebody signed off on and who signed it off, and this repository
+# is public. The same argument as watch/CUSTOMERS.md makes about customer
+# lists applies to this one. Pass --list <file> for a list kept elsewhere.
+watch/approved.json

@@ -25,3 +25,12 @@ work and nothing more, so it is given nothing more.
 The tooling in `watch/` still takes `--list <file>` and will read a list from
 anywhere on disk, including a checkout of the private repository. It just does
 not keep one here.
+
+## The default list is not source either
+
+`watch/approve` with no `--list` writes `watch/approved.json`. That file was
+committed here once, holding one package and the name of the person it said
+approved it. It is gone and ignored now. An approval record names what an
+organisation runs and who signed it off, which is the thing this page argues
+does not belong in a public repository, and the argument does not stop being
+true because the file has a convenient default path.
