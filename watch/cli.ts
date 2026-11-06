@@ -6,6 +6,11 @@
  *   node watch/cli.ts diff     <package> <A> <B>          compare two stored versions
  *   node watch/cli.ts approve  <package@version> [who]    add it to the approved list
  *   node watch/cli.ts check    <package@version>          label what is not on the list
+ *
+ * `--list <file>` points approve and check at a particular list. Customer
+ * lists live in watch/customers/, which is gitignored in full: a list names
+ * every tool, website and program a named organisation runs and has signed
+ * off on, and that is their map of their own tooling, not ours to publish.
  *   node watch/cli.ts poll     <file>                     which approved versions were overtaken
  *   node watch/cli.ts alert    <package> <approved> <new> draft the message
  *
@@ -19,10 +24,10 @@
  * in this project twice, so it is checked rather than remembered.
  * ═══════════════════════════════════════════════════════════════════════════
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statfsSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { runLevel1 } from "../level1/run.ts";
+import { runLevel1, slugOf } from "../level1/run.ts";
 import { agree } from "./fields.ts";
 import { checkAgainst, deserialize, entryFrom, keyOf, renderCheck, serialize, type ApprovedList } from "./approved.ts";
 import { parseLines, pollOne, renderPoll } from "./poll.ts";
@@ -31,10 +36,21 @@ import { getRuns, putRun, versionsOf } from "./store.ts";
 import { renderDiff, versiondiff } from "./versiondiff.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const APPROVED = join(HERE, "approved.json");
 
-function loadApproved(): ApprovedList {
-  return existsSync(APPROVED) ? deserialize(readFileSync(APPROVED, "utf8")) : {};
+/** `--list <file>`, or the shared list when none is given. */
+function listPath(argv: string[]): string {
+  const i = argv.indexOf("--list");
+  if (i === -1) return join(HERE, "approved.json");
+  const p = argv[i + 1];
+  if (!p) {
+    console.error("--list needs a file path");
+    process.exit(1);
+  }
+  return p;
+}
+
+function loadApproved(path: string): ApprovedList {
+  return existsSync(path) ? deserialize(readFileSync(path, "utf8")) : {};
 }
 
 /** The two stored runs of a version, only if they agree about everything. */
@@ -62,6 +78,47 @@ function split(ref: string): { name: string; version: string } {
   return { name: ref.slice(0, at), version: ref.slice(at + 1) };
 }
 
+/*
+ * ── DISK, WHICH HAS ALREADY LIED TWICE IN THIS PROJECT ───────────────────
+ *
+ * A sandbox is an install tree plus a kernel trace, averaging about 400 MB.
+ * Ten packages at two versions and two runs each is forty of them. Left to
+ * pile up they fill the disk, npm then has nowhere to write, and every
+ * remaining package reports that its server process exited — which is how
+ * fifteen false findings about other people's software nearly got published
+ * in October.
+ *
+ * So: a successful run's sandbox goes as soon as its evidence is stored, a
+ * run that could not start KEEPS its sandbox because that is exactly when the
+ * trace is wanted, and the whole thing stops before a run it may not have
+ * room to finish.
+ */
+const RUN_BASE = "/srv/brydge-measure";
+const FLOOR_BYTES = Number(process.env.BRYDGE_DISK_FLOOR_GB ?? 8) * 2 ** 30;
+
+function freeBytes(): number {
+  try {
+    const st = statfsSync(RUN_BASE);
+    return Number(st.bsize) * Number(st.bavail);
+  } catch {
+    return Number.POSITIVE_INFINITY;
+  }
+}
+const gb = (n: number) => (n / 2 ** 30).toFixed(1);
+
+function sandboxesSince(slug: string, since: number): string[] {
+  try {
+    return readdirSync(RUN_BASE)
+      .filter((d) => {
+        const m = /^(.*)-(\d{13})$/.exec(d);
+        return m && m[1] === slug && Number(m[2]) >= since;
+      })
+      .map((d) => join(RUN_BASE, d));
+  } catch {
+    return [];
+  }
+}
+
 async function measure(ref: string): Promise<void> {
   const ca = process.env.NODE_EXTRA_CA_CERTS;
   if (!ca || !existsSync(ca)) {
@@ -74,14 +131,24 @@ async function measure(ref: string): Promise<void> {
   }
   const { name, version } = split(ref);
   for (const n of [1, 2] as const) {
-    console.error(`${ref}: run ${n} of 2 …`);
+    const free = freeBytes();
+    if (free < FLOOR_BYTES) {
+      console.error(`Stopping before ${ref} run ${n}: ${gb(free)} GB free, floor is ${gb(FLOOR_BYTES)} GB.`);
+      console.error(`A run started under the floor is the shape of a false "could not start".`);
+      process.exit(3);
+    }
+    console.error(`${ref}: run ${n} of 2 … (${gb(free)} GB free)`);
+    const t0 = Date.now();
     const e = await runLevel1(ref);
     /* The run is stored whatever it found, including "could not start": that
      * is an outcome the diff reports, not a reason to discard a measurement. */
     const path = putRun(name, version, n, e as unknown as Record<string, unknown>);
+    const stuck = Boolean((e as any).couldNotStart);
+    /* Measured means there is a measurement, not that the child exited 0. */
+    if (!stuck) for (const d of sandboxesSince(slugOf(name), t0)) rmSync(d, { recursive: true, force: true });
     const o = (e as any).observed;
     console.error(
-      `  ${(e as any).couldNotStart ? `could not start at ${(e as any).couldNotStart.stage}` : `${o.offered.length} tool(s)`} -> ${path}`,
+      `  ${stuck ? `could not start at ${(e as any).couldNotStart.stage} (sandbox kept)` : `${o.offered.length} tool(s)`} -> ${path}`,
     );
   }
 }
@@ -102,23 +169,23 @@ function diff(pkg: string, a: string, b: string): void {
   console.log(renderDiff(versiondiff(pkg, A, B)));
 }
 
-function approve(ref: string, who?: string): void {
+function approve(ref: string, who: string | undefined, path: string): void {
   const { name, version } = split(ref);
   const shape = steadyShape(name, version);
-  const list = loadApproved();
+  const list = loadApproved(path);
   const key = keyOf(name, version);
   list[key] = entryFrom(name, version, shape, new Date().toISOString().slice(0, 10), who);
-  mkdirSync(dirname(APPROVED), { recursive: true });
-  writeFileSync(APPROVED, serialize(list));
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, serialize(list));
   const e = list[key]!;
   console.error(
-    `approved ${key}: ${e.tools.length} tool(s), ${e.hosts.length} website(s), ${e.programs.length} program(s) -> ${APPROVED}`,
+    `approved ${key}: ${e.tools.length} tool(s), ${e.hosts.length} website(s), ${e.programs.length} program(s) -> ${path}`,
   );
 }
 
-function check(ref: string): void {
+function check(ref: string, path: string): void {
   const { name, version } = split(ref);
-  const list = loadApproved();
+  const list = loadApproved(path);
   const entries = Object.values(list).filter((e) => e.package === name);
   if (!entries.length) {
     console.error(`Nothing approved for ${name}. Approve a version first: node watch/cli.ts approve ${name}@<version>`);
@@ -138,8 +205,8 @@ function poll(file: string): void {
   console.log(renderPoll(lines.map((l) => pollOne(l)), bad));
 }
 
-function alert(pkg: string, approvedV: string, foundV: string): void {
-  const list = loadApproved();
+function alert(pkg: string, approvedV: string, foundV: string, path: string): void {
+  const list = loadApproved(path);
   const entry = list[keyOf(pkg, approvedV)] ?? null;
   const A = getRuns(pkg, approvedV);
   const B = getRuns(pkg, foundV);
@@ -156,13 +223,16 @@ function alert(pkg: string, approvedV: string, foundV: string): void {
 }
 
 async function main(): Promise<void> {
-  const [cmd, ...rest] = process.argv.slice(2);
+  const argv = process.argv.slice(2);
+  const path = listPath(argv);
+  const i = argv.indexOf("--list");
+  const [cmd, ...rest] = i === -1 ? argv : [...argv.slice(0, i), ...argv.slice(i + 2)];
   if (cmd === "measure" && rest.length === 1) return measure(rest[0]!);
   if (cmd === "diff" && rest.length === 3) return diff(rest[0]!, rest[1]!, rest[2]!);
-  if (cmd === "approve" && (rest.length === 1 || rest.length === 2)) return approve(rest[0]!, rest[1]);
-  if (cmd === "check" && rest.length === 1) return check(rest[0]!);
+  if (cmd === "approve" && (rest.length === 1 || rest.length === 2)) return approve(rest[0]!, rest[1], path);
+  if (cmd === "check" && rest.length === 1) return check(rest[0]!, path);
   if (cmd === "poll" && rest.length === 1) return poll(rest[0]!);
-  if (cmd === "alert" && rest.length === 3) return alert(rest[0]!, rest[1]!, rest[2]!);
+  if (cmd === "alert" && rest.length === 3) return alert(rest[0]!, rest[1]!, rest[2]!, path);
   console.error(
     [
       "usage:",
@@ -172,6 +242,9 @@ async function main(): Promise<void> {
       "  node watch/cli.ts check    <package@version>",
       "  node watch/cli.ts poll     <file of package@version lines>",
       "  node watch/cli.ts alert    <package> <approvedVersion> <newVersion>",
+      "",
+      "  --list <file>   use a particular approved list (customer lists live in",
+      "                  watch/customers/, which is gitignored in full)",
     ].join("\n"),
   );
   process.exit(1);
