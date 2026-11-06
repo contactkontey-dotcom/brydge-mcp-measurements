@@ -32,8 +32,9 @@ import { agree } from "./fields.ts";
 import { checkAgainst, deserialize, entryFrom, keyOf, renderCheck, serialize, type ApprovedList } from "./approved.ts";
 import { parseLines, pollOne, renderPoll } from "./poll.ts";
 import { renderAlert } from "./alert.ts";
-import { getRuns, putRun, versionsOf } from "./store.ts";
+import { folderOf, getRuns, putRun, versionsOf } from "./store.ts";
 import { renderDiff, versiondiff } from "./versiondiff.ts";
+import { captureFrom, diffTools, parseToolList, renderToolDiff, toolsFromSession, type Capture } from "./tools.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -149,10 +150,33 @@ async function measure(ref: string): Promise<void> {
      * looking at what the room recorded — it defeats the disk discipline, so
      * it is opt-in per command and never the default. */
     const keep = process.env.BRYDGE_KEEP_SANDBOX === "1";
-    if (!stuck && !keep) for (const d of sandboxesSince(slugOf(name), t0)) rmSync(d, { recursive: true, force: true });
+    const sandboxes = sandboxesSince(slugOf(name), t0);
+    /* THE TOOL SURFACE, TAKEN BEFORE THE SCAFFOLDING GOES.
+     *
+     * `session-result.json` holds every JSON-RPC message the server sent,
+     * descriptions and schemas included. run.ts keeps only the names. Reading
+     * it here, while the sandbox still exists, needs nothing from the
+     * instrument and leaves its fingerprint alone. */
+    let captured = 0;
+    for (const dir of sandboxes) {
+      const sr = join(dir, "session-result.json");
+      if (!existsSync(sr)) continue;
+      try {
+        const tools = toolsFromSession(JSON.parse(readFileSync(sr, "utf8")).session ?? {});
+        if (tools) {
+          const cap = captureFrom(name, version, tools, new Date().toISOString());
+          writeFileSync(join(folderOf(name, version), `tools-${n}.json`), JSON.stringify(cap, null, 2) + "\n");
+          captured = cap.count;
+        }
+      } catch (e) {
+        console.error(`  could not capture the tool list: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      break;
+    }
+    if (!stuck && !keep) for (const d of sandboxes) rmSync(d, { recursive: true, force: true });
     const o = (e as any).observed;
     console.error(
-      `  ${stuck ? `could not start at ${(e as any).couldNotStart.stage} (sandbox kept)` : `${o.offered.length} tool(s)`} -> ${path}`,
+      `  ${stuck ? `could not start at ${(e as any).couldNotStart.stage} (sandbox kept)` : `${o.offered.length} tool(s)${captured ? `, ${captured} described` : ", descriptions not captured"}`} -> ${path}`,
     );
   }
 }
@@ -226,6 +250,57 @@ function alert(pkg: string, approvedV: string, foundV: string, path: string): vo
   );
 }
 
+/** Both captures of a version, only if they agree tool for tool. */
+function steadyCapture(pkg: string, version: string): Capture {
+  const read = (n: 1 | 2): Capture | null => {
+    const f = join(folderOf(pkg, version), `tools-${n}.json`);
+    return existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as Capture) : null;
+  };
+  const a = read(1);
+  const b = read(2);
+  if (!a || !b) {
+    console.error(`No two tool captures for ${pkg}@${version}.`);
+    console.error(`Measure it again to capture them: node watch/cli.ts measure ${pkg}@${version}`);
+    process.exit(1);
+  }
+  const d = diffTools(a.tools, b.tools);
+  if (d.added.length || d.removed.length || d.changed.length) {
+    /* Same rule as everywhere else here: a surface nobody can reproduce is
+     * not a surface to compare against another version. */
+    console.error(`The two captures of ${pkg}@${version} disagree:`);
+    console.error(`  ${d.added.length} added, ${d.removed.length} removed, ${d.changed.length} changed between runs.`);
+    console.error(`Nothing is compared. Measure it again.`);
+    process.exit(1);
+  }
+  return a;
+}
+
+function toolsDiff(pkg: string, a: string, b: string, full: boolean): void {
+  const A = steadyCapture(pkg, a);
+  const B = steadyCapture(pkg, b);
+  console.log(renderToolDiff(pkg, a, b, diffTools(A.tools, B.tools), { full }));
+}
+
+function toolsFiles(fa: string, fb: string, full: boolean): void {
+  for (const f of [fa, fb]) {
+    if (!existsSync(f)) {
+      console.error(`No such file: ${f}`);
+      process.exit(1);
+    }
+  }
+  const load = (f: string) => {
+    try {
+      return captureFrom("(file)", f, parseToolList(JSON.parse(readFileSync(f, "utf8"))), new Date().toISOString());
+    } catch (e) {
+      console.error(`${f}: ${e instanceof Error ? e.message : String(e)}`);
+      process.exit(1);
+    }
+  };
+  const A = load(fa);
+  const B = load(fb);
+  console.log(renderToolDiff("two tool lists", fa, fb, diffTools(A.tools, B.tools), { full }));
+}
+
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const path = listPath(argv);
@@ -237,6 +312,10 @@ async function main(): Promise<void> {
   if (cmd === "check" && rest.length === 1) return check(rest[0]!, path);
   if (cmd === "poll" && rest.length === 1) return poll(rest[0]!);
   if (cmd === "alert" && rest.length === 3) return alert(rest[0]!, rest[1]!, rest[2]!, path);
+  const full = rest.includes("--full");
+  const r = rest.filter((x) => x !== "--full");
+  if (cmd === "tools" && r[0] === "diff" && r.length === 4) return toolsDiff(r[1]!, r[2]!, r[3]!, full);
+  if (cmd === "tools" && r[0] === "files" && r.length === 3) return toolsFiles(r[1]!, r[2]!, full);
   console.error(
     [
       "usage:",
@@ -246,6 +325,8 @@ async function main(): Promise<void> {
       "  node watch/cli.ts check    <package@version>",
       "  node watch/cli.ts poll     <file of package@version lines>",
       "  node watch/cli.ts alert    <package> <approvedVersion> <newVersion>",
+      "  node watch/cli.ts tools diff  <package> <versionA> <versionB> [--full]",
+      "  node watch/cli.ts tools files <a.json> <b.json> [--full]",
       "",
       "  --list <file>   use a particular approved list (customer lists live in",
       "                  watch/customers/, which is gitignored in full)",

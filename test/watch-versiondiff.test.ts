@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { shapeOf, agree, BEHAVIOUR } from "../watch/fields.ts";
-import { versiondiff, renderDiff, type Measured } from "../watch/versiondiff.ts";
+import { versiondiff, renderDiff, soundnessOf, type Measured } from "../watch/versiondiff.ts";
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════
@@ -161,4 +161,89 @@ test("agree names every field the two runs differ on", () => {
   assert.deepEqual(r.disagreed.sort(), ["README digest", "tools offered"]);
   assert.equal(agree(a, a).ok, true);
   assert.equal(BEHAVIOUR.length, 6);
+});
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * "NOTHING CHANGED" IS THE MOST REASSURING THING THIS CAN SAY, SO IT HAS TO
+ * BE THE HARDEST TO GET.
+ *
+ * Until the soundness gate, the sentence read identically whether both
+ * versions offered 311 identical tools or whether neither was ever observed.
+ * The second is not a finding; it is the absence of one in the first one's
+ * clothes.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/** Started, but nothing was observed: `observed` null in the evidence. */
+const unobserved = (v: string) => {
+  const e = ev({ observed: null });
+  return { version: v, runs: [shapeOf(e), shapeOf(e)] as [any, any] };
+};
+
+test("two unobserved versions are not comparable, and no change is claimed", () => {
+  const d = versiondiff("thing-mcp", unobserved("1.0.0"), unobserved("1.1.0"));
+  assert.equal(d.outcome, "not-comparable");
+  assert.deepEqual(d.changes, []);
+  assert.match(d.says, /started but no tool list was observed/);
+  assert.match(d.says, /No change is reported either way/);
+  assert.ok(!/Nothing changed/.test(d.says), "an absence of evidence was reported as a no-change");
+});
+
+test("one side unobserved is enough to stop the comparison", () => {
+  const d = versiondiff("thing-mcp", both("1.0.0", ev()), unobserved("1.1.0"));
+  assert.equal(d.outcome, "not-comparable");
+  assert.match(d.says, /1\.1\.0 started but no tool list was observed/);
+  assert.ok(!d.says.includes("1.0.0 "), "a sound version was blamed for the other's gap");
+});
+
+test("a could-not-start keeps its own sentence rather than becoming not-comparable", () => {
+  /* "Version 2.0.0 could not start" tells a reader more than "not
+   * comparable", so the specific answer wins where there is one. */
+  const stuck = ev({ couldNotStart: { stage: "initialize", because: "exited" }, observed: null });
+  const d = versiondiff("thing-mcp", both("1.0.0", ev()), both("2.0.0", stuck));
+  assert.equal(d.outcome, "could-not-start-b");
+  assert.match(d.says, /could not start, nothing compared/);
+});
+
+test("a no-change states the counts behind it, so 311-and-311 reads differently from 0-and-0", () => {
+  const d = versiondiff("thing-mcp", both("1.0.0", ev()), both("1.0.1", ev()));
+  assert.equal(d.outcome, "compared");
+  assert.match(d.says, /Both versions answered with a tool list \(2 and 2 tools\)/);
+  assert.match(d.says, /each measured twice with both runs agreeing/);
+});
+
+test("a server that genuinely offers nothing is comparable, and says zero out loud", () => {
+  /* Answering "no tools" is a real answer and must not be confused with not
+   * being observed — but the reader has to be able to see which it was. */
+  const none = ev({ observed: { ...ev().observed, offered: [] } });
+  const d = versiondiff("thing-mcp", both("1.0.0", none), both("1.0.1", none));
+  assert.equal(d.outcome, "compared");
+  assert.match(d.says, /\(0 and 0 tools\)/);
+  const text = renderDiff(d);
+  assert.match(text, /tools offered\s+0\s+0/);
+});
+
+test("every field's count is printed for both versions, comparable or not", () => {
+  for (const d of [
+    versiondiff("thing-mcp", both("1.0.0", ev()), both("1.1.0", ev())),
+    versiondiff("thing-mcp", both("1.0.0", ev()), unobserved("1.1.0")),
+  ]) {
+    assert.equal(d.counts.length, 6);
+    const text = renderDiff(d);
+    for (const f of ["tools offered", "websites reached", "programs started", "files written", "packages installed while running", "connection attempts"]) {
+      assert.ok(text.includes(f), `${f} count missing from the output`);
+    }
+  }
+});
+
+test("soundness reports what is missing, not merely that something is", () => {
+  const s = soundnessOf(unobserved("1.0.0"));
+  assert.equal(s.answered, false);
+  assert.equal(s.started, true);
+  assert.equal(s.reproduced, true);
+  assert.deepEqual(s.missing, ["1.0.0 started but no tool list was observed"]);
+  const ok = soundnessOf(both("1.0.0", ev()));
+  assert.deepEqual(ok.missing, []);
+  assert.equal(ok.toolCount, 2);
 });

@@ -47,6 +47,15 @@ export type Behaviour = (typeof BEHAVIOUR)[number];
 export interface Shape {
   /** True when the server never reached the point of listing its tools. */
   couldNotStart: string | null;
+  /*
+   * WHETHER THE SERVER ACTUALLY ANSWERED.
+   *
+   * `sets["tools offered"]` is empty both when a server answered with no tools
+   * and when it was never observed at all, and those are not the same fact. A
+   * comparison of two unobserved runs has nothing in it, and reporting that as
+   * "nothing changed" is the most confident-sounding way to say nothing.
+   */
+  observed: boolean;
   sets: Record<Behaviour, string[]>;
   /** Reported on its own line, never counted as a behaviour change. */
   readmeDigest: string | null;
@@ -67,6 +76,7 @@ export function shapeOf(e: Record<string, any>): Shape {
   const harness = new Set<string>(HARNESS_PROGRAMS);
   return {
     couldNotStart: e.couldNotStart ? String(e.couldNotStart.stage ?? "unknown") : null,
+    observed: Boolean(e.observed),
     sets: {
       "tools offered": uniq(o.offered ?? []),
       /* What the pages call "websites reached for": a name looked up, or one
@@ -86,6 +96,7 @@ export function shapeOf(e: Record<string, any>): Shape {
 export function agree(a: Shape, b: Shape): { ok: boolean; disagreed: string[] } {
   const disagreed: string[] = [];
   if (a.couldNotStart !== b.couldNotStart) disagreed.push("whether it started");
+  if (a.observed !== b.observed) disagreed.push("whether it was observed at all");
   for (const f of BEHAVIOUR) if (a.sets[f].join("\u0000") !== b.sets[f].join("\u0000")) disagreed.push(f);
   if (a.readmeDigest !== b.readmeDigest) disagreed.push("README digest");
   return { ok: disagreed.length === 0, disagreed };
