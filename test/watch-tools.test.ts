@@ -51,7 +51,7 @@ test("fields we do not single out are kept and still counted in the whole-tool h
   assert.equal(a.schemaHash, b.schemaHash);
   assert.notEqual(a.hash, b.hash, "a change outside description and schema went unnoticed");
   const d = diffTools([a], [b]);
-  assert.deepEqual(d.changed[0]!.what, ["other fields"]);
+  assert.deepEqual(d.changed[0]!.what, ["annotations"], "the field that moved was not named");
 });
 
 /* ── the shapes a list arrives in ───────────────────────────────────────── */
@@ -144,7 +144,6 @@ test("the rendered diff reports counts, shows what moved, and judges nothing", (
   assert.match(text, /1 added, 0 removed, 1 changed, 1 identical\./);
   assert.match(text, /\+ new/);
   assert.match(text, /edit: description/);
-  assert.match(text, /first line that differs \(line 1\)/);
   assert.match(text, /before: Old first line\./);
   assert.match(text, /after:  New first line\./);
   assert.match(text, /What this does not say/);
@@ -152,12 +151,34 @@ test("the rendered diff reports counts, shows what moved, and judges nothing", (
   assert.equal(/\b(safe|unsafe|suspicious|malicious|dangerous)\b/i.exec(text), null);
 });
 
-test("--full prints both descriptions whole instead of the first differing line", () => {
-  const a = captureFrom("p", "1", [tool("t", "aaa\nbbb")], "x");
-  const b = captureFrom("p", "2", [tool("t", "aaa\nccc")], "x");
-  const text = renderToolDiff("p", "1", "2", diffTools(a.tools, b.tools), { full: true });
-  assert.match(text, /before: aaa\nbbb/);
-  assert.ok(!/first line that differs/.test(text));
+test("both texts are printed, and --full stops them being clipped", () => {
+  /* A description is the sentence a model reads before deciding whether to
+   * call a tool. "The description changed" is not the useful part — what it
+   * now says is — so both texts are printed in either mode. */
+  const long = "x".repeat(900);
+  const a = captureFrom("p", "1", [tool("t", "aaa\nbbb" + long)], "x");
+  const b = captureFrom("p", "2", [tool("t", "aaa\nccc" + long)], "x");
+  const d = diffTools(a.tools, b.tools);
+
+  const clipped = renderToolDiff("p", "1", "2", d);
+  assert.match(clipped, /before: aaa\nbbb/);
+  assert.match(clipped, /after:  aaa\nccc/);
+  assert.match(clipped, /description 907 characters -> 907 characters/);
+  assert.match(clipped, / …/, "a long description was not clipped");
+  assert.match(clipped, /first line that differs is line 2/);
+
+  const full = renderToolDiff("p", "1", "2", d, { full: true });
+  assert.ok(full.includes("bbb" + long), "--full clipped the description anyway");
+  assert.ok(full.length > clipped.length);
+});
+
+test("a description that appears or disappears is printed as such, not as empty text", () => {
+  const a = captureFrom("p", "1", [tool("t", null)], "x");
+  const b = captureFrom("p", "2", [tool("t", "now described")], "x");
+  const text = renderToolDiff("p", "1", "2", diffTools(a.tools, b.tools));
+  assert.match(text, /description \(none\) -> 13 characters/);
+  assert.match(text, /before: \(none\)/);
+  assert.match(text, /after:  now described/);
 });
 
 test("a capture sorts by name so two captures of one version compare directly", () => {

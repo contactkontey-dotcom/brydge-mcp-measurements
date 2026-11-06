@@ -142,7 +142,13 @@ export function captureFrom(pkg: string, version: string, tools: Record<string, 
 
 export interface ToolChange {
   name: string;
-  what: Array<"description" | "input schema" | "other fields">;
+  /* `description`, `input schema`, or the name of each other field that moved
+   * — `_meta`, `annotations`, whatever the server sent. Naming it matters:
+   * 47 of @kolbo/mcp's tools differed between two versions only in
+   * `_meta.ui.resourceUri`, a cache-busting string in a UI asset URL. Under
+   * the label "other fields" that reads like 47 changed tools. Named, it
+   * reads like one build artifact, which is what it is. */
+  what: string[];
   before?: { description: string | null };
   after?: { description: string | null };
 }
@@ -173,9 +179,12 @@ export function diffTools(a: ToolRecord[], b: ToolRecord[]): ToolDiff {
     const what: ToolChange["what"] = [];
     if (x.descriptionHash !== y.descriptionHash) what.push("description");
     if (x.schemaHash !== y.schemaHash) what.push("input schema");
-    /* The hash moved but neither of the two named parts did, so it was one of
-     * the fields we do not single out — annotations, _meta, anything new. */
-    if (!what.length) what.push("other fields");
+    for (const k of [...new Set([...Object.keys(x.extra), ...Object.keys(y.extra)])].sort()) {
+      if (canonical(x.extra[k]) !== canonical(y.extra[k])) what.push(k);
+    }
+    /* The whole-tool hash moved and nothing we can name did: say that rather
+     * than claim a field. */
+    if (!what.length) what.push("something not broken out here");
     changed.push({ name, what, before: { description: x.description }, after: { description: y.description } });
   }
   changed.sort((p, q) => p.name.localeCompare(q.name));
@@ -219,18 +228,22 @@ export function renderToolDiff(pkg: string, va: string, vb: string, d: ToolDiff,
     for (const c of d.changed) {
       out.push(`  ${c.name}: ${c.what.join(" and ")}`);
       if (c.what.includes("description")) {
-        const fd = firstDifference(c.before?.description ?? null, c.after?.description ?? null);
-        const la = (c.before?.description ?? "").length;
-        const lb = (c.after?.description ?? "").length;
-        out.push(`      description ${la} -> ${lb} characters`);
-        if (fd && !opts.full) {
-          out.push(`      first line that differs (line ${fd.at}):`);
-          out.push(`        before: ${clip(fd.before)}`);
-          out.push(`        after:  ${clip(fd.after)}`);
-        } else if (opts.full) {
-          out.push(`      before: ${c.before?.description ?? "(none)"}`);
-          out.push(`      after:  ${c.after?.description ?? "(none)"}`);
-        }
+        /*
+         * BOTH TEXTS, NOT A SUMMARY OF THEM. A description is the sentence a
+         * model reads before deciding whether to call a tool, so "the
+         * description changed" is not the useful part — what it now says is.
+         * Long ones are clipped with the length printed beside them, and
+         * --full prints them whole; the first differing line is pointed at so
+         * a small edit inside a long paragraph can be found.
+         */
+        const a = c.before?.description ?? null;
+        const b = c.after?.description ?? null;
+        out.push(`      description ${a === null ? "(none)" : `${a.length} characters`} -> ${b === null ? "(none)" : `${b.length} characters`}`);
+        const show = (v: string | null) => (v === null ? "(none)" : opts.full ? v : clip(v, 400));
+        out.push(`      before: ${show(a)}`);
+        out.push(`      after:  ${show(b)}`);
+        const fd = firstDifference(a, b);
+        if (fd && fd.at > 1) out.push(`      (first line that differs is line ${fd.at})`);
       }
     }
   }
