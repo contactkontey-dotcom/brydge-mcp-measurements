@@ -217,3 +217,19 @@ test("a registry failure is reported by its cause, not by our log path", () => {
   assert.equal(npmReason("", 1), "npm exited 1");
   assert.match(npmReason("npm error network ETIMEDOUT\n", 1), /ETIMEDOUT/);
 });
+
+test("the alert claims an approval only where a list says so", () => {
+  /* "You approved 2.0.0" sent to somebody who approved nothing is a false
+   * statement about their own decision, in the one artifact built to be
+   * forwarded, and the reader cannot check it from the message. */
+  const a = both("1.0.0", ev());
+  const b = both("1.1.0", ev({ observed: { offered: ["read", "write", "exec"] } }));
+  const base = { package: "thing-mcp", approved: "1.0.0", found: "1.1.0", measuredOn: "2026-11-06", diff: versiondiff("thing-mcp", a, b) };
+
+  const noList = renderAlert({ ...base, check: null });
+  assert.ok(!/You approved/.test(noList), "an approval was claimed with no list behind it");
+  assert.match(noList, /Compared against 1\.0\.0, which is not on an approved list\./);
+
+  const withList = renderAlert({ ...base, check: checkAgainst(entryFrom("thing-mcp", "1.0.0", a.runs[0], "2026-11-06"), "1.1.0", b.runs[0]) });
+  assert.match(withList, /You approved 1\.0\.0\./);
+});

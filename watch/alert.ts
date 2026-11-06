@@ -29,7 +29,13 @@ import type { Diff } from "./versiondiff.ts";
 
 export interface AlertInput {
   package: string;
-  /** The version on the approved list. */
+  /**
+   * The version being compared against. Described as approved ONLY when
+   * `check` is present, because that is the only case where a list exists.
+   * Saying "you approved 2.0.0" to somebody who approved nothing is a false
+   * statement about their own decision, in the one piece of this designed to
+   * be forwarded — and the reader cannot check it from the message.
+   */
   approved: string;
   /** The newly published version that was measured. */
   found: string;
@@ -48,7 +54,11 @@ const bullets = (items: string[], indent = "  ") => items.map((i) => `${indent}$
 /** The alert as plain text. */
 export function renderAlert(a: AlertInput): string {
   const out: string[] = [];
-  out.push(`${a.package}: version ${a.found} published. You approved ${a.approved}.`);
+  out.push(
+    a.check
+      ? `${a.package}: version ${a.found} published. You approved ${a.approved}.`
+      : `${a.package}: version ${a.found} published. Compared against ${a.approved}, which is not on an approved list.`,
+  );
   out.push("");
   out.push(`Measured ${a.measuredOn}. Each version was started twice in a sealed room, asked once for its`);
   out.push(`list of tools, and compared. No tool was called.`);
