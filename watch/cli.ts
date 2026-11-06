@@ -145,7 +145,11 @@ async function measure(ref: string): Promise<void> {
     const path = putRun(name, version, n, e as unknown as Record<string, unknown>);
     const stuck = Boolean((e as any).couldNotStart);
     /* Measured means there is a measurement, not that the child exited 0. */
-    if (!stuck) for (const d of sandboxesSince(slugOf(name), t0)) rmSync(d, { recursive: true, force: true });
+    /* BRYDGE_KEEP_SANDBOX=1 keeps a successful run's sandbox. Only for
+     * looking at what the room recorded — it defeats the disk discipline, so
+     * it is opt-in per command and never the default. */
+    const keep = process.env.BRYDGE_KEEP_SANDBOX === "1";
+    if (!stuck && !keep) for (const d of sandboxesSince(slugOf(name), t0)) rmSync(d, { recursive: true, force: true });
     const o = (e as any).observed;
     console.error(
       `  ${stuck ? `could not start at ${(e as any).couldNotStart.stage} (sandbox kept)` : `${o.offered.length} tool(s)`} -> ${path}`,
