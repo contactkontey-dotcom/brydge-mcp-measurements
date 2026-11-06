@@ -13,6 +13,8 @@
  * off on, and that is their map of their own tooling, not ours to publish.
  *   node watch/cli.ts poll     <file>                     which approved versions were overtaken
  *   node watch/cli.ts alert    <package> <approved> <new> draft the message
+ *   node watch/cli.ts backfill                              save a record per measured pair
+ *   node watch/cli.ts log      <package>                   read the saved records back
  *
  * Nothing here blocks anything, and every command exits 0 on a finding. The
  * only non-zero exits are a usage error, a missing measurement and a missing
@@ -35,6 +37,7 @@ import { renderAlert } from "./alert.ts";
 import { folderOf, getRuns, putRun, versionsOf } from "./store.ts";
 import { renderDiff, versiondiff } from "./versiondiff.ts";
 import { captureFrom, diffTools, parseToolList, renderToolDiff, toolsFromSession, type Capture } from "./tools.ts";
+import { edgesOf, packagesWithRuns, read as readLog, recordFor, renderTimeline, write as writeLog } from "./log.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -301,6 +304,53 @@ function toolsFiles(fa: string, fb: string, full: boolean): void {
   console.log(renderToolDiff("two tool lists", fa, fb, diffTools(A.tools, B.tools), { full }));
 }
 
+/* ── The audit log ──────────────────────────────────────────────────────── */
+
+/**
+ * Save a record for every consecutive pair of stored versions.
+ *
+ * A refused edge is named and skipped; it does not stop the rest. The exit
+ * code stays 0 either way, because "I could not record this one" is a fact
+ * about the measurements on disk, not a failure of this command.
+ */
+function backfill(): void {
+  const packages = packagesWithRuns();
+  let wrote = 0;
+  let refused = 0;
+  for (const pkg of packages) {
+    const { edges, unordered } = edgesOf(pkg);
+    /* Loud about a package that produced nothing: a package silently
+     * contributing no edges is how a log comes to look complete. */
+    if (!edges.length && !unordered.length) {
+      console.log(`  (none)    ${pkg}: fewer than two versions stored, no edge to record`);
+      continue;
+    }
+    for (const [x, y] of unordered) {
+      console.log(`  ${pkg} ${x} / ${y}: no edge, these two versions cannot be ordered`);
+      refused++;
+    }
+    for (const [a, b] of edges) {
+      try {
+        const rec = recordFor(pkg, a, b);
+        const path = writeLog(rec);
+        console.log(`  ${rec.state.padEnd(10)} ${pkg} ${a} -> ${b}  (${path.replace(process.cwd() + "/", "")})`);
+        wrote++;
+      } catch (e) {
+        console.log(`  refused   ${pkg} ${a} -> ${b}`);
+        for (const line of String(e instanceof Error ? e.message : e).split("\n")) console.log(`            ${line}`);
+        refused++;
+      }
+    }
+  }
+  console.log("");
+  console.log(`${wrote} ${wrote === 1 ? "record" : "records"} written across ${packages.length} packages.`);
+  if (refused) console.log(`${refused} ${refused === 1 ? "edge" : "edges"} not recorded, each named above.`);
+}
+
+function logFor(pkg: string): void {
+  console.log(renderTimeline(pkg, readLog(pkg)));
+}
+
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const path = listPath(argv);
@@ -312,6 +362,8 @@ async function main(): Promise<void> {
   if (cmd === "check" && rest.length === 1) return check(rest[0]!, path);
   if (cmd === "poll" && rest.length === 1) return poll(rest[0]!);
   if (cmd === "alert" && rest.length === 3) return alert(rest[0]!, rest[1]!, rest[2]!, path);
+  if (cmd === "backfill" && rest.length === 0) return backfill();
+  if (cmd === "log" && rest.length === 1) return logFor(rest[0]!);
   const full = rest.includes("--full");
   const r = rest.filter((x) => x !== "--full");
   if (cmd === "tools" && r[0] === "diff" && r.length === 4) return toolsDiff(r[1]!, r[2]!, r[3]!, full);
@@ -327,6 +379,8 @@ async function main(): Promise<void> {
       "  node watch/cli.ts alert    <package> <approvedVersion> <newVersion>",
       "  node watch/cli.ts tools diff  <package> <versionA> <versionB> [--full]",
       "  node watch/cli.ts tools files <a.json> <b.json> [--full]",
+      "  node watch/cli.ts backfill",
+      "  node watch/cli.ts log     <package>",
       "",
       "  --list <file>   use a particular approved list (customer lists live in",
       "                  watch/customers/, which is gitignored in full)",

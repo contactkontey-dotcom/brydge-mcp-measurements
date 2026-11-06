@@ -24,3 +24,7 @@ watch/runs/
 # private brydge-watch repo. See watch/CUSTOMERS.md. The rule stays so that a
 # stray local file cannot be committed by accident.
 watch/customers/
+# The audit log's records. They are derived: `node watch/cli.ts backfill`
+# rebuilds every one of them from watch/runs/. Kept out until there is a
+# decision about publishing them, since the format does not change either way.
+watch/log/
