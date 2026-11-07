@@ -83,6 +83,7 @@ export interface Totals {
   noPage: number;
   hosted: number;
   nonNpm: number;
+  ambiguous: number;
   unreadable: number;
 }
 
@@ -101,7 +102,7 @@ export declare function humanMs(ms: number): string;
 export declare function wrap(s: string, width: number): string[];
 
 export interface Match {
-  state: "measured" | "measured-other-version" | "unmeasured" | "remote" | "other" | "unknown";
+  state: "measured" | "measured-other-version" | "ambiguous-command" | "unmeasured" | "remote" | "other" | "unknown";
   /** The package name, for `unmeasured` and both `measured` states. */
   name?: string;
   /** The version the pasted config asks for, where it differs from ours. */
@@ -110,6 +111,10 @@ export interface Match {
   record?: IndexRecord;
   /** Present for `remote`, `other` and `unknown`. */
   detail?: string;
+  /** Present for `ambiguous-command`: the bare command, and every measured
+   *  package that installs one by that name. No record, so nothing counts it. */
+  command?: string;
+  candidates?: Array<{ name: string; slug: string }>;
 }
 
 /** Match a parsed server against the measurement index. */

@@ -113,6 +113,17 @@ export function match(server, index) {
   if (f.kind === "unknown") return { state: "unknown", detail: f.detail };
 
   const hit = index[f.name] ?? (f.kind === "binary" ? index[`bin:${f.name}`] : undefined);
+  /*
+   * A bare command that several measured packages install.
+   *
+   * The old index kept the LAST package to claim a tail, so `command: "mcp"`
+   * showed one of 18 packages' reports as if it were the answer. This names
+   * them instead. It carries no record, so nothing downstream can count it:
+   * `totals` has a bucket of its own for it and the card leaves it out.
+   */
+  if (hit && hit.ambiguous) {
+    return { state: "ambiguous-command", name: f.name, command: hit.command, candidates: hit.names };
+  }
   if (!hit) return { state: "unmeasured", name: f.name };
   const asked = f.version;
   return {
@@ -183,6 +194,10 @@ export function totals(rows) {
     noPage: 0,
     hosted: 0,
     nonNpm: 0,
+    /* A bare command several measured packages install. Not counted, and
+     * not lumped in with "could not be read": this one WAS read, and the
+     * reason it is uncounted is that the answer is not unique. */
+    ambiguous: 0,
     unreadable: 0,
   };
   for (const { result } of rows) {
@@ -193,7 +208,8 @@ export function totals(rows) {
       if (typeof result.record.startupMs === "number") t.startupMs += result.record.startupMs;
       else t.startupUnknown += 1;
       if (s === "measured-other-version") t.otherVersion += 1;
-    } else if (s === "unmeasured") t.noPage += 1;
+    } else if (s === "ambiguous-command") t.ambiguous += 1;
+    else if (s === "unmeasured") t.noPage += 1;
     else if (s === "remote") t.hosted += 1;
     else if (s === "other") t.nonNpm += 1;
     else t.unreadable += 1;
@@ -214,6 +230,10 @@ export function uncountedLine(t) {
   if (t.noPage) bits.push(`${t.noPage} with no page here (never measured, or measured and not yet published — this page cannot tell you which)`);
   if (t.hosted) bits.push(`${t.hosted} hosted remotely, which Level 1 cannot install or start`);
   if (t.nonNpm) bits.push(`${t.nonNpm} not an npm package`);
+  if (t.ambiguous)
+    bits.push(
+      `${t.ambiguous} naming a command that several measured packages install, so which one you run is not knowable from the config`,
+    );
   if (t.unreadable) bits.push(`${t.unreadable} that could not be read as a package`);
   if (!bits.length) return `Every server in this config has a page here. The figures above cover all ${t.servers} of them.`;
   const n = t.servers - t.counted;

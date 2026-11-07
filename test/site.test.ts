@@ -417,8 +417,8 @@ test("the card grows to fit its paragraph instead of printing over its own foote
   /* At a fixed height the fourth wrapped line sat on top of the footer — the
    * one line carrying "not calibration-backed", which is the caveat least able
    * to afford being illegible. */
-  const long = { servers: 40, counted: 3, tools: 99, startupMs: 4000, startupUnknown: 2, otherVersion: 1, noPage: 20, hosted: 9, nonNpm: 7, unreadable: 1 };
-  const short = { servers: 1, counted: 1, tools: 9, startupMs: 1000, startupUnknown: 0, otherVersion: 0, noPage: 0, hosted: 0, nonNpm: 0, unreadable: 0 };
+  const long = { servers: 40, counted: 3, tools: 99, startupMs: 4000, startupUnknown: 2, otherVersion: 1, noPage: 20, hosted: 9, nonNpm: 7, ambiguous: 0, unreadable: 1 };
+  const short = { servers: 1, counted: 1, tools: 9, startupMs: 1000, startupUnknown: 0, otherVersion: 0, noPage: 0, hosted: 0, nonNpm: 0, ambiguous: 0, unreadable: 0 };
   for (const t of [long, short]) {
     const svg = cardSvg(t, "https://mcp.brydge-ai.com", "2026-11-02");
     const height = Number(/height="(\d+)"/.exec(svg)![1]);

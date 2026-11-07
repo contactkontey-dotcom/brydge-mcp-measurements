@@ -320,8 +320,34 @@ function pastePage(items: Level1Evidence[]): string {
       startupMs: e.startup?.toToolListMs ?? null,
     };
     index[e.package.name] = record;
-    /* A bare command in a config is usually the package's unscoped tail. */
-    index[`bin:${e.package.name.replace(/^@[^/]+\//, "")}`] = record;
+  }
+
+  /*
+   * ── A BARE COMMAND IS A GUESS, AND 24 OF THESE PACKAGES MAKE IT A BAD ONE ──
+   *
+   * A config entry with `command: "mcp"` and no package argument used to be
+   * resolved by stripping the scope off every measured package and keeping
+   * the last one to claim the tail. 18 of the 67 are scoped packages whose
+   * tail is `mcp` and 6 more are `mcp-server`, so a bare `mcp` showed
+   * @thallylabs/mcp's report — with a link, a tool count and a startup time —
+   * when it could as easily have been @kolbo/mcp or @playwright/mcp. It was
+   * not a near miss: the page stated it, and the figures fed the totals and
+   * the shareable card.
+   *
+   * A tail claimed by one package still resolves. A tail claimed by several
+   * resolves to an ambiguity that names them all and counts for nothing.
+   */
+  const byTail: Record<string, Array<{ name: string; slug: string }>> = {};
+  for (const e of items) {
+    if (!e.observed || !e.comparison) continue;
+    const tail = e.package.name.replace(/^@[^/]+\//, "");
+    (byTail[tail] ??= []).push({ name: e.package.name, slug: e.slug });
+  }
+  for (const [tail, names] of Object.entries(byTail)) {
+    index[`bin:${tail}`] =
+      names.length === 1
+        ? index[names[0]!.name]!
+        : { ambiguous: true, command: tail, names: names.sort((a, b) => a.name.localeCompare(b.name)) };
   }
 
   const client = readFileSync(join(ROOT, "site", "paste-client.js"), "utf8");
@@ -353,6 +379,15 @@ function render(){
         ? 'Measured ' + esc(m.record.measuredAt) + '. ' + m.record.offered + ' tool' + (m.record.offered===1?'':'s') + ' offered, ' + m.record.websites + ' website' + (m.record.websites===1?'':'s') + ' reached for, nothing found that its README does not name.'
         : 'Measured ' + esc(m.record.measuredAt) + '. Not named in its README: ' + [t ? t + ' tool' + (t===1?'':'s') : '', h ? h + ' website' + (h===1?'':'s') : ''].filter(Boolean).join(', ') + '.';
       if(m.state === 'measured-other-version') said += ' Your config asks for ' + esc(m.wanted) + '; the page is for ' + esc(m.record.version) + '.';
+    } else if(m.state === 'ambiguous-command'){
+      /* Named, not guessed. The old index picked one of these and showed
+       * its report as the answer. No link to any of them as THE page: the
+       * point is that this cannot tell which one you run. */
+      pkg = '<code>' + esc(m.name) + '</code>';
+      said = 'Several measured packages install a command called <code>' + esc(m.command) + '</code>; this cannot tell which one you run. ' +
+             'It is not counted in the totals below. The ' + m.candidates.length + ' are: ' +
+             m.candidates.map(function(c){ return '<a href="/s/' + esc(c.slug) + '.html"><code>' + esc(c.name) + '</code></a>'; }).join(', ') + '. ' +
+             'Put the package in the config to get an answer.';
     } else if(m.state === 'unmeasured'){
       pkg = '<code>' + esc(m.name) + '</code>';
       said = 'No page for this yet. <a href="/request.html">Ask for it</a>.';
