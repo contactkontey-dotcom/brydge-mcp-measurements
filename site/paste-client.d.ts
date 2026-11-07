@@ -26,6 +26,10 @@ export interface Found {
   version?: string | null;
   /** Present for `remote`, `other` and `unknown`: the URL, ecosystem or reason. */
   detail?: string;
+  /** Present for `npm`: the package argument exactly as the config wrote it.
+   *  `pinState` reads the whole of it, because an alias marker can sit on
+   *  the name side of the last "@". */
+  spec?: string;
 }
 
 /** A config entry as read, loosely enough to describe any JSON that arrives. */
@@ -125,3 +129,5 @@ export declare function toMarkdown(
   rows: { server: ParsedServer; result: Match }[],
   origin: string,
 ): string;
+export function pinState(spec: string | null | undefined): "pinned" | "not pinned" | "can't tell";
+export function pinLine(state: string | null): string | null;

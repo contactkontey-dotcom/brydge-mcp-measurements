@@ -408,6 +408,17 @@ function render(){
     const keys = s.envKeys.length
       ? '<p class="keys">Asks for ' + s.envKeys.map(function(k){ return '<code>' + esc(k) + '</code>'; }).join(', ') + '. Values were discarded when this was read.</p>'
       : '';
+    /*
+     * Whether the entry names one version. Outside the measured branch on
+     * purpose: an alias such as foo@npm:bar@1.2.3 does not match the index,
+     * so it lands in the unmeasured state, and not knowing whether it is
+     * pinned is exactly what a reader needs about an entry this page could
+     * not read. pinLine returns null for a pinned entry and for every
+     * non-npm kind. (No backticks here: this is inside a template literal.)
+     */
+    const pinSaid = pinLine(m.pin);
+    if(pinSaid) said += ' <strong>' + esc(pinSaid) + '</strong>';
+
     return '<tr><td>' + esc(s.label) + '</td><td>' + pkg + '</td><td>' + said + keys + '</td></tr>';
   }).join('');
   const t = totals(rows);

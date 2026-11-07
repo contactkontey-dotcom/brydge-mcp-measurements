@@ -64,7 +64,9 @@ export function packageOf(entry) {
     if (!args.length) return { kind: "unknown", detail: `${cmd} with no package argument` };
     const { name, version } = splitSpec(args[0]);
     if (OTHER_ECOSYSTEM[name]) return { kind: "other", detail: OTHER_ECOSYSTEM[name] };
-    return { kind: "npm", name, version };
+    /* `spec` is the argument as written. pinState reads the whole of it,
+     * because an alias marker can sit on the name side of the last "@". */
+    return { kind: "npm", name, version, spec: args[0] };
   }
   /* A bare binary: the command is often the package name, or its unscoped tail. */
   return { kind: "binary", name: cmd, version: null };
@@ -76,6 +78,89 @@ export function packageOf(entry) {
  * Accepts the shapes Claude Desktop, Claude Code, Cursor, Windsurf and VS Code
  * write: `mcpServers`, `servers`, or `mcp.servers`.
  */
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * WHETHER A RUNNER ENTRY NAMES ONE VERSION, OR WHATEVER IS CURRENT.
+ *
+ * `packageOf` already returns a version, but having a version is not being
+ * pinned: `foo@latest` and `foo@^1.0.0` both have one and both move. Three
+ * states, never two, because the shapes a spec can take do not divide
+ * cleanly:
+ *
+ *   pinned       foo@1.2.3, foo@1.2.3-rc.1   one version, and only that one
+ *   not pinned   foo, foo@latest, foo@^1.0.0, foo@1.x, foo@>=1
+ *   can't tell   foo@npm:bar@1.2.3, foo@github:org/repo, foo@file:../x
+ *
+ * The third is not a hedge. An alias or a git or file spec is not an npm
+ * version at all, and `lastIndexOf("@")` cuts it in the wrong place. Saying
+ * "not pinned" there would be a claim about a string this does not parse.
+ *
+ * Emitted only for kind "npm". A bare binary has no runner and no install
+ * step, a remote server's version is the operator's business, and Docker and
+ * the Python runners pin by their own rules. For those the line would be
+ * about something that is not happening.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/** An exact npm version: three numbers, optional prerelease and build. */
+const EXACT = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+/** Shapes that are not an npm version at all, so nothing here can judge them. */
+const NOT_A_VERSION = /^(npm:|github:|git\+|git:|file:|link:|workspace:|https?:|portal:)/i;
+
+/**
+ * Classify the WHOLE spec, not the version `splitSpec` cut off it.
+ *
+ * `splitSpec` cuts at the last "@", so for the alias `foo@npm:bar@1.2.3` the
+ * version is `1.2.3` and the `npm:` that makes it an alias ends up in the
+ * NAME. Looking only at the version reports that as pinned to 1.2.3, when
+ * what is pinned is a package this has not identified. The marker can be
+ * anywhere in the spec, so the whole spec is what gets looked at.
+ */
+export function pinState(spec) {
+  if (spec === null || spec === undefined || spec === "") return "not pinned";
+  const whole = String(spec);
+  if (NOT_A_VERSION.test(whole)) return "can't tell";
+  /* An alias or a URL anywhere in the spec, not just at its start. */
+  if (/(^|@)(npm:|github:|git\+|git:|file:|link:|workspace:|portal:|https?:)/i.test(whole)) return "can't tell";
+
+  const at = whole.lastIndexOf("@");
+  const v = at > 0 ? whole.slice(at + 1) : null;
+  if (v === null || v === "") return "not pinned";
+  if (v.includes("/") || v.includes(":")) return "can't tell";
+  if (EXACT.test(v)) return "pinned";
+  return "not pinned";
+}
+
+/**
+ * The line a row carries, or null.
+ *
+ * Nothing for a pinned entry: it is the ordinary case and a line on every
+ * row is noise. The second sentence is there because a pin on the package
+ * is not a pin on what the package installs — @cyanheads/pubmed-mcp-server
+ * @2.11.1 is exactly pinned and stopped starting when a dependency range
+ * resolved to a release that raised its Node requirement.
+ */
+export function pinLine(state) {
+  /*
+   * Only the two states that have something to say produce a line.
+   *
+   * Written as an allow-list rather than "anything but pinned": the remote
+   * and other-ecosystem branches of `match` return before a pin state is
+   * computed, so `state` arrives undefined, and a fall-through default told
+   * a reader their uvx entry and their remote URL had no version pinned.
+   * Neither has an npm spec to pin.
+   */
+  if (state === "can't tell") {
+    return "Can't tell whether a version is pinned: this entry names the package in a form this page does not read.";
+  }
+  if (state !== "not pinned") return null;
+  return (
+    "No version pinned: this can run a different version than the one measured. " +
+    "Pinning the package does not pin what the package installs, either \u2014 a dependency range can still " +
+    "resolve to something new on the next install."
+  );
+}
+
 export function readConfig(text) {
   let data;
   try {
@@ -108,11 +193,15 @@ export function readConfig(text) {
 /** Match a parsed server against the measurement index. */
 export function match(server, index) {
   const f = server.found;
-  if (f.kind === "remote") return { state: "remote", detail: f.detail };
-  if (f.kind === "other") return { state: "other", detail: f.detail };
-  if (f.kind === "unknown") return { state: "unknown", detail: f.detail };
+  /* `pin: null` on every early return, so no branch leaves it undefined. */
+  if (f.kind === "remote") return { state: "remote", detail: f.detail, pin: null };
+  if (f.kind === "other") return { state: "other", detail: f.detail, pin: null };
+  if (f.kind === "unknown") return { state: "unknown", detail: f.detail, pin: null };
 
   const hit = index[f.name] ?? (f.kind === "binary" ? index[`bin:${f.name}`] : undefined);
+  /* Only an npm runner entry has a spec this can read. A bare binary has no
+   * install step to pin, so the question does not arise for it. */
+  const pin = f.kind === "npm" ? pinState(f.spec ?? f.version) : null;
   /*
    * A bare command that several measured packages install.
    *
@@ -120,17 +209,21 @@ export function match(server, index) {
    * showed one of 18 packages' reports as if it were the answer. This names
    * them instead. It carries no record, so nothing downstream can count it:
    * `totals` has a bucket of its own for it and the card leaves it out.
+   *
+   * `pin` is null here: an ambiguous entry is a bare command, which is kind
+   * `binary`, which has no npm spec to pin.
    */
   if (hit && hit.ambiguous) {
-    return { state: "ambiguous-command", name: f.name, command: hit.command, candidates: hit.names };
+    return { state: "ambiguous-command", name: f.name, command: hit.command, candidates: hit.names, pin };
   }
-  if (!hit) return { state: "unmeasured", name: f.name };
+  if (!hit) return { state: "unmeasured", name: f.name, pin };
   const asked = f.version;
   return {
     state: asked && asked !== hit.version && asked !== "latest" ? "measured-other-version" : "measured",
     name: hit.name,
     wanted: asked,
     record: hit,
+    pin,
   };
 }
 

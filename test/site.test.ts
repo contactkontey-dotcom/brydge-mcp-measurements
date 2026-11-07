@@ -250,8 +250,14 @@ test("an env value does not survive being read, anywhere", () => {
 test("the shapes a config comes in are read, and the ones we cannot measure say so", () => {
   const servers = readConfig(CONFIG).servers;
   const by = Object.fromEntries(servers.map((s) => [s.label, s.found]));
-  assert.deepEqual(by.memory, { kind: "npm", name: "@modelcontextprotocol/server-memory", version: "2.0.1" });
-  assert.deepEqual(by.dlx, { kind: "npm", name: "wikipedia-mcp", version: null });
+  /* `spec` is the argument as written; pinState reads the whole of it. */
+  assert.deepEqual(by.memory, {
+    kind: "npm",
+    name: "@modelcontextprotocol/server-memory",
+    version: "2.0.1",
+    spec: "@modelcontextprotocol/server-memory@2.0.1",
+  });
+  assert.deepEqual(by.dlx, { kind: "npm", name: "wikipedia-mcp", version: null, spec: "wikipedia-mcp" });
   assert.equal(by.figma.kind, "binary");
   assert.equal(by.py.kind, "other");
   assert.equal(by.py.detail, "Python");
@@ -531,28 +537,39 @@ test("the paste index carries the claim only where it differs", { skip: !built }
   const html = page("paste.html");
 
   /*
-   * The expected count is computed, not assumed. Each package is indexed
-   * twice — under its name and under its bare `bin:` tail — but 18 scoped
-   * packages share the tail `bin:mcp` and 6 share `bin:mcp-server`, so later
-   * ones overwrite earlier and 134 records collapse to 112. Asserting
-   * "22 × 2" would be asserting a collision-free index this has never had.
+   * The expected count is computed, not assumed, and it is built the way
+   * site/build.ts now builds the index: a tail one package claims maps to
+   * that package's record, and a tail several claim maps to an ambiguity
+   * object that carries no record and so no claim.
    *
-   * (That overwrite is pre-existing: a config whose command is a bare `mcp`
-   * matches whichever of the 18 was written last. Not introduced here, and
-   * not changed here.)
+   * 18 scoped packages share the tail `mcp` and 6 share `mcp-server`, so
+   * those two tails hold one ambiguity each instead of 24 records. The old
+   * last-write-wins index had 112 entries; this has 110, and asserting
+   * "22 x 2" would be asserting an index this has never had.
    */
   const dir = join(import.meta.dirname, "..", "level1", "evidence");
-  const index = new Map<string, boolean>();
-  for (const f of readdirSync(dir).filter((x) => x.endsWith(".json"))) {
-    const e = JSON.parse(readFileSync(join(dir, f), "utf8"));
-    const differs = selfReported(e).agreement === "differs";
-    index.set(e.package.name, differs);
-    index.set(`bin:${String(e.package.name).replace(/^@[^/]+\//, "")}`, differs);
+  const items = readdirSync(dir)
+    .filter((x) => x.endsWith(".json"))
+    .map((f) => JSON.parse(readFileSync(join(dir, f), "utf8")));
+
+  const index = new Map<string, boolean | null>();
+  const byTail = new Map<string, string[]>();
+  for (const e of items) {
+    index.set(e.package.name, selfReported(e).agreement === "differs");
+    const tail = String(e.package.name).replace(/^@[^/]+\//, "");
+    byTail.set(tail, [...(byTail.get(tail) ?? []), e.package.name]);
   }
-  const expected = [...index.values()].filter(Boolean).length;
+  for (const [tail, names] of byTail) {
+    /* null = an ambiguity object, which has no saysVersion either way. */
+    index.set(`bin:${tail}`, names.length === 1 ? index.get(names[0]!)! : null);
+  }
+  const expected = [...index.values()].filter((v) => v === true).length;
 
   const says = html.match(/"saysVersion":"[^"]*"/g) ?? [];
   assert.equal(says.length, expected, "the paste index carries a different number of claims than the evidence");
-  assert.equal(says.length + (html.match(/"saysVersion":null/g) ?? []).length, index.size);
+  const nulls = (html.match(/"saysVersion":null/g) ?? []).length;
+  const ambiguous = [...index.values()].filter((v) => v === null).length;
+  assert.equal(ambiguous, 2, "the two colliding tails are no longer ambiguous");
+  assert.equal(says.length + nulls, index.size - ambiguous, "an ambiguity object carried a saysVersion");
   assert.match(html, /own claim, not a measurement/);
 });
