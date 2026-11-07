@@ -13,7 +13,7 @@
  * off on, and that is their map of their own tooling, not ours to publish.
  *   node watch/cli.ts poll     <file>                     which approved versions were overtaken
  *   node watch/cli.ts alert    <package> <approved> <new> draft the message
- *   node watch/cli.ts backfill                              save a record per measured pair
+ *   node watch/cli.ts definitions [--limit=N]              full tool lists for every measured server\n *   node watch/cli.ts backfill                              save a record per measured pair
  *   node watch/cli.ts log      <package>                   read the saved records back
  *
  * Nothing here blocks anything, and every command exits 0 on a finding. The
@@ -402,6 +402,69 @@ function logFor(pkg: string): void {
   console.log(renderTimeline(pkg, readLog(pkg)));
 }
 
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * THE DEFINITION PASS: EVERY MEASURED SERVER'S TOOL LIST, IN FULL.
+ *
+ * level1/evidence/ keeps tool NAMES. The descriptions, input schemas and
+ * annotations were in the transcript all along and were thrown away, so no
+ * stored measurement can answer "which tools declare readOnlyHint" or "which
+ * take no required arguments".
+ *
+ * This measures each of the 67 at the version its evidence file records — not
+ * the latest — so the definitions line up with the pages that are published.
+ * It calls `measure`, which already reads the full list out of the sandbox's
+ * session-result.json before the scaffolding is removed. Nothing in the
+ * instrument changes and its fingerprint is untouched.
+ *
+ * Resumable and batched: a server whose two captures are already stored is
+ * skipped, and --limit stops after N so a long pass can be taken in pieces.
+ * The disk floor is checked before each server as well as inside measure,
+ * because a run started under the floor is the shape of a false "could not
+ * start" and this pass would write 67 of them.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+async function definitions(limit: number): Promise<void> {
+  const dir = join(HERE, "..", "level1", "evidence");
+  const wanted: Array<{ name: string; version: string }> = readdirSync(dir)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => JSON.parse(readFileSync(join(dir, f), "utf8")) as Record<string, any>)
+    .map((e) => ({ name: e.package.name as string, version: e.package.version as string }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const done = (w: { name: string; version: string }) =>
+    [1, 2].every((n) => existsSync(join(folderOf(w.name, w.version), `tools-${n}.json`)));
+
+  const todo = wanted.filter((w) => !done(w));
+  console.error(`${wanted.length} measured servers; ${wanted.length - todo.length} already captured, ${todo.length} to go.`);
+  if (limit < todo.length) console.error(`Taking ${limit} this batch. Run again to continue.`);
+
+  let ok = 0;
+  const failed: string[] = [];
+  for (const w of todo.slice(0, limit)) {
+    const free = freeBytes();
+    if (free < FLOOR_BYTES) {
+      console.error(`\nStopping: ${gb(free)} GB free, floor is ${gb(FLOOR_BYTES)} GB. ${ok} captured this batch.`);
+      break;
+    }
+    const ref = `${w.name}@${w.version}`;
+    try {
+      await measure(ref);
+      if (done(w)) ok++;
+      else failed.push(`${ref} (ran, but no tool list was captured)`);
+    } catch (e) {
+      failed.push(`${ref} (${e instanceof Error ? e.message : String(e)})`);
+    }
+  }
+  console.error(`\n${ok} captured this batch. ${wanted.filter((w) => !done(w)).length} still to go.`);
+  /* Named, not counted: a server missing from the totals is the thing that
+   * makes a rate wrong, and a count alone does not say which one. */
+  if (failed.length) {
+    console.error(`${failed.length} did not yield a tool list:`);
+    for (const f of failed) console.error(`  ${f}`);
+  }
+}
+
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const path = listPath(argv);
@@ -414,6 +477,14 @@ async function main(): Promise<void> {
   if (cmd === "poll" && rest.length === 1) return poll(rest[0]!);
   if (cmd === "alert" && rest.length === 3) return alert(rest[0]!, rest[1]!, rest[2]!, path);
   if (cmd === "backfill" && rest.length === 0) return backfill();
+  if (cmd === "definitions") {
+    const n = Number((rest.find((r) => r.startsWith("--limit=")) ?? "--limit=1000").slice(8));
+    if (!Number.isFinite(n) || n < 1) {
+      console.error("--limit needs a positive number");
+      process.exit(1);
+    }
+    return definitions(n);
+  }
   if (cmd === "record" && rest.length === 3) return record(rest[0]!, rest[1]!, rest[2]!);
   if (cmd === "log" && rest.length === 1) return logFor(rest[0]!);
   const full = rest.includes("--full");
@@ -431,6 +502,7 @@ async function main(): Promise<void> {
       "  node watch/cli.ts alert    <package> <approvedVersion> <newVersion>",
       "  node watch/cli.ts tools diff  <package> <versionA> <versionB> [--full]",
       "  node watch/cli.ts tools files <a.json> <b.json> [--full]",
+      "  node watch/cli.ts definitions [--limit=N]",
       "  node watch/cli.ts backfill",
       "  node watch/cli.ts record  <package> <versionA> <versionB>",
       "  node watch/cli.ts log     <package>",
