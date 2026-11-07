@@ -34,3 +34,11 @@ approved it. It is gone and ignored now. An approval record names what an
 organisation runs and who signed it off, which is the thing this page argues
 does not belong in a public repository, and the argument does not stop being
 true because the file has a convenient default path.
+
+A demo record uses a placeholder, such as `example-approver`, and never a real
+name from any account. The name in that file came from a Vercel team slug read
+out of an API response in the same session — not invented, which is worse:
+somebody's actual name, picked up from the account the work was running under
+and written into a file bound for a public repository. Anything an account,
+a connector or a tool result hands back is somebody's name until shown
+otherwise, so demo values are made up on purpose and look it.
