@@ -197,3 +197,59 @@ test("neither page claims it makes no request at all", { skip: !built }, () => {
     assert.match(prose, /connect-src 'none'/, `${name} does not state the rule that holds`);
   }
 });
+
+/* ── What a tool says about itself comes first ─────────────────────────── */
+
+test("the summary names descriptions and schemas before added and removed", () => {
+  const a = recs([{ name: "keep", description: "a" }, { name: "gone", description: "x" }]);
+  const b = recs([{ name: "keep", description: "b" }, { name: "fresh", description: "y" }]);
+  const said = summaryOf(diffTools(a, b), true);
+  assert.ok(
+    said.indexOf("changed description") < said.indexOf("added"),
+    `the summary puts added before descriptions: "${said}"`,
+  );
+});
+
+test("a tool whose description and schema both changed is reported under the description", { skip: !built }, () => {
+  /* The partition, read off the rendered page rather than the source. */
+  const script = html.slice(html.indexOf('<script type="module">'));
+  assert.match(script, /describedNames\.indexOf\(c\.name\) === -1/, "the schema section does not exclude described tools");
+  assert.match(script, /The input schema also changed/, "a both-changed tool does not say its schema moved");
+});
+
+test("the page says 'the description changed' and never 'behaviour changed'", { skip: !built }, () => {
+  const prose = html.replace(/<[^>]+>/g, " ").toLowerCase();
+  for (const phrase of [
+    "behaviour changed", "behavior changed", "behaviour", "now does", "can now",
+    "no longer able", "gained the ability", "expanded its", "more capable",
+  ]) {
+    assert.ok(!prose.includes(phrase), `the page says "${phrase}"`);
+  }
+  const script = html.slice(html.indexOf('<script type="module">'));
+  assert.match(script, /the description changed/);
+  assert.match(script, /the input schema changed/);
+});
+
+test("every list the results emit is closed", { skip: !built }, () => {
+  /*
+   * ul.tools is a flex container. An unclosed <ul> adopts every heading and
+   * list that follows as a flex item and lays the rest of the results out in
+   * a row — which is what a dropped </ul> in the schema section did, while
+   * the DOM order stayed correct and every text assertion still passed.
+   */
+  /*
+   * The script only, comments stripped. The prose after the script has its
+   * own lists from markdown, and a comment inside the script mentions the
+   * closing tag by name to explain why it is not optional. Neither emits a
+   * list. (A literal </ul> inside a script is inert — only </script ends the
+   * element — so the mention is safe; it just must not be counted.)
+   */
+  const from = html.indexOf('<script type="module">');
+  const script = html
+    .slice(from, html.indexOf("</script>", from))
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+  const opens = (script.match(/<ul class="tools">/g) ?? []).length;
+  const closes = (script.match(/<\/ul>/g) ?? []).length;
+  assert.equal(opens, closes, `${opens} <ul class="tools"> opened, ${closes} </ul> closed`);
+});

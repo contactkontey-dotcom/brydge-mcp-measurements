@@ -236,11 +236,41 @@ function poll(file: string): void {
   console.log(renderPoll(lines.map((l) => pollOne(l)), bad));
 }
 
+/**
+ * Both captures of a version, or the reason there are none.
+ *
+ * `steadyCapture` exits the process when captures are missing or disagree,
+ * which is right for a command whose whole job is the tool diff and wrong for
+ * an alert: an alert that refuses to send because one folder lacks a capture
+ * has failed at the only thing it does. This returns the reason instead, and
+ * the alert prints it.
+ */
+function captureOrReason(pkg: string, version: string): { tools: Capture["tools"] } | { why: string } {
+  const read = (n: 1 | 2): Capture | null => {
+    const f = join(folderOf(pkg, version), `tools-${n}.json`);
+    return existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as Capture) : null;
+  };
+  const a = read(1);
+  const b = read(2);
+  if (!a || !b) return { why: `no tool captures stored for ${version}` };
+  const d = diffTools(a.tools, b.tools);
+  if (d.added.length || d.removed.length || d.changed.length) {
+    return { why: `the two captures of ${version} disagree with each other` };
+  }
+  return { tools: a.tools };
+}
+
 function alert(pkg: string, approvedV: string, foundV: string, path: string): void {
   const list = loadApproved(path);
   const entry = list[keyOf(pkg, approvedV)] ?? null;
   const A = getRuns(pkg, approvedV);
   const B = getRuns(pkg, foundV);
+
+  const ca = captureOrReason(pkg, approvedV);
+  const cb = captureOrReason(pkg, foundV);
+  const tools = "tools" in ca && "tools" in cb ? diffTools(ca.tools, cb.tools) : null;
+  const toolsWhy = tools ? null : "why" in ca ? ca.why : "why" in cb ? cb.why : null;
+
   console.log(
     renderAlert({
       package: pkg,
@@ -248,6 +278,8 @@ function alert(pkg: string, approvedV: string, foundV: string, path: string): vo
       found: foundV,
       measuredOn: new Date().toISOString().slice(0, 10),
       diff: A && B ? versiondiff(pkg, { version: approvedV, runs: A }, { version: foundV, runs: B }) : null,
+      tools,
+      toolsWhy,
       check: entry && B ? checkAgainst(entry, foundV, steadyShape(pkg, foundV)) : null,
     }),
   );

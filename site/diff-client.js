@@ -163,10 +163,11 @@ export function firstDifference(a, b) {
  */
 export function summaryOf(d, detail) {
   const bits = [];
-  if (d.added.length) bits.push(d.added.length + (d.added.length === 1 ? " added" : " added"));
-  if (d.removed.length) bits.push(d.removed.length + " removed");
+  /* Same order as the sections below it, so the two cannot contradict. */
   if (d.descriptionChanged.length) bits.push(d.descriptionChanged.length + " with a changed description");
   if (d.schemaChanged.length) bits.push(d.schemaChanged.length + " with a changed input schema");
+  if (d.added.length) bits.push(d.added.length + " added");
+  if (d.removed.length) bits.push(d.removed.length + " removed");
   const head = d.counts.a + (d.counts.a === 1 ? " tool" : " tools") + " on the left, " + d.counts.b + " on the right.";
   if (!bits.length) {
     return head + " Nothing differs in " + (detail ? "name, description or input schema." : "the names.");

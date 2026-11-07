@@ -233,3 +233,87 @@ test("the alert claims an approval only where a list says so", () => {
   const withList = renderAlert({ ...base, check: checkAgainst(entryFrom("thing-mcp", "1.0.0", a.runs[0], "2026-11-06"), "1.1.0", b.runs[0]) });
   assert.match(withList, /You approved 1\.0\.0\./);
 });
+
+/* ── Descriptions and schemas lead the alert ───────────────────────────── */
+
+import { diffTools as diffToolRecords, recordOf as toolRecordOf } from "../watch/tools.ts";
+
+const toolDiffOf = (a: Array<Record<string, unknown>>, b: Array<Record<string, unknown>>) =>
+  diffToolRecords(a.map(toolRecordOf), b.map(toolRecordOf));
+
+const alertBase = { package: "thing-mcp", approved: "1.0.0", found: "2.0.0", measuredOn: "2026-11-07" };
+
+test("an alert leads with descriptions and schemas, then added and removed", () => {
+  const tools = toolDiffOf(
+    [{ name: "keep", description: "before" }, { name: "shape", inputSchema: { type: "object" } }, { name: "gone" }],
+    [{ name: "keep", description: "after" }, { name: "shape", inputSchema: { type: "string" } }, { name: "fresh" }],
+  );
+  const text = renderAlert({ ...alertBase, diff: null, tools });
+  const at = (s: string) => text.indexOf(s);
+  assert.ok(at("DESCRIPTIONS CHANGED") >= 0 && at("TOOLS ADDED") >= 0);
+  assert.ok(at("DESCRIPTIONS CHANGED") < at("INPUT SCHEMAS CHANGED"), "schemas come before descriptions");
+  assert.ok(at("INPUT SCHEMAS CHANGED") < at("TOOLS ADDED"), "added comes before schemas");
+  assert.ok(at("TOOLS ADDED") < at("TOOLS REMOVED"), "removed comes before added");
+  assert.match(text, /before \(6 characters\)/);
+  assert.match(text, /after \(5 characters\)/);
+});
+
+test("a tool whose description and schema both moved is named once, under the description", () => {
+  const tools = toolDiffOf(
+    [{ name: "both", description: "a", inputSchema: { type: "object" } }],
+    [{ name: "both", description: "b", inputSchema: { type: "string" } }],
+  );
+  const text = renderAlert({ ...alertBase, diff: null, tools });
+  assert.equal(text.split("both:").length - 1, 1, "the tool is named in two sections");
+  assert.match(text, /both: the description changed\. The input schema also changed\./);
+  /* and the full total is still stated, so the partition is not the count */
+  assert.match(text, /1 tool has a changed input schema/);
+});
+
+test("tools differing only in _meta are one counted line, never a list", () => {
+  const many = (n: number, v: string) =>
+    Array.from({ length: n }, (_, i) => ({ name: `t${i}`, _meta: { ui: { resourceUri: v } } }));
+  const text = renderAlert({ ...alertBase, diff: null, tools: toolDiffOf(many(47, "one"), many(47, "two")) });
+  assert.match(text, /47 tools differ only in _meta\. Not listed individually\./);
+  assert.ok(!text.includes("t0:"), "a _meta-only tool was listed by name");
+  assert.ok(!text.includes("t46"), "a _meta-only tool was listed by name");
+});
+
+test("an alert with no captures says so rather than implying nothing changed", () => {
+  const a = { version: "1.0.0", runs: [shapeOf(ev()), shapeOf(ev())] as [any, any] };
+  const b = { version: "2.0.0", runs: [shapeOf(ev()), shapeOf(ev())] as [any, any] };
+  const text = renderAlert({
+    ...alertBase,
+    diff: versiondiff("thing-mcp", a, b),
+    tools: null,
+    toolsWhy: "no tool captures stored for 2.0.0",
+  });
+  assert.match(text, /not compared \(no tool captures stored for 2\.0\.0\)/);
+  assert.match(text, /is not\s+answered either way/);
+  assert.ok(!/DESCRIPTIONS CHANGED: 0/.test(text), "it reported zero changed descriptions having looked at none");
+});
+
+test("the alert says 'the description changed' and never 'behaviour changed'", () => {
+  const tools = toolDiffOf(
+    [{ name: "t", description: "a", inputSchema: { type: "object" } }, { name: "s", inputSchema: { type: "object" } }],
+    [{ name: "t", description: "b", inputSchema: { type: "string" } }, { name: "s", inputSchema: { type: "number" } }],
+  );
+  const text = renderAlert({ ...alertBase, diff: null, tools }).toLowerCase();
+  for (const phrase of [
+    "behaviour changed", "behavior changed", "behaviour", "now does", "can now",
+    "no longer able", "gained the ability", "expanded its", "more capable",
+    "safe", "unsafe", "suspicious", "malicious",
+  ]) {
+    assert.ok(!text.includes(phrase), `the alert says "${phrase}"`);
+  }
+  assert.match(text, /the description changed/);
+  assert.match(text, /the input schema changed/);
+});
+
+test("a clip that hides the whole change says where the change is", () => {
+  const long = "x".repeat(900);
+  const tools = toolDiffOf([{ name: "t", description: long }], [{ name: "t", description: long + " and more" }]);
+  const text = renderAlert({ ...alertBase, diff: null, tools });
+  assert.match(text, /clipped, 900 characters in all/);
+  assert.match(text, /the later text is the earlier one with 9 characters added at the end/);
+});

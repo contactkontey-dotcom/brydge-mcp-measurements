@@ -870,24 +870,51 @@ function render(){
             'and are left out rather than reported as none.</p>';
   }
 
+  /*
+   * WHAT A TOOL SAYS ABOUT ITSELF COMES FIRST.
+   *
+   * A name appearing or disappearing is visible to anybody who lists the
+   * tools. A tool that kept its name and changed the sentence a model reads
+   * before calling it is the thing nobody sees without comparing, so it leads.
+   *
+   * One tool, one entry: a tool whose description AND input schema both moved
+   * is reported under the description, where the text can be read, and its
+   * entry says the schema moved too. The schema section holds only the tools
+   * the description section does not, and the heading states the full total
+   * so the partition cannot be mistaken for the count.
+   */
+  if(detail){
+    const schemaNames = d.schemaChanged.map(function(c){ return c.name; });
+    const describedNames = d.descriptionChanged.map(function(c){ return c.name; });
+    const schemaOnly = d.schemaChanged.filter(function(c){ return describedNames.indexOf(c.name) === -1; });
+
+    html += section('Changed description', d.descriptionChanged.length, '<ul class="tools">' + d.descriptionChanged.map(function(c){
+      const alsoSchema = schemaNames.indexOf(c.name) !== -1;
+      const f = firstDifference(c.before, c.after);
+      const len = function(v){ return v === null ? 'none' : v.length + ' characters'; };
+      let row = '<li><code>' + esc(c.name) + '</code> <span class="said">the description changed.' +
+                (alsoSchema ? ' The input schema also changed.' : '') + '</span>';
+      row += '<div class="was"><span class="lbl">before &middot; ' + len(c.before) + '</span>' + esc(c.before === null ? '(none)' : c.before) + '</div>';
+      row += '<div class="now"><span class="lbl">after &middot; ' + len(c.after) + '</span>' + esc(c.after === null ? '(none)' : c.after) + '</div>';
+      if(f && f.at > 1) row += '<p class="hint">First line that differs: line ' + f.at + '.</p>';
+      return row + '</li>';
+    }).join('') + '</ul>');
+
+    /* The </ul> is not optional. ul.tools is a flex container, so an
+     * unclosed one adopts every heading and list after it as flex items and
+     * lays the rest of the results out in a row. */
+    html += section('Changed input schema, description unchanged', schemaOnly.length, '<ul class="tools">' + schemaOnly.map(function(c){
+      return '<li><code>' + esc(c.name) + '</code> <span class="said">the input schema changed.</span></li>';
+    }).join('') + '</ul>' + (d.descriptionChanged.length && schemaNames.length > schemaOnly.length
+      ? '<p class="hint">' + schemaNames.length + ' tools have a changed input schema in all; the other ' +
+        (schemaNames.length - schemaOnly.length) + ' are listed under the changed descriptions above.</p>'
+      : ''));
+  }
+
   html += section('Added', d.added.length, '<ul class="tools">' + names(d.added) + '</ul>');
   html += section('Removed', d.removed.length, '<ul class="tools">' + names(d.removed) + '</ul>');
 
   if(detail){
-    html += section('Changed description', d.descriptionChanged.length, '<ul class="tools">' + d.descriptionChanged.map(function(c){
-      const f = firstDifference(c.before, c.after);
-      let row = '<li><code>' + esc(c.name) + '</code>';
-      if(f){
-        row += '<div class="was"><span class="lbl">line ' + f.at + ', before</span>' + esc(f.before) + '</div>';
-        row += '<div class="now"><span class="lbl">after</span>' + esc(f.after) + '</div>';
-      }
-      return row + '</li>';
-    }).join('') + '</ul>');
-
-    html += section('Changed input schema', d.schemaChanged.length, '<ul class="tools">' + d.schemaChanged.map(function(c){
-      return '<li><code>' + esc(c.name) + '</code></li>';
-    }).join('') + '</ul>');
-
     if(d.otherChanged.length){
       const tally = {};
       d.otherChanged.forEach(function(o){ o.fields.forEach(function(f){ tally[f] = (tally[f]||0) + 1; }); });
@@ -939,6 +966,9 @@ render();
   ul.tools li{font:400 .8rem/1.7 "IBM Plex Mono",ui-monospace,monospace;flex:0 0 auto}
   ul.tools li:has(.was){flex:1 1 100%;margin:.5rem 0}
   .was,.now{font:400 .78rem/1.6 "IBM Plex Mono",ui-monospace,monospace;padding:.25rem .5rem;margin:.2rem 0;border-left:2px solid currentColor;opacity:.85;overflow-x:auto}
+  .out .said{font:400 .85rem/1.6 "Instrument Sans",system-ui,sans-serif;opacity:.75}
+  ul.tools li:has(.said){flex:1 1 100%;margin:.6rem 0}
+  .was,.now{white-space:pre-wrap}
   .was .lbl,.now .lbl{display:block;font:500 .7rem/1.4 "Instrument Sans",system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.55}
 </style>`;
 
