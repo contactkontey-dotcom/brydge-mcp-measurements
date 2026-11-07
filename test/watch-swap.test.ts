@@ -18,7 +18,7 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { agree, shapeOf } from "../watch/fields.ts";
-import { noChangeLine, soundnessOf, versiondiff } from "../watch/versiondiff.ts";
+import { NO_CHANGE_CAVEAT, noChangeLine, noChangeParts, soundnessOf, versiondiff } from "../watch/versiondiff.ts";
 import { diffTools, recordOf } from "../watch/tools.ts";
 import { renderAlert } from "../watch/alert.ts";
 
@@ -173,7 +173,12 @@ test("the alert reports a description change behind an unchanged name list", () 
 
 test("a no-change states each thing separately and never the totals alone", () => {
   const all = noChangeLine({ namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: 0 });
-  assert.equal(all, "No change. Tool names: 46 in both, 0 added, 0 removed. Descriptions: compared, none changed. Input schemas: compared, none changed.");
+  assert.equal(
+    all,
+    "No change. Tool names: 46 in both, 0 added, 0 removed. " +
+      "Descriptions: compared, none changed. Input schemas: compared, none changed. " +
+      NO_CHANGE_CAVEAT,
+  );
 
   const part = noChangeLine({ namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: null, schemasChanged: null });
   assert.ok(part.startsWith("No change in what could be compared."), `the qualification is not first: "${part}"`);
@@ -193,5 +198,53 @@ test("a no-change line never claims equal totals mean an unchanged list", () => 
   ]) {
     const line = noChangeLine(c);
     assert.match(line, /0 added, 0 removed/, `"${line}" states a total without its added and removed`);
+  }
+});
+
+
+/* ── The limit travels with every no-change ───────────────────────────── */
+
+test("the caveat is the last sentence of every no-change, in every shape", () => {
+  for (const c of [
+    { namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: 0 },
+    { namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: null, schemasChanged: null },
+    { namesA: 2, namesB: 2, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: null },
+    { namesA: 0, namesB: 0, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: 0 },
+  ]) {
+    const parts = noChangeParts(c);
+    assert.equal(parts[parts.length - 1], NO_CHANGE_CAVEAT, `the caveat is not last for ${JSON.stringify(c)}`);
+    assert.ok(noChangeLine(c).endsWith(NO_CHANGE_CAVEAT));
+  }
+});
+
+test("the caveat says both halves, and does not overclaim", () => {
+  assert.match(NO_CHANGE_CAVEAT, /what the server says about itself and what it did at startup/);
+  assert.match(NO_CHANGE_CAVEAT, /does not test what any tool does when called/);
+  assert.match(NO_CHANGE_CAVEAT, /can match here and still behave differently/);
+});
+
+test("no no-change output anywhere omits the caveat", () => {
+  /*
+   * The three renderers, each through its own path. A no-change is the most
+   * quotable line this produces; one that travels without its boundary is
+   * the failure this test exists to catch.
+   */
+  const V2 = (version: string) => ({ version, runs: [shapeOf(ev(["keep", "other"])), shapeOf(ev(["keep", "other"]))] as [any, any] });
+  const diff = versiondiff("p", V2("1.0.0"), V2("1.1.0"));
+
+  /* versiondiff's own sentence */
+  assert.ok(diff.says.includes(NO_CHANGE_CAVEAT), "versiondiff's no-change omits the caveat");
+
+  /* the alert, with captures and without */
+  const quiet = diffTools(recs([{ name: "keep" }, { name: "other" }]), recs([{ name: "keep" }, { name: "other" }]));
+  for (const input of [
+    { tools: quiet, toolsWhy: null },
+    { tools: null, toolsWhy: "no tool captures stored for 1.1.0" },
+  ]) {
+    const text = renderAlert({ package: "p", approved: "1.0.0", found: "1.1.0", measuredOn: "2026-11-07", diff, ...input });
+    assert.ok(/No change/.test(text), "this fixture is meant to be a no-change");
+    /* wrapped across lines in the alert, so compare on collapsed whitespace */
+    const flat = text.replace(/\s+/g, " ");
+    assert.ok(flat.includes(NO_CHANGE_CAVEAT), `the alert's no-change omits the caveat (captures: ${!!input.tools})`);
   }
 });

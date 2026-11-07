@@ -160,8 +160,13 @@ export function firstDifference(a, b) {
  * It counts and it names. It does not say whether any of it matters: a tool
  * list that differs is a tool list that differs, and what that is worth
  * depends on a configuration and a judgement this page does not have.
+ *
+ * `caveat` is passed in rather than written here: the same string lives in
+ * watch/versiondiff.ts as NO_CHANGE_CAVEAT, site/build.ts injects THAT one
+ * into this page, and a test asserts the two are identical. A copy kept here
+ * would be a second thing to keep true.
  */
-export function summaryOf(d, detail) {
+export function summaryOf(d, detail, caveat) {
   const bits = [];
   /* Same order as the sections below it, so the two cannot contradict. */
   if (d.descriptionChanged.length) bits.push(d.descriptionChanged.length + " with a changed description");
@@ -185,7 +190,8 @@ export function summaryOf(d, detail) {
     const said = detail ? "compared, none changed" : "not compared";
     return (
       (detail ? "No change." : "No change in what could be compared.") +
-      " " + names + " Descriptions: " + said + ". Input schemas: " + said + "."
+      " " + names + " Descriptions: " + said + ". Input schemas: " + said + "." +
+      (caveat ? " " + caveat : "")
     );
   }
   return head + " " + bits.join(", ") + ".";

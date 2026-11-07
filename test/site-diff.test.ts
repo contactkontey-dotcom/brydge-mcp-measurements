@@ -253,3 +253,33 @@ test("every list the results emit is closed", { skip: !built }, () => {
   const closes = (script.match(/<\/ul>/g) ?? []).length;
   assert.equal(opens, closes, `${opens} <ul class="tools"> opened, ${closes} </ul> closed`);
 });
+
+/* ── The no-change caveat is one string, not two ───────────────────────── */
+
+test("the page's caveat is byte-for-byte the one in watch/versiondiff.ts", { skip: !built }, async () => {
+  /*
+   * site/diff-client.js cannot import the Node module, so build.ts injects
+   * NO_CHANGE_CAVEAT into the page. That is the seam where two copies would
+   * quietly diverge, so it is checked rather than trusted: the literal in
+   * the built page must equal the exported constant exactly.
+   */
+  const { NO_CHANGE_CAVEAT } = await import("../watch/versiondiff.ts");
+  const m = /const NO_CHANGE_CAVEAT = ("(?:[^"\\]|\\.)*");/.exec(html);
+  assert.ok(m, "the page does not carry an injected NO_CHANGE_CAVEAT");
+  assert.equal(JSON.parse(m[1]!), NO_CHANGE_CAVEAT, "the page's caveat has drifted from the module's");
+  /* and nothing hand-wrote a second copy of the sentence into the client */
+  const client = readFileSync(join(ROOT, "site", "diff-client.js"), "utf8");
+  assert.ok(!client.includes("does not test what any tool does"), "diff-client.js keeps its own copy of the caveat");
+});
+
+test("the page's no-change output carries the caveat, with and without detail", { skip: !built }, async () => {
+  const { NO_CHANGE_CAVEAT } = await import("../watch/versiondiff.ts");
+  const same = recs([{ name: "a", description: "d", inputSchema: { type: "object" } }]);
+  assert.ok(summaryOf(diffTools(same, same), true, NO_CHANGE_CAVEAT).endsWith(NO_CHANGE_CAVEAT));
+  const names = recs(parseToolList(["a", "b"]));
+  assert.ok(summaryOf(diffTools(names, names), false, NO_CHANGE_CAVEAT).endsWith(NO_CHANGE_CAVEAT));
+  /* a comparison that DID find something does not carry it: it is a
+   * no-change's limit, and tacking it onto a finding would dilute both */
+  const moved = diffTools(recs([{ name: "a" }]), recs([{ name: "a" }, { name: "b" }]));
+  assert.ok(!summaryOf(moved, false, NO_CHANGE_CAVEAT).includes(NO_CHANGE_CAVEAT));
+});

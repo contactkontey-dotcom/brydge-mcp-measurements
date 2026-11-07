@@ -54,7 +54,7 @@ import { shapeOf } from "./fields.ts";
 import { compareVersions } from "./poll.ts";
 import { folderOf, versionsOf } from "./store.ts";
 import { diffTools, type Capture, type ToolRecord } from "./tools.ts";
-import { noChangeLine, versiondiff, type Diff } from "./versiondiff.ts";
+import { noChangeParts, versiondiff, wrapTo, type Diff } from "./versiondiff.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const LOG = join(ROOT, "watch", "log");
@@ -387,15 +387,15 @@ export function renderTimeline(pkg: string, recs: LogRecord[]): string {
        */
       const names = r.diff.counts.find((c) => c.field === "tools offered");
       const t = r.tools;
-      for (const line of noChangeLine({
+      for (const part of noChangeParts({
         namesA: names?.a ?? r.diff.sound.a.toolCount,
         namesB: names?.b ?? r.diff.sound.b.toolCount,
         added: t ? t.added.length : 0,
         removed: t ? t.removed.length : 0,
         descriptionsChanged: t ? t.descriptionChanged.length : null,
         schemasChanged: t ? t.schemaChanged.length : null,
-      }).split(". ").filter(Boolean)) {
-        out.push(`        ${line.endsWith(".") ? line : line + "."}`);
+      })) {
+        out.push(...wrapTo(part, 72, "        "));
       }
       /* The reason is not repeated here: every row ends with a `tools:` line
        * that carries it. */

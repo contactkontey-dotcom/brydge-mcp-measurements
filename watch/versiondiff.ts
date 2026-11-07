@@ -105,16 +105,56 @@ export interface Compared {
   schemasChanged: number | null;
 }
 
-export function noChangeLine(c: Compared): string {
+/*
+ * THE LIMIT THAT TRAVELS WITH EVERY NO-CHANGE.
+ *
+ * A no-change is the most quotable thing this produces and the most likely to
+ * be forwarded without whatever stood around it. The paragraph at the bottom
+ * of a page or a message is no use once one line has been pasted into a
+ * ticket, so the line carries its own boundary.
+ *
+ * Exported, and the one copy: site/diff-client.js takes it as an argument and
+ * site/build.ts injects THIS string into the page, with a test asserting the
+ * two are identical. A second copy would be a second thing to keep true.
+ */
+export const NO_CHANGE_CAVEAT =
+  "This compares what the server says about itself and what it did at startup. " +
+  "It does not test what any tool does when called, so a version can match here and still behave differently.";
+
+/** The sentences of a no-change, so each renderer can lay them out itself. */
+export function noChangeParts(c: Compared): string[] {
   const partial = c.descriptionsChanged === null || c.schemasChanged === null;
-  const head = partial ? "No change in what could be compared." : "No change.";
-  const names =
-    c.namesA === c.namesB
-      ? `Tool names: ${c.namesA} in both, ${c.added} added, ${c.removed} removed.`
-      : `Tool names: ${c.namesA} then ${c.namesB}, ${c.added} added, ${c.removed} removed.`;
   const said = (n: number | null) =>
     n === null ? "not compared" : n === 0 ? "compared, none changed" : `compared, ${n} changed`;
-  return `${head} ${names} Descriptions: ${said(c.descriptionsChanged)}. Input schemas: ${said(c.schemasChanged)}.`;
+  return [
+    partial ? "No change in what could be compared." : "No change.",
+    c.namesA === c.namesB
+      ? `Tool names: ${c.namesA} in both, ${c.added} added, ${c.removed} removed.`
+      : `Tool names: ${c.namesA} then ${c.namesB}, ${c.added} added, ${c.removed} removed.`,
+    `Descriptions: ${said(c.descriptionsChanged)}.`,
+    `Input schemas: ${said(c.schemasChanged)}.`,
+    NO_CHANGE_CAVEAT,
+  ];
+}
+
+export function noChangeLine(c: Compared): string {
+  return noChangeParts(c).join(" ");
+}
+
+/** Break a sentence onto lines of at most `width`, for a fixed-width reader. */
+export function wrapTo(text: string, width: number, indent = ""): string[] {
+  const out: string[] = [];
+  let line = "";
+  for (const word of text.split(" ")) {
+    if (line && (line + " " + word).length > width) {
+      out.push(indent + line);
+      line = word;
+    } else {
+      line = line ? line + " " + word : word;
+    }
+  }
+  if (line) out.push(indent + line);
+  return out;
 }
 
 export interface Diff {

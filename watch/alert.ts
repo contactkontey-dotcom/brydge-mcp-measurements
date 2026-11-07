@@ -26,7 +26,7 @@
  */
 import { NEW_LABEL, type Check } from "./approved.ts";
 import { firstDifference, type ToolDiff } from "./tools.ts";
-import { noChangeLine, type Diff } from "./versiondiff.ts";
+import { noChangeParts, wrapTo, type Diff } from "./versiondiff.ts";
 
 /*
  * HOW MUCH OF A DESCRIPTION AN ALERT CARRIES.
@@ -156,17 +156,18 @@ export function renderAlert(a: AlertInput): string {
        * out of context is a claim nobody here made.
        */
       const names = d.counts.find((c) => c.field === "tools offered");
-      out.push(
-        `BETWEEN ${span}: ` +
-          noChangeLine({
-            namesA: names?.a ?? 0,
-            namesB: names?.b ?? 0,
-            added: t ? t.added.length : 0,
-            removed: t ? t.removed.length : 0,
-            descriptionsChanged: t ? t.changed.filter((c) => c.what.includes("description")).length : null,
-            schemasChanged: t ? t.changed.filter((c) => c.what.includes("input schema")).length : null,
-          }),
-      );
+      const parts = noChangeParts({
+        namesA: names?.a ?? 0,
+        namesB: names?.b ?? 0,
+        added: t ? t.added.length : 0,
+        removed: t ? t.removed.length : 0,
+        descriptionsChanged: t ? t.changed.filter((c) => c.what.includes("description")).length : null,
+        schemasChanged: t ? t.changed.filter((c) => c.what.includes("input schema")).length : null,
+      });
+      /* The verdict and the three comparisons on one line; the limit that
+       * travels with it wrapped below, so neither is read without the other. */
+      out.push(`BETWEEN ${span}: ${parts.slice(0, -1).join(" ")}`);
+      out.push(...wrapTo(parts[parts.length - 1]!, 96, "  "));
       /* The reason is not repeated here: the block below prints it in full. */
     } else {
       out.push(`BETWEEN ${span}:`);

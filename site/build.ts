@@ -36,6 +36,7 @@ import { PLANTED_ENV, PLANTED_FILES } from "../harness/canaries.ts";
 import { renderIndex } from "../level1/index.ts";
 import { slugOf, type Level1Evidence } from "../level1/run.ts";
 import { escapeHtml, markdownToHtml } from "./md.ts";
+import { NO_CHANGE_CAVEAT } from "../watch/versiondiff.ts";
 import { badgeSvg, previewLines, previewSvg } from "./assets.ts";
 import type { Upstream } from "../level1/report.ts";
 
@@ -831,6 +832,8 @@ function diffPage(demo: { package: string; a: { version: string; names: string[]
   const client = readFileSync(join(ROOT, "site", "diff-client.js"), "utf8");
   const ui = `
 const DEMO = ${demo ? JSON.stringify(demo) : "null"};
+/* The one copy, from watch/versiondiff.ts. A test asserts they match. */
+const NO_CHANGE_CAVEAT = ${JSON.stringify(NO_CHANGE_CAVEAT)};
 const A = document.getElementById('a');
 const B = document.getElementById('b');
 const out = document.getElementById('out');
@@ -863,7 +866,7 @@ function render(){
   const detail = carriesDetail(la) && carriesDetail(lb);
   const d = diffTools(la, lb);
 
-  let html = '<p class="summary">' + esc(summaryOf(d, detail)) + '</p>';
+  let html = '<p class="summary">' + esc(summaryOf(d, detail, NO_CHANGE_CAVEAT)) + '</p>';
   if(!detail){
     html += '<p class="hint">One of these lists carries names only, so this compares names. ' +
             'Added and removed are answered; changed description and changed input schema are not, ' +
