@@ -34,6 +34,7 @@ import { renderReport, NOT_HIDDEN } from "../level1/report.ts";
  * worth nothing if it can drift from what the room actually plants. */
 import { PLANTED_ENV, PLANTED_FILES } from "../harness/canaries.ts";
 import { renderIndex } from "../level1/index.ts";
+import { selfReported } from "../level1/selfreported.ts";
 import { slugOf, type Level1Evidence } from "../level1/run.ts";
 import { escapeHtml, markdownToHtml } from "./md.ts";
 import { ALWAYS_NOT_COMPARED, NO_CHANGE_CAVEAT } from "../watch/versiondiff.ts";
@@ -318,6 +319,9 @@ function pastePage(items: Level1Evidence[]): string {
        * tools and adds it to `startupUnknown`, rather than treating a missing
        * number as a zero and understating the sum. */
       startupMs: e.startup?.toToolListMs ?? null,
+      /* What the server called itself, only where it is not the npm version.
+       * Null on 45 of 67, so it costs those rows nothing. */
+      saysVersion: selfReported(e).agreement === "differs" ? selfReported(e).stated : null,
     };
     index[e.package.name] = record;
   }
@@ -379,6 +383,9 @@ function render(){
         ? 'Measured ' + esc(m.record.measuredAt) + '. ' + m.record.offered + ' tool' + (m.record.offered===1?'':'s') + ' offered, ' + m.record.websites + ' website' + (m.record.websites===1?'':'s') + ' reached for, nothing found that its README does not name.'
         : 'Measured ' + esc(m.record.measuredAt) + '. Not named in its README: ' + [t ? t + ' tool' + (t===1?'':'s') : '', h ? h + ' website' + (h===1?'':'s') : ''].filter(Boolean).join(', ') + '.';
       if(m.state === 'measured-other-version') said += ' Your config asks for ' + esc(m.wanted) + '; the page is for ' + esc(m.record.version) + '.';
+      /* The server's own claim, where it is not the npm version. Labelled as
+       * a claim, and it draws no conclusion from the difference. */
+      if(m.record && m.record.saysVersion) said += ' When this version started, it gave its own version as ' + esc(m.record.saysVersion) + ' \u2014 the server\u2019s own claim, not a measurement.';
     } else if(m.state === 'ambiguous-command'){
       /* Named, not guessed. The old index picked one of these and showed
        * its report as the answer. No link to any of them as THE page: the

@@ -14,6 +14,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { selfReported } from "./selfreported.ts";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderReport } from "./report.ts";
@@ -148,7 +149,17 @@ export function renderIndex(items: Level1Evidence[]): string {
   for (const e of rows) {
     const c = countsOf(e);
     const name = `\`${e.package.name}\``;
-    const version = e.package.version ? `\`${e.package.version}\`` : "—";
+    /*
+     * The version column carries the server's own claim where it differs.
+     * A reader scanning for "which version am I running" meets both here,
+     * labelled, rather than finding out on the report page. 22 of the 67
+     * differ, so the marker is common enough to need a key below the table
+     * and quiet enough not to be a column of its own.
+     */
+    const self = selfReported(e);
+    const version = e.package.version
+      ? `\`${e.package.version}\`${self.agreement === "differs" ? ` · says \`${self.stated}\`` : ""}`
+      : "—";
     /* Two packages here are called Playwright and are not by the same people. */
     const maker = (e.package.repository ?? e.package.homepage ?? "").replace(/^git\+/, "").replace(/\.git$/, "");
     const at = maker ? maker.replace(/^https?:\/\/(www\.)?/, "") : "not stated";
@@ -156,6 +167,15 @@ export function renderIndex(items: Level1Evidence[]): string {
     p(`| ${name} | ${version} | ${at} | ${c.offered} | ${c.reached} | ${unnamed} | [report](${e.slug}.md) |`);
   }
   p();
+  const differing = rows.filter((e) => selfReported(e).agreement === "differs").length;
+  if (differing) {
+    p(
+      `**\`says\`** in the version column is the version the server gave for itself when it started, ` +
+        `where that is not the version npm installed. ${differing} of these ${rows.length} do that. ` +
+        `It is the server's own claim rather than a measurement, and nothing here says which is right or why they differ.`,
+    );
+    p();
+  }
 
   /* ── And why, for each that did not start. ────────────────────────────── */
   if (stuck.length) {

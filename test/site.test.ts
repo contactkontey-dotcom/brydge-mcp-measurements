@@ -488,3 +488,71 @@ test("the method page lists what the room plants, taken from the instrument", { 
   /* And no planted VALUE is on the page — those are secrets by construction. */
   assert.ok(!/BRYDGECANARY/.test(html), "a planted value reached the method page");
 });
+
+/* ── The server's own version, on the built pages ──────────────────────── */
+
+test("22 report pages carry the self-reported version line, and 45 do not", { skip: !built }, async () => {
+  const { selfReported } = await import("../level1/selfreported.ts");
+  const dir = join(import.meta.dirname, "..", "site", "dist", "s");
+  const pages = readdirSync(dir).filter((f) => f.endsWith(".html"));
+  assert.equal(pages.length, 67);
+  let withLine = 0;
+  for (const f of pages) {
+    const html = readFileSync(join(dir, f), "utf8");
+    if (/It reported a different version|It did not state a version/.test(html)) withLine++;
+  }
+  assert.equal(withLine, 22, "the page count no longer matches the evidence");
+
+  /* and the pages that carry it are exactly the ones that differ */
+  const differ = readdirSync(join(import.meta.dirname, "..", "level1", "evidence"))
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => JSON.parse(readFileSync(join(import.meta.dirname, "..", "level1", "evidence", f), "utf8")))
+    .filter((e) => selfReported(e).agreement !== "same")
+    .map((e) => `${e.slug}.html`)
+    .sort();
+  for (const f of differ) {
+    const html = readFileSync(join(dir, f), "utf8");
+    assert.match(html, /It reported a different version|It did not state a version/, `${f} differs but carries no line`);
+  }
+  assert.equal(differ.length, withLine);
+});
+
+test("the index marks those rows and explains the marker once", { skip: !built }, () => {
+  const html = page("index.html");
+  const marked = html.match(/<tr>(?:(?!<\/tr>).)*?says(?:(?!<\/tr>).)*?<\/tr>/gs) ?? [];
+  assert.equal(marked.length, 22, "the index marks a different number of rows than the evidence has");
+  assert.match(html, /is the version the server gave for itself when it started/);
+  assert.match(html, /22 of these 67 do that/);
+  assert.match(html, /own claim rather than a measurement/);
+});
+
+test("the paste index carries the claim only where it differs", { skip: !built }, async () => {
+  const { selfReported } = await import("../level1/selfreported.ts");
+  const html = page("paste.html");
+
+  /*
+   * The expected count is computed, not assumed. Each package is indexed
+   * twice — under its name and under its bare `bin:` tail — but 18 scoped
+   * packages share the tail `bin:mcp` and 6 share `bin:mcp-server`, so later
+   * ones overwrite earlier and 134 records collapse to 112. Asserting
+   * "22 × 2" would be asserting a collision-free index this has never had.
+   *
+   * (That overwrite is pre-existing: a config whose command is a bare `mcp`
+   * matches whichever of the 18 was written last. Not introduced here, and
+   * not changed here.)
+   */
+  const dir = join(import.meta.dirname, "..", "level1", "evidence");
+  const index = new Map<string, boolean>();
+  for (const f of readdirSync(dir).filter((x) => x.endsWith(".json"))) {
+    const e = JSON.parse(readFileSync(join(dir, f), "utf8"));
+    const differs = selfReported(e).agreement === "differs";
+    index.set(e.package.name, differs);
+    index.set(`bin:${String(e.package.name).replace(/^@[^/]+\//, "")}`, differs);
+  }
+  const expected = [...index.values()].filter(Boolean).length;
+
+  const says = html.match(/"saysVersion":"[^"]*"/g) ?? [];
+  assert.equal(says.length, expected, "the paste index carries a different number of claims than the evidence");
+  assert.equal(says.length + (html.match(/"saysVersion":null/g) ?? []).length, index.size);
+  assert.match(html, /own claim, not a measurement/);
+});

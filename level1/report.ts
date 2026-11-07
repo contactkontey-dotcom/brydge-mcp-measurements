@@ -27,6 +27,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import type { Level1Evidence } from "./run.ts";
+import { selfReported, selfReportedLine } from "./selfreported.ts";
 import { humanMs } from "./startup.ts";
 
 /**
@@ -220,6 +221,13 @@ export function renderReport(e: Level1Evidence, upstream?: Upstream | null): str
   const serverInfo = e.serverInfo as { name?: string; version?: string } | null;
   if (serverInfo?.name) {
     p(`It started and identified itself as ${code(`${serverInfo.name} ${serverInfo.version ?? ""}`.trim())}.`);
+    p();
+  }
+  /* The server's own version against the one npm installed. Silent where
+   * they match, which is 45 of the 67 measured servers. */
+  const said = selfReportedLine(selfReported(e));
+  if (said) {
+    p(said);
     p();
   }
   p(`| | |`);
