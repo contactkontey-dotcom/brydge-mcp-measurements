@@ -347,6 +347,25 @@ function backfill(): void {
   if (refused) console.log(`${refused} ${refused === 1 ? "edge" : "edges"} not recorded, each named above.`);
 }
 
+/**
+ * Save a record for one named pair, which need not be consecutive.
+ *
+ * `backfill` walks consecutive versions. A span a reader actually asks about
+ * — 1.128.0 against 1.131.2, with a measured version sitting between them —
+ * is a pair worth a record of its own, and its tool captures may be on disk
+ * where the intermediate version's are not.
+ */
+function record(pkg: string, a: string, b: string): void {
+  try {
+    const rec = recordFor(pkg, a, b);
+    console.log(`${rec.state}: ${pkg} ${a} -> ${b}`);
+    console.log(writeLog(rec));
+  } catch (e) {
+    console.error(String(e instanceof Error ? e.message : e));
+    process.exit(1);
+  }
+}
+
 function logFor(pkg: string): void {
   console.log(renderTimeline(pkg, readLog(pkg)));
 }
@@ -363,6 +382,7 @@ async function main(): Promise<void> {
   if (cmd === "poll" && rest.length === 1) return poll(rest[0]!);
   if (cmd === "alert" && rest.length === 3) return alert(rest[0]!, rest[1]!, rest[2]!, path);
   if (cmd === "backfill" && rest.length === 0) return backfill();
+  if (cmd === "record" && rest.length === 3) return record(rest[0]!, rest[1]!, rest[2]!);
   if (cmd === "log" && rest.length === 1) return logFor(rest[0]!);
   const full = rest.includes("--full");
   const r = rest.filter((x) => x !== "--full");
@@ -380,6 +400,7 @@ async function main(): Promise<void> {
       "  node watch/cli.ts tools diff  <package> <versionA> <versionB> [--full]",
       "  node watch/cli.ts tools files <a.json> <b.json> [--full]",
       "  node watch/cli.ts backfill",
+      "  node watch/cli.ts record  <package> <versionA> <versionB>",
       "  node watch/cli.ts log     <package>",
       "",
       "  --list <file>   use a particular approved list (customer lists live in",

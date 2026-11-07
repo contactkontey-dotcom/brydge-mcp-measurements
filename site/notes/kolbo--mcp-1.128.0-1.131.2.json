@@ -1,0 +1,126 @@
+{
+  "package": "@kolbo/mcp",
+  "a": "1.128.0",
+  "b": "1.131.2",
+  "state": "changed",
+  "toolsOffered": {
+    "field": "tools offered",
+    "a": 278,
+    "b": 311
+  },
+  "added": [
+    "cancel_social_post",
+    "check_social_account",
+    "connect_social_account",
+    "create_social_automation",
+    "create_social_calendar_feed",
+    "cross_post_social",
+    "delete_published_social_post",
+    "delete_social_automation",
+    "disconnect_social_account",
+    "finish_large_upload",
+    "get_social_account_metrics",
+    "get_social_automation_hits",
+    "get_social_best_times",
+    "get_social_capabilities",
+    "get_social_conversation",
+    "get_social_post",
+    "get_social_post_metrics",
+    "get_social_queue",
+    "get_tiktok_creator_info",
+    "list_social_accounts",
+    "list_social_automations",
+    "list_social_comments",
+    "list_social_conversations",
+    "list_social_posts",
+    "moderate_social_comment",
+    "publish_social_post",
+    "reply_social_comment",
+    "retry_social_post",
+    "revoke_social_calendar_feed",
+    "send_social_message",
+    "set_social_queue",
+    "update_social_automation",
+    "update_social_post"
+  ],
+  "removed": [],
+  "addedNamedSocial": 31,
+  "addedNotNamedSocial": [
+    "finish_large_upload",
+    "get_tiktok_creator_info"
+  ],
+  "descriptionOrSchemaChanged": [
+    "create_upload_ticket",
+    "estimate_trend_run",
+    "generate_image",
+    "generate_image_edit",
+    "generate_music",
+    "get_trend",
+    "run_trend",
+    "upload_media"
+  ],
+  "descriptionChanged": [
+    "create_upload_ticket",
+    "estimate_trend_run",
+    "get_trend",
+    "run_trend"
+  ],
+  "schemaChanged": [
+    "create_upload_ticket",
+    "estimate_trend_run",
+    "generate_image",
+    "generate_image_edit",
+    "generate_music",
+    "run_trend",
+    "upload_media"
+  ],
+  "changedOnlyInOtherFields": {
+    "_meta": 47
+  },
+  "toolsUnchanged": 223,
+  "otherFields": [
+    {
+      "field": "websites reached",
+      "a": 0,
+      "b": 0
+    },
+    {
+      "field": "programs started",
+      "a": 1,
+      "b": 1
+    },
+    {
+      "field": "files written",
+      "a": 0,
+      "b": 0
+    },
+    {
+      "field": "packages installed while running",
+      "a": 0,
+      "b": 0
+    },
+    {
+      "field": "connection attempts",
+      "a": 0,
+      "b": 0
+    }
+  ],
+  "readme": "same",
+  "instrumentFingerprint": "ca9170dfaeae402f2a812dff431ba1481fb068a3d25fa6b9b231ccdf6e2d6028",
+  "calibrationBacked": false,
+  "measuredAt": {
+    "a": [
+      "2026-11-06T20:51:09.372Z",
+      "2026-11-06T20:51:27.250Z"
+    ],
+    "b": [
+      "2026-11-06T20:51:37.812Z",
+      "2026-11-06T20:51:48.858Z"
+    ]
+  },
+  "integrity": {
+    "a": "sha512-DXMVIWcQEouQQ1Fc1L0dKg6tfddn9W8IzyTpO5jmQsVMU6rsPICTrWnOqsIZqLTd2xgh/karQDKZoQeOl2jr8g==",
+    "b": "sha512-QvOKSxlwGWSO/X2iBHRPntTq75T1UtXkZ/KDRcWVqDvJXypUflDiNJDD73lmB6SnGjbF3lsEy6TLTYMlSgnIoQ=="
+  },
+  "gap": "unknown"
+}

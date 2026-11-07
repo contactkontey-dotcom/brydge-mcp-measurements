@@ -34,7 +34,7 @@ import { renderReport, NOT_HIDDEN } from "../level1/report.ts";
  * worth nothing if it can drift from what the room actually plants. */
 import { PLANTED_ENV, PLANTED_FILES } from "../harness/canaries.ts";
 import { renderIndex } from "../level1/index.ts";
-import type { Level1Evidence } from "../level1/run.ts";
+import { slugOf, type Level1Evidence } from "../level1/run.ts";
 import { escapeHtml, markdownToHtml } from "./md.ts";
 import { badgeSvg, previewLines, previewSvg } from "./assets.ts";
 import type { Upstream } from "../level1/report.ts";
@@ -700,6 +700,114 @@ function methodPage(items: Level1Evidence[]): string {
   });
 }
 
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ONE NOTE PAGE, AND ITS NUMBERS COME OUT OF A FILE RATHER THAN OUT OF ME.
+ *
+ * Every figure below is read from site/notes/*.json, which is generated from
+ * a saved record in watch/log/ — the audit log's own output, keyed by package
+ * and both versions. The record is gitignored because it carries the full
+ * evidence; the extract is committed because the page has to build on Vercel.
+ * A test re-derives the extract from the record whenever the record is on
+ * disk, so the page cannot quietly drift away from what was measured.
+ *
+ * It says "between versions". It does not say "patch releases": the two
+ * versions here are 1.128.0 and 1.131.2, with released versions in between
+ * that nobody measured, and calling that span a patch release would be a
+ * claim about release practice that no measurement here supports.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+interface Note {
+  package: string;
+  a: string;
+  b: string;
+  toolsOffered: { field: string; a: number; b: number };
+  added: string[];
+  removed: string[];
+  addedNamedSocial: number;
+  addedNotNamedSocial: string[];
+  descriptionOrSchemaChanged: string[];
+  descriptionChanged: string[];
+  schemaChanged: string[];
+  changedOnlyInOtherFields: Record<string, number>;
+  toolsUnchanged: number;
+  otherFields: Array<{ field: string; a: number; b: number }>;
+  readme: string;
+  instrumentFingerprint: string;
+  calibrationBacked: boolean;
+  measuredAt: { a: string[]; b: string[] };
+  gap: string;
+}
+
+function notePage(n: Note): string {
+  const list = (xs: string[]) => xs.map((x) => `\`${x}\``).join(", ");
+  const other = Object.entries(n.changedOnlyInOtherFields);
+  const body = markdownToHtml(
+    [
+      `# ${n.package}, ${n.a} to ${n.b}`,
+      ``,
+      `Two versions of one package, each measured twice on the same day, by the same`,
+      `instrument. This is what differed between versions. Every number on this page is`,
+      `read from the saved record of that comparison.`,
+      ``,
+      `## The tool list`,
+      ``,
+      `**${n.toolsOffered.a} tools offered in ${n.a}, ${n.toolsOffered.b} in ${n.b}.** ${n.added.length} added, ${n.removed.length === 0 ? "none removed" : `${n.removed.length} removed`}.`,
+      ``,
+      `${n.addedNamedSocial} of the ${n.added.length} have \`social\` in the name. The other ${n.addedNotNamedSocial.length} are ${list(n.addedNotNamedSocial)}.`,
+      `Whether that last pair belongs with the rest is a reading of the names, so here are all ${n.added.length}:`,
+      ``,
+      ...n.added.map((t) => `- \`${t}\``),
+      ``,
+      `## Existing tools whose description or schema differs`,
+      ``,
+      `**${n.descriptionOrSchemaChanged.length} tools** that are present in both versions describe themselves differently, or take different`,
+      `input, in ${n.b}: ${list(n.descriptionOrSchemaChanged)}.`,
+      ``,
+      `Of those, ${n.descriptionChanged.length} have a changed description and ${n.schemaChanged.length} a changed input schema; ${n.descriptionOrSchemaChanged.length} distinct tools, because some moved in both.`,
+      ``,
+      ...(other.length
+        ? [
+            `A further ${other.map(([f, c]) => `${c} differ only in \`${f}\``).join(", ")}. That field is not the tool's description or its input, and this does not say what in it moved or why — only that the ${other.reduce((a, [, c]) => a + c, 0)} are counted here and not among the ${n.descriptionOrSchemaChanged.length} above, so neither number stands in for the other.`,
+            ``,
+          ]
+        : []),
+      `${n.toolsUnchanged} tools are byte-identical between the two versions.`,
+      ``,
+      `## Everything else the measurement looks at`,
+      ``,
+      `| | ${n.a} | ${n.b} |`,
+      `| --- | --- | --- |`,
+      ...n.otherFields.map((f) => `| ${f.field} | ${f.a} | ${f.b} |`),
+      ``,
+      `**No new website and no new program.** The two versions reached the same websites`,
+      `(none) and started the same programs. The README digest is ${n.readme === "same" ? "**unchanged**" : n.readme}.`,
+      ``,
+      `## What this does not say`,
+      ``,
+      /* ONE SOURCE LINE PER BULLET. site/md.ts does not join a wrapped list
+       * item: a continuation line closes the <ul> and becomes its own <p>,
+       * which split all six of these in half the first time they were built. */
+      `- **No tool was called.** Both runs stop at the point where the server lists what it offers. Nothing here is about what any of these tools does when used.`,
+      `- **One configuration.** Each version was given the same fake credentials and no settings of its own. A server's tool list can depend on its settings, so this is that one configuration and not necessarily the one you would run.`,
+      `- **The maker was not contacted** about this comparison, and has said nothing about it here.`,
+      `- **Nothing on this page claims a problem.** A tool list that grows between versions is a tool list that grows between versions. Deciding whether any of it matters needs your own configuration and your own judgement, neither of which this had.`,
+      `- **Not calibration-backed.** These two measurements did not pass the publication gate that the 67 report pages pass, so this page does not carry their standing.`,
+      `- **Versions were released between these two and were not measured.** How many is recorded as ${n.gap}, because nothing here has counted them.`,
+      ``,
+      `Measured ${n.measuredAt.a[0]?.slice(0, 10)}, instrument \`${n.instrumentFingerprint.slice(0, 12)}\`. The full record,`,
+      `both runs and both tool lists are in [the public repository](${REPO}).`,
+    ].join("\n"),
+  );
+  return shell({
+    title: `${n.package}, ${n.a} to ${n.b} — Level 1`,
+    description: `What differed between two measured versions of ${n.package}: ${n.added.length} tools added, ${n.descriptionOrSchemaChanged.length} changed, no new website or program.`,
+    canonical: `${SITE}/notes/${slugOf(n.package)}-${n.a}-${n.b}.html`,
+    body,
+    mistakeTitle: `Mistake on the ${n.package} ${n.a}-to-${n.b} note`,
+  });
+}
+
 function main(): void {
   const items = readdirSync(EVIDENCE)
     .filter((f) => f.endsWith(".json"))
@@ -862,6 +970,18 @@ function main(): void {
         .join("\n") +
       `\n</urlset>\n`,
   );
+  /* Note pages: one per committed extract under site/notes/. */
+  const NOTES = join(ROOT, "site", "notes");
+  if (existsSync(NOTES)) {
+    mkdirSync(join(DIST, "notes"), { recursive: true });
+    for (const f of readdirSync(NOTES).filter((x) => x.endsWith(".json")).sort()) {
+      const n = JSON.parse(readFileSync(join(NOTES, f), "utf8")) as Note;
+      const name = `${slugOf(n.package)}-${n.a}-${n.b}.html`;
+      writeFileSync(join(DIST, "notes", name), notePage(n));
+      console.log(`  notes/${name}`);
+    }
+  }
+
   writeFileSync(join(DIST, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 
   console.error(
