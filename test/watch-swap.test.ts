@@ -18,7 +18,7 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { agree, shapeOf } from "../watch/fields.ts";
-import { NO_CHANGE_CAVEAT, noChangeLine, noChangeParts, soundnessOf, versiondiff } from "../watch/versiondiff.ts";
+import { ALWAYS_NOT_COMPARED, NO_CHANGE_CAVEAT, noChangeBlock, soundnessOf, versiondiff } from "../watch/versiondiff.ts";
 import { diffTools, recordOf } from "../watch/tools.ts";
 import { renderAlert } from "../watch/alert.ts";
 
@@ -98,9 +98,10 @@ test("versiondiff alone cannot see a schema change, and its no-change says so", 
   assert.equal(d.outcome, "compared");
   assert.deepEqual(d.changes, []);
   /* It is true that nothing it compared moved. It must not read as more. */
-  assert.match(d.says, /No change in what could be compared\./);
-  assert.match(d.says, /Input schemas: not compared\./);
-  assert.match(d.says, /Descriptions: not compared\./);
+  assert.match(d.says, /^No change\.\n/);
+  assert.match(d.says, /Not compared:/);
+  assert.match(d.says, /- tool descriptions \(/);
+  assert.match(d.says, /- tool input schemas \(/);
 });
 
 test("the tool comparison catches a schema change behind an unchanged name list", () => {
@@ -136,9 +137,9 @@ test("the alert WITHOUT captures refuses to call a schema change no change", () 
     tools: null,
     toolsWhy: "no tool captures stored for 1.1.0",
   });
-  assert.match(text, /No change in what could be compared\./);
-  assert.match(text, /Descriptions: not compared\. Input schemas: not compared\./);
-  assert.match(text, /no tool captures stored for 1\.1\.0/);
+  assert.match(text, /Not compared:/);
+  assert.match(text, /- tool descriptions \(no tool captures stored for 1\.1\.0\)/);
+  assert.match(text, /- tool input schemas \(no tool captures stored for 1\.1\.0\)/);
   assert.ok(!/^BETWEEN 1\.0\.0 AND 1\.1\.0: No change\./m.test(text), "an unqualified no-change was printed");
 });
 
@@ -171,49 +172,103 @@ test("the alert reports a description change behind an unchanged name list", () 
 
 /* ── The wording of a no-change ────────────────────────────────────────── */
 
-test("a no-change states each thing separately and never the totals alone", () => {
-  const all = noChangeLine({ namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: 0 });
-  assert.equal(
-    all,
-    "No change. Tool names: 46 in both, 0 added, 0 removed. " +
-      "Descriptions: compared, none changed. Input schemas: compared, none changed. " +
-      NO_CHANGE_CAVEAT,
-  );
+test("a no-change is two named lists, with no summary adjective and no lead-in", () => {
+  const all = noChangeBlock({ namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: 0 });
+  assert.equal(all[0], "No change.", "the head is not a bare 'No change.'");
+  assert.equal(all[1], "Compared, no differences:");
+  assert.ok(all.includes("Not compared:"), "there is no Not compared list");
+  assert.ok(all.includes("  - tool names: 46 in both, 0 added, 0 removed"));
+  assert.ok(all.includes("  - tool descriptions: none changed"));
+  assert.ok(all.includes("  - tool input schemas: none changed"));
+  assert.equal(all[all.length - 1], NO_CHANGE_CAVEAT);
+  /* The phrase Wasilis objected to is gone from the output entirely. */
+  assert.ok(!all.join("\n").includes("could be compared"), "the output still says 'could be compared'");
 
-  const part = noChangeLine({ namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: null, schemasChanged: null });
-  assert.ok(part.startsWith("No change in what could be compared."), `the qualification is not first: "${part}"`);
-  assert.match(part, /Descriptions: not compared\. Input schemas: not compared\./);
-
-  /* One compared and one not is still a qualified no-change. */
-  const half = noChangeLine({ namesA: 2, namesB: 2, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: null });
-  assert.ok(half.startsWith("No change in what could be compared."));
-  assert.match(half, /Descriptions: compared, none changed\. Input schemas: not compared\./);
+  const part = noChangeBlock({ namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: null, schemasChanged: null, why: "no captures" });
+  assert.equal(part[0], "No change.", "a partial comparison still leads with a qualifier instead of a list");
+  assert.ok(part.includes("  - tool descriptions (no captures)"));
+  assert.ok(part.includes("  - tool input schemas (no captures)"));
+  assert.ok(!part.some((l) => l.includes("tool descriptions: ")), "descriptions were claimed as compared");
 });
 
-test("a no-change line never claims equal totals mean an unchanged list", () => {
-  /* Added and removed sit beside the totals in every form of the line. */
-  for (const c of [
-    { namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: 0 },
-    { namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: null, schemasChanged: null },
-  ]) {
-    const line = noChangeLine(c);
-    assert.match(line, /0 added, 0 removed/, `"${line}" states a total without its added and removed`);
-  }
-});
-
-
-/* ── The limit travels with every no-change ───────────────────────────── */
-
-test("the caveat is the last sentence of every no-change, in every shape", () => {
+test("the two permanent entries are in the Not compared list of every no-change", () => {
   for (const c of [
     { namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: 0 },
     { namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: null, schemasChanged: null },
     { namesA: 2, namesB: 2, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: null },
     { namesA: 0, namesB: 0, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: 0 },
   ]) {
-    const parts = noChangeParts(c);
-    assert.equal(parts[parts.length - 1], NO_CHANGE_CAVEAT, `the caveat is not last for ${JSON.stringify(c)}`);
-    assert.ok(noChangeLine(c).endsWith(NO_CHANGE_CAVEAT));
+    const lines = noChangeBlock(c);
+    const after = lines.slice(lines.indexOf("Not compared:"));
+    for (const always of ALWAYS_NOT_COMPARED) {
+      assert.ok(after.includes(`  - ${always}`), `missing from Not compared: ${always.slice(0, 40)}…`);
+    }
+    assert.match(after.join("\n"), /what any tool does when called/);
+    assert.match(after.join("\n"), /settings-dependent tool lists/);
+  }
+});
+
+test("a field the diff skipped is named in Not compared, never dropped", () => {
+  /*
+   * The whole of Wasilis's objection. A field a version's own two runs
+   * disagreed about is not compared, and the old wording made it vanish into
+   * a count ("the 5 fields that could be compared") instead of naming it.
+   */
+  const shaky = (offered: string[], hosts: string[]) => ({
+    couldNotStart: null,
+    observed: { offered, dnsNames: hosts, tlsHosts: [], programsStarted: ["node"], filesWritten: [], installedDuringRun: [], connectAttempts: [] },
+    readme: { digest: "same" },
+  });
+  /* The two runs of 1.0.0 disagree about websites reached. */
+  const a = { version: "1.0.0", runs: [shapeOf(shaky(["t"], ["x.test"])), shapeOf(shaky(["t"], []))] as [any, any] };
+  const b = { version: "1.1.0", runs: [shapeOf(shaky(["t"], [])), shapeOf(shaky(["t"], []))] as [any, any] };
+  const d = versiondiff("p", a, b);
+  assert.ok(d.cannotTell.includes("websites reached"));
+
+  const text = renderAlert({ package: "p", approved: "1.0.0", found: "1.1.0", measuredOn: "2026-11-07", diff: d, tools: null, toolsWhy: "no captures" });
+  const flat = text.replace(/\s+/g, " ");
+  if (/No change\./.test(flat)) {
+    const notCompared = flat.slice(flat.indexOf("Not compared:"));
+    assert.match(notCompared, /websites reached \(the two runs of one version disagreed about it\)/);
+    const compared = flat.slice(flat.indexOf("Compared, no differences:"), flat.indexOf("Not compared:"));
+    assert.ok(!compared.includes("websites reached"), "a skipped field was listed as compared");
+  }
+});
+
+test("a no-change output without the two lists fails", () => {
+  /* Every renderer's no-change, through its own path. */
+  const ev2 = (o: string[]) => ({
+    couldNotStart: null,
+    observed: { offered: o, dnsNames: [], tlsHosts: [], programsStarted: ["node"], filesWritten: [], installedDuringRun: [], connectAttempts: [] },
+    readme: { digest: "same" },
+  });
+  const V2 = (v: string) => ({ version: v, runs: [shapeOf(ev2(["keep"])), shapeOf(ev2(["keep"]))] as [any, any] });
+  const diff = versiondiff("p", V2("1.0.0"), V2("1.1.0"));
+  const quiet = diffTools(recs([{ name: "keep" }]), recs([{ name: "keep" }]));
+
+  const outputs = [
+    diff.says,
+    renderAlert({ package: "p", approved: "1.0.0", found: "1.1.0", measuredOn: "2026-11-07", diff, tools: quiet }),
+    renderAlert({ package: "p", approved: "1.0.0", found: "1.1.0", measuredOn: "2026-11-07", diff, tools: null, toolsWhy: "no captures" }),
+  ];
+  for (const [i, text] of outputs.entries()) {
+    const flat = text.replace(/\s+/g, " ");
+    assert.ok(flat.includes("No change."), `output ${i} is not a no-change`);
+    assert.ok(flat.includes("Compared, no differences:"), `output ${i} has no Compared list`);
+    assert.ok(flat.includes("Not compared:"), `output ${i} has no Not compared list`);
+    assert.ok(flat.includes("what any tool does when called"), `output ${i} omits the permanent entry`);
+    assert.ok(flat.includes("settings-dependent tool lists"), `output ${i} omits the permanent entry`);
+    assert.ok(!flat.includes("could be compared"), `output ${i} still says "could be compared"`);
+  }
+});
+
+test("the caveat is the last sentence of every no-change, in every shape", () => {
+  for (const c of [
+    { namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: 0, schemasChanged: 0 },
+    { namesA: 46, namesB: 46, added: 0, removed: 0, descriptionsChanged: null, schemasChanged: null },
+  ]) {
+    const lines = noChangeBlock(c);
+    assert.equal(lines[lines.length - 1], NO_CHANGE_CAVEAT, `the caveat is not last for ${JSON.stringify(c)}`);
   }
 });
 
@@ -246,5 +301,59 @@ test("no no-change output anywhere omits the caveat", () => {
     /* wrapped across lines in the alert, so compare on collapsed whitespace */
     const flat = text.replace(/\s+/g, " ");
     assert.ok(flat.includes(NO_CHANGE_CAVEAT), `the alert's no-change omits the caveat (captures: ${!!input.tools})`);
+  }
+});
+
+test("EVERY field the diff did not compare is named in Not compared", () => {
+  /*
+   * The general form of Wasilis's objection, not one example of it. For each
+   * of the six behaviour fields in turn, make that field the one the two runs
+   * of a version disagree about, and require the alert to name it under Not
+   * compared and to keep it out of Compared. A field that is simply dropped
+   * from both lists fails here.
+   */
+  const base = {
+    offered: ["t"], dnsNames: [], tlsHosts: [], programsStarted: ["node"],
+    filesWritten: [], installedDuringRun: [], connectAttempts: [],
+  };
+  const field: Record<string, [keyof typeof base, string]> = {
+    "tools offered": ["offered", "extra_tool"],
+    "websites reached": ["dnsNames", "x.test"],
+    "programs started": ["programsStarted", "curl"],
+    "files written": ["filesWritten", "/tmp/x"],
+    "packages installed while running": ["installedDuringRun", "left-pad"],
+    "connection attempts": ["connectAttempts", "1.2.3.4:80"],
+  };
+
+  for (const [name, [key, extra]] of Object.entries(field)) {
+    const mk = (withExtra: boolean) => ({
+      couldNotStart: null,
+      observed: { ...base, [key]: withExtra ? [...(base[key] as string[]), extra] : base[key] },
+      readme: { digest: "same" },
+    });
+    /* 1.0.0's two runs disagree about exactly this field. */
+    const a = { version: "1.0.0", runs: [shapeOf(mk(true)), shapeOf(mk(false))] as [any, any] };
+    const b = { version: "1.1.0", runs: [shapeOf(mk(false)), shapeOf(mk(false))] as [any, any] };
+    const d = versiondiff("p", a, b);
+    assert.ok(d.cannotTell.includes(name), `${name}: the fixture did not make it uncomparable`);
+
+    /* "tools offered" takes the whole comparison down to not-comparable,
+     * which is its own outcome and says why. The other five leave a
+     * no-change standing, and that no-change has to name the gap. */
+    if (d.outcome !== "compared") {
+      assert.match(d.says, /^Not comparable: /, `${name}: silently dropped`);
+      assert.match(d.says, new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `${name}: not named in the refusal`);
+      continue;
+    }
+
+    const text = renderAlert({
+      package: "p", approved: "1.0.0", found: "1.1.0", measuredOn: "2026-11-07",
+      diff: d, tools: null, toolsWhy: "no captures",
+    }).replace(/\s+/g, " ");
+    assert.ok(text.includes("Not compared:"), `${name}: the no-change carries no Not compared list`);
+    const compared = text.slice(text.indexOf("Compared, no differences:"), text.indexOf("Not compared:"));
+    const notCompared = text.slice(text.indexOf("Not compared:"));
+    assert.ok(notCompared.includes(name), `${name}: skipped but not named under Not compared`);
+    assert.ok(!compared.includes(name), `${name}: skipped yet listed as compared`);
   }
 });

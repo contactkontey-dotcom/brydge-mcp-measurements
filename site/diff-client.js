@@ -174,25 +174,42 @@ export function summaryOf(d, detail, caveat) {
   if (d.added.length) bits.push(d.added.length + " added");
   if (d.removed.length) bits.push(d.removed.length + " removed");
   const head = d.counts.a + (d.counts.a === 1 ? " tool" : " tools") + " on the left, " + d.counts.b + " on the right.";
-  if (!bits.length) {
-    /*
-     * A no-change says what was compared, one thing at a time, and never
-     * offers the two totals as the comparison. 46 and 46 is also what a
-     * one-for-one swap looks like, and a count of names says nothing at all
-     * about a description or an input schema. Where either was not compared
-     * the qualification leads, rather than trailing a reassuring sentence.
-     */
-    const same = d.counts.a === d.counts.b;
-    const names =
-      "Tool names: " +
-      (same ? d.counts.a + " in both" : d.counts.a + " then " + d.counts.b) +
-      ", " + d.added.length + " added, " + d.removed.length + " removed.";
-    const said = detail ? "compared, none changed" : "not compared";
-    return (
-      (detail ? "No change." : "No change in what could be compared.") +
-      " " + names + " Descriptions: " + said + ". Input schemas: " + said + "." +
-      (caveat ? " " + caveat : "")
-    );
+  if (bits.length) return head + " " + bits.join(", ") + ".";
+  return null; /* a no-change is a block, not a sentence: see noChangeBlock */
+}
+
+/**
+ * The lines of a no-change: what was compared, and what was not.
+ *
+ * `alwaysNotCompared` and `caveat` are passed in rather than written here.
+ * The same strings live in watch/versiondiff.ts and site/build.ts injects
+ * THOSE into this page, with a test asserting the two match. A copy kept
+ * here would be a second thing to keep true.
+ *
+ * There is no summary adjective and no qualifying lead-in. The sentence this
+ * replaced named a number of fields without naming the fields, which was true
+ * and told a reader nothing — least of all which ones were left out. Counts
+ * sit beside the thing they count and never alone: 46 and 46 is also what a
+ * one-for-one swap looks like.
+ */
+export function noChangeBlock(d, detail, alwaysNotCompared, caveat) {
+  const compared = [
+    "tool names: " +
+      (d.counts.a === d.counts.b ? d.counts.a + " in both" : d.counts.a + " then " + d.counts.b) +
+      ", " + d.added.length + " added, " + d.removed.length + " removed",
+  ];
+  const notCompared = [];
+  if (detail) {
+    compared.push("tool descriptions: none changed");
+    compared.push("tool input schemas: none changed");
+    compared.push("every other field each tool carries: none changed");
+  } else {
+    notCompared.push("tool descriptions (one of these lists carries names only)");
+    notCompared.push("tool input schemas (one of these lists carries names only)");
   }
-  return head + " " + bits.join(", ") + ".";
+  /* This page is given two tool lists and nothing else. It never saw either
+   * version run, so none of the startup fields is in the compared list. */
+  notCompared.push("what either version did at startup — websites reached, programs started, files written, packages installed, connection attempts; this page is given tool lists and nothing else");
+  for (const x of alwaysNotCompared || []) notCompared.push(x);
+  return { compared: compared, notCompared: notCompared, caveat: caveat };
 }

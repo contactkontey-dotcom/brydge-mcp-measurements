@@ -53,8 +53,12 @@ test("identical versions produce no changes and no can't-tells", () => {
   assert.equal(d.readme, "same");
   /* versiondiff never looks at a description or a schema, and its no-change
    * line has to say so rather than read as a clean bill. */
-  assert.match(d.says, /No change in what could be compared\./);
-  assert.match(d.says, /Descriptions: not compared\. Input schemas: not compared\./);
+  /* versiondiff never looks at a description or a schema, and names both in
+   * the Not compared list rather than folding them into a count. */
+  assert.match(d.says, /^No change\.\n/);
+  assert.match(d.says, /- tool descriptions \(/);
+  assert.match(d.says, /- tool input schemas \(/);
+  assert.ok(!d.says.includes("could be compared"), "the phrase survived in the output");
 });
 
 test("a tool added and a website reached for are reported with their direction", () => {
@@ -73,7 +77,7 @@ test("a README edit is its own line and is never counted as behaviour", () => {
   const d = versiondiff("thing-mcp", both("1.0.0", ev()), both("1.0.1", b));
   assert.equal(d.readme, "changed");
   assert.deepEqual(d.changes, [], "a README edit was counted as a behaviour change");
-  assert.match(d.says, /No change in what could be compared\./);
+  assert.match(d.says, /^No change\.\n/);
   assert.match(renderDiff(d), /means the text differs and nothing more/);
 });
 
@@ -218,12 +222,13 @@ test("a no-change names each thing compared and never offers the totals as the c
    */
   const d = versiondiff("thing-mcp", both("1.0.0", ev()), both("1.0.1", ev()));
   assert.equal(d.outcome, "compared");
-  assert.match(d.says, /Tool names: 2 in both, 0 added, 0 removed\./);
-  assert.match(d.says, /Descriptions: not compared\./);
-  assert.match(d.says, /Input schemas: not compared\./);
-  assert.match(d.says, /both versions were measured twice with their runs agreeing/);
-  /* and the bare pair of totals is gone */
+  assert.match(d.says, /- tool names: 2 in both, 0 added, 0 removed/);
+  assert.match(d.says, /Compared, no differences:/);
+  assert.match(d.says, /Not compared:/);
+  assert.match(d.says, /- tool descriptions \(/);
+  /* and the bare pair of totals is gone, along with the phrase */
   assert.ok(!/\(2 and 2 tools\)/.test(d.says), "the two totals are still offered as the comparison");
+  assert.ok(!d.says.includes("could be compared"), "the phrase survived in the output");
 });
 
 test("a server that genuinely offers nothing is comparable, and says zero out loud", () => {
@@ -232,7 +237,7 @@ test("a server that genuinely offers nothing is comparable, and says zero out lo
   const none = ev({ observed: { ...ev().observed, offered: [] } });
   const d = versiondiff("thing-mcp", both("1.0.0", none), both("1.0.1", none));
   assert.equal(d.outcome, "compared");
-  assert.match(d.says, /Tool names: 0 in both, 0 added, 0 removed\./);
+  assert.match(d.says, /- tool names: 0 in both, 0 added, 0 removed/);
   const text = renderDiff(d);
   assert.match(text, /tools offered\s+0\s+0/);
 });

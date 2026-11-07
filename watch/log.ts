@@ -54,7 +54,7 @@ import { shapeOf } from "./fields.ts";
 import { compareVersions } from "./poll.ts";
 import { folderOf, versionsOf } from "./store.ts";
 import { diffTools, type Capture, type ToolRecord } from "./tools.ts";
-import { noChangeParts, versiondiff, wrapTo, type Diff } from "./versiondiff.ts";
+import { noChangeBlock, versiondiff, wrapTo, type Diff } from "./versiondiff.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const LOG = join(ROOT, "watch", "log");
@@ -387,26 +387,40 @@ export function renderTimeline(pkg: string, recs: LogRecord[]): string {
        */
       const names = r.diff.counts.find((c) => c.field === "tools offered");
       const t = r.tools;
-      for (const part of noChangeParts({
+      const shaky = new Set(r.diff.cannotTell);
+      const others = r.diff.counts.filter((c) => c.field !== "tools offered").map((c) => c.field);
+      for (const part of noChangeBlock({
         namesA: names?.a ?? r.diff.sound.a.toolCount,
         namesB: names?.b ?? r.diff.sound.b.toolCount,
         added: t ? t.added.length : 0,
         removed: t ? t.removed.length : 0,
         descriptionsChanged: t ? t.descriptionChanged.length : null,
         schemasChanged: t ? t.schemaChanged.length : null,
+        why: r.toolsWhy ?? null,
+        alsoCompared: [
+          ...others.filter((f) => !shaky.has(f)),
+          ...(r.diff.readme === "same" ? ["README digest"] : []),
+        ],
+        alsoNotCompared: [
+          ...others.filter((f) => shaky.has(f)).map((f) => `${f} (the two runs of one version disagreed about it)`),
+          ...(r.diff.readme === "can't tell" ? ["README digest (the two runs of one version disagreed about it)"] : []),
+        ],
       })) {
-        out.push(...wrapTo(part, 72, "        "));
+        out.push(...wrapTo(part, 74, "        "));
       }
-      /* The reason is not repeated here: every row ends with a `tools:` line
-       * that carries it. */
-      out.push(`        The other compared fields are equal, and both versions were measured twice`);
-      out.push(`        with their runs agreeing.`);
+      out.push(`        Both versions were measured twice with their runs agreeing.`);
     } else {
       out.push(`        ${r.diff.says}`);
     }
 
-    if (r.diff.cannotTell.length) {
+    if (r.diff.cannotTell.length && r.state !== "no change") {
       out.push(`        can't tell, no change reported: ${r.diff.cannotTell.join(", ")}`);
+    }
+    /* A no-change already lists the README and the tool fields in its two
+     * named lists; repeating them below is the same fact a second time. */
+    if (r.state === "no change") {
+      out.push("");
+      continue;
     }
     out.push(
       `        README digest: ${

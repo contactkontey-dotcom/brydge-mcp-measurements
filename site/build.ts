@@ -36,7 +36,7 @@ import { PLANTED_ENV, PLANTED_FILES } from "../harness/canaries.ts";
 import { renderIndex } from "../level1/index.ts";
 import { slugOf, type Level1Evidence } from "../level1/run.ts";
 import { escapeHtml, markdownToHtml } from "./md.ts";
-import { NO_CHANGE_CAVEAT } from "../watch/versiondiff.ts";
+import { ALWAYS_NOT_COMPARED, NO_CHANGE_CAVEAT } from "../watch/versiondiff.ts";
 import { badgeSvg, previewLines, previewSvg } from "./assets.ts";
 import type { Upstream } from "../level1/report.ts";
 
@@ -832,8 +832,9 @@ function diffPage(demo: { package: string; a: { version: string; names: string[]
   const client = readFileSync(join(ROOT, "site", "diff-client.js"), "utf8");
   const ui = `
 const DEMO = ${demo ? JSON.stringify(demo) : "null"};
-/* The one copy, from watch/versiondiff.ts. A test asserts they match. */
+/* The one copy of each, from watch/versiondiff.ts. Tests assert they match. */
 const NO_CHANGE_CAVEAT = ${JSON.stringify(NO_CHANGE_CAVEAT)};
+const ALWAYS_NOT_COMPARED = ${JSON.stringify(ALWAYS_NOT_COMPARED)};
 const A = document.getElementById('a');
 const B = document.getElementById('b');
 const out = document.getElementById('out');
@@ -866,11 +867,23 @@ function render(){
   const detail = carriesDetail(la) && carriesDetail(lb);
   const d = diffTools(la, lb);
 
-  let html = '<p class="summary">' + esc(summaryOf(d, detail, NO_CHANGE_CAVEAT)) + '</p>';
-  if(!detail){
-    html += '<p class="hint">One of these lists carries names only, so this compares names. ' +
-            'Added and removed are answered; changed description and changed input schema are not, ' +
-            'and are left out rather than reported as none.</p>';
+  const said = summaryOf(d, detail, NO_CHANGE_CAVEAT);
+  let html = '';
+  if(said){
+    html += '<p class="summary">' + esc(said) + '</p>';
+    if(!detail){
+      html += '<p class="hint">One of these lists carries names only, so this compares names. ' +
+              'Added and removed are answered; changed description and changed input schema are not, ' +
+              'and are left out rather than reported as none.</p>';
+    }
+  } else {
+    /* A no-change is two named lists, never a reassuring sentence. */
+    const nc = noChangeBlock(d, detail, ALWAYS_NOT_COMPARED, NO_CHANGE_CAVEAT);
+    const items = function(xs){ return '<ul class="named">' + xs.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; };
+    html += '<p class="summary">No change.</p>';
+    html += '<h3>Compared, no differences</h3>' + items(nc.compared);
+    html += '<h3>Not compared</h3>' + items(nc.notCompared);
+    html += '<p class="hint">' + esc(nc.caveat) + '</p>';
   }
 
   /*
@@ -969,6 +982,9 @@ render();
   ul.tools li{font:400 .8rem/1.7 "IBM Plex Mono",ui-monospace,monospace;flex:0 0 auto}
   ul.tools li:has(.was){flex:1 1 100%;margin:.5rem 0}
   .was,.now{font:400 .78rem/1.6 "IBM Plex Mono",ui-monospace,monospace;padding:.25rem .5rem;margin:.2rem 0;border-left:2px solid currentColor;opacity:.85;overflow-x:auto}
+  ul.named{list-style:none;padding:0;margin:.2rem 0 0}
+  ul.named li{font:400 .88rem/1.7 "Instrument Sans",system-ui,sans-serif;padding-left:1rem;text-indent:-1rem}
+  ul.named li::before{content:"— ";opacity:.55}
   .out .said{font:400 .85rem/1.6 "Instrument Sans",system-ui,sans-serif;opacity:.75}
   ul.tools li:has(.said){flex:1 1 100%;margin:.6rem 0}
   .was,.now{white-space:pre-wrap}

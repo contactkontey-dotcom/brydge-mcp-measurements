@@ -20,4 +20,10 @@ export function recordOf(tool: Record<string, unknown>): ToolRecord;
 export function carriesDetail(tools: ToolRecord[]): boolean;
 export function diffTools(a: ToolRecord[], b: ToolRecord[]): ToolDiff;
 export function firstDifference(a: string | null, b: string | null): { at: number; before: string; after: string } | null;
-export function summaryOf(d: ToolDiff, detail: boolean, caveat?: string): string;
+export function summaryOf(d: ToolDiff, detail: boolean, caveat?: string): string | null;
+export function noChangeBlock(
+  d: ToolDiff,
+  detail: boolean,
+  alwaysNotCompared: string[],
+  caveat: string,
+): { compared: string[]; notCompared: string[]; caveat: string };

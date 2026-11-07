@@ -77,24 +77,37 @@ export function soundnessOf(m: Measured): Soundness {
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════
- * WHAT A "NO CHANGE" IS ALLOWED TO SAY.
+ * A NO-CHANGE NAMES WHAT IT LOOKED AT, AND WHAT IT DID NOT.
  *
- * "Nothing changed in the 6 fields that could be compared" was true and read
- * as a clean bill. Two versions can offer the same 46 names while one tool's
- * input schema or its description has been rewritten, and this function's
- * caller — versiondiff on its own — has never looked at either: its "tools
- * offered" field is a set of NAMES.
+ * Wasilis: "nothing changed in the fields that could be compared" reads as
+ * all clear. It was true and it was useless — a reader cannot tell which
+ * fields those were, and the ones left out are exactly the ones they would
+ * want named.
  *
- * So a no-change line now names each thing separately and says, for each,
- * whether it was compared at all. Counts are not the comparison and are never
- * printed as if they were: "46 in both" is stated beside "0 added, 0
- * removed", because 46 and 46 is also what a one-for-one swap looks like.
+ * So there is no summary adjective and no qualifying lead-in. Two lists:
+ * everything compared and found equal, and everything not compared with the
+ * reason. Counts sit beside the thing they count, never alone, because 46 and
+ * 46 is also what a one-for-one swap looks like.
  *
- * Where anything was not compared, the line leads with "No change in what
- * could be compared", so the qualification is the first thing read and not a
- * footnote after a reassuring sentence.
+ * Two entries are always in the second list, whatever ran. No tool is ever
+ * called here, so what a tool DOES is never under test; and every version is
+ * measured with the same fake credentials and no settings, so a tool list
+ * that varies by configuration was seen in one configuration. Those are not
+ * gaps in a particular run, they are the shape of the instrument, and a
+ * reader meeting a no-change for the first time has no way to know them.
  * ═══════════════════════════════════════════════════════════════════════════
  */
+
+/** In the "Not compared" list of every no-change, whatever else ran. */
+export const ALWAYS_NOT_COMPARED = [
+  "what any tool does when called — no tool was called in any run, so nothing here is about what a tool does or whether it does what it says",
+  "settings-dependent tool lists — each version was given the same fake credentials and no settings of its own, so a list that varies by configuration was seen in one configuration only",
+];
+
+export const NO_CHANGE_CAVEAT =
+  "This compares what the server says about itself and what it did at startup. " +
+  "It does not test what any tool does when called, so a version can match here and still behave differently.";
+
 export interface Compared {
   namesA: number;
   namesB: number;
@@ -103,52 +116,53 @@ export interface Compared {
   /** null when nothing looked; a count when something did. */
   descriptionsChanged: number | null;
   schemasChanged: number | null;
+  /** Why descriptions and schemas were not compared, when they were not. */
+  why?: string | null;
+  /** Other things compared and equal, named by the caller. */
+  alsoCompared?: string[];
+  /** Other things not compared, each already carrying its reason. */
+  alsoNotCompared?: string[];
 }
 
-/*
- * THE LIMIT THAT TRAVELS WITH EVERY NO-CHANGE.
- *
- * A no-change is the most quotable thing this produces and the most likely to
- * be forwarded without whatever stood around it. The paragraph at the bottom
- * of a page or a message is no use once one line has been pasted into a
- * ticket, so the line carries its own boundary.
- *
- * Exported, and the one copy: site/diff-client.js takes it as an argument and
- * site/build.ts injects THIS string into the page, with a test asserting the
- * two are identical. A second copy would be a second thing to keep true.
+/**
+ * The lines of a no-change. Callers indent and wrap them; none of them holds
+ * wording of its own.
  */
-export const NO_CHANGE_CAVEAT =
-  "This compares what the server says about itself and what it did at startup. " +
-  "It does not test what any tool does when called, so a version can match here and still behave differently.";
+export function noChangeBlock(c: Compared): string[] {
+  const compared: string[] = [
+    `tool names: ${c.namesA === c.namesB ? `${c.namesA} in both` : `${c.namesA} then ${c.namesB}`}, ${c.added} added, ${c.removed} removed`,
+  ];
+  const notCompared: string[] = [];
+  const why = c.why ? ` (${c.why})` : "";
 
-/** The sentences of a no-change, so each renderer can lay them out itself. */
-export function noChangeParts(c: Compared): string[] {
-  const partial = c.descriptionsChanged === null || c.schemasChanged === null;
-  const said = (n: number | null) =>
-    n === null ? "not compared" : n === 0 ? "compared, none changed" : `compared, ${n} changed`;
+  if (c.descriptionsChanged === null) notCompared.push(`tool descriptions${why}`);
+  else compared.push(`tool descriptions: ${c.descriptionsChanged === 0 ? "none changed" : `${c.descriptionsChanged} changed`}`);
+
+  if (c.schemasChanged === null) notCompared.push(`tool input schemas${why}`);
+  else compared.push(`tool input schemas: ${c.schemasChanged === 0 ? "none changed" : `${c.schemasChanged} changed`}`);
+
+  compared.push(...(c.alsoCompared ?? []));
+  notCompared.push(...(c.alsoNotCompared ?? []), ...ALWAYS_NOT_COMPARED);
+
   return [
-    partial ? "No change in what could be compared." : "No change.",
-    c.namesA === c.namesB
-      ? `Tool names: ${c.namesA} in both, ${c.added} added, ${c.removed} removed.`
-      : `Tool names: ${c.namesA} then ${c.namesB}, ${c.added} added, ${c.removed} removed.`,
-    `Descriptions: ${said(c.descriptionsChanged)}.`,
-    `Input schemas: ${said(c.schemasChanged)}.`,
+    "No change.",
+    "Compared, no differences:",
+    ...compared.map((x) => `  - ${x}`),
+    "Not compared:",
+    ...notCompared.map((x) => `  - ${x}`),
     NO_CHANGE_CAVEAT,
   ];
-}
-
-export function noChangeLine(c: Compared): string {
-  return noChangeParts(c).join(" ");
 }
 
 /** Break a sentence onto lines of at most `width`, for a fixed-width reader. */
 export function wrapTo(text: string, width: number, indent = ""): string[] {
   const out: string[] = [];
+  const hang = /^\s*- /.test(text) ? "    " : "";
   let line = "";
   for (const word of text.split(" ")) {
     if (line && (line + " " + word).length > width) {
       out.push(indent + line);
-      line = word;
+      line = hang + word;
     } else {
       line = line ? line + " " + word : word;
     }
@@ -275,20 +289,33 @@ export function versiondiff(pkg: string, A: Measured, B: Measured): Diff {
     says:
       n === 0
         ? /*
-           * Always "not compared" for both: this function sees names and
-           * never a description or a schema. Saying so is the difference
-           * between a no-change that has been earned and one that has only
-           * not been contradicted.
+           * This function never looks at a description or a schema — its
+           * "tools offered" field is a set of names — so both are named in
+           * the Not compared list, with the reason. The behaviour fields it
+           * DID compare are listed by name, and any a version's own two runs
+           * disagreed about are named as not compared rather than silently
+           * dropped from a count.
            */
-          `${noChangeLine({
+          noChangeBlock({
             namesA: sound.a.toolCount,
             namesB: sound.b.toolCount,
             added: 0,
             removed: 0,
             descriptionsChanged: null,
             schemasChanged: null,
-          })} The other ${BEHAVIOUR.length - 1 - shaky.size} compared fields are equal, and both versions were measured twice with their runs agreeing.`
-        : `${n} of the ${BEHAVIOUR.length - shaky.size} fields that could be compared changed.`,
+            why: "this comparison reads tool names only; it has no stored tool list to read a description or a schema from",
+            alsoCompared: [
+              ...BEHAVIOUR.filter((f) => f !== "tools offered" && !shaky.has(f)),
+              ...(readme === "same" ? ["README digest"] : []),
+            ],
+            alsoNotCompared: [
+              ...BEHAVIOUR.filter((f) => f !== "tools offered" && shaky.has(f)).map(
+                (f) => `${f} (the two runs of one version disagreed about it)`,
+              ),
+              ...(readme === "can't tell" ? ["README digest (the two runs of one version disagreed about it)"] : []),
+            ],
+          }).join("\n")
+        : `${n} of the ${BEHAVIOUR.length - shaky.size} compared fields changed.`,
     changes,
     readme,
   };

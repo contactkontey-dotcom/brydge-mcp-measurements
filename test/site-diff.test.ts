@@ -11,7 +11,7 @@ import { strict as assert } from "node:assert";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { canonical, carriesDetail, diffTools, firstDifference, parseToolList, readList, recordOf, summaryOf } from "../site/diff-client.js";
+import { canonical, carriesDetail, diffTools, firstDifference, noChangeBlock, parseToolList, readList, recordOf, summaryOf } from "../site/diff-client.js";
 
 const ROOT = join(import.meta.dirname, "..");
 const PAGE = join(ROOT, "site", "dist", "diff.html");
@@ -83,8 +83,8 @@ test("a names-only list is a valid list, and is known to carry no detail", () =>
 
 test("a names-only comparison does not report zero changed descriptions as a finding", () => {
   const d = diffTools(recs(parseToolList(["a"])), recs(parseToolList(["a", "b"])));
-  const said = summaryOf(d, false);
-  assert.match(said, /Nothing differs in the names|added/);
+  const said = summaryOf(d, false)!;
+  assert.match(said, /added/);
   assert.ok(!/description/.test(said), "a names-only summary must not mention descriptions");
 });
 
@@ -203,7 +203,7 @@ test("neither page claims it makes no request at all", { skip: !built }, () => {
 test("the summary names descriptions and schemas before added and removed", () => {
   const a = recs([{ name: "keep", description: "a" }, { name: "gone", description: "x" }]);
   const b = recs([{ name: "keep", description: "b" }, { name: "fresh", description: "y" }]);
-  const said = summaryOf(diffTools(a, b), true);
+  const said = summaryOf(diffTools(a, b), true)!;
   assert.ok(
     said.indexOf("changed description") < said.indexOf("added"),
     `the summary puts added before descriptions: "${said}"`,
@@ -249,9 +249,11 @@ test("every list the results emit is closed", { skip: !built }, () => {
     .slice(from, html.indexOf("</script>", from))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
-  const opens = (script.match(/<ul class="tools">/g) ?? []).length;
+  /* Every <ul the results emit, not just the tool lists: the no-change
+   * block adds <ul class="named"> and an unclosed one breaks the same way. */
+  const opens = (script.match(/<ul\b/g) ?? []).length;
   const closes = (script.match(/<\/ul>/g) ?? []).length;
-  assert.equal(opens, closes, `${opens} <ul class="tools"> opened, ${closes} </ul> closed`);
+  assert.equal(opens, closes, `${opens} <ul opened, ${closes} </ul> closed`);
 });
 
 /* ── The no-change caveat is one string, not two ───────────────────────── */
@@ -267,19 +269,43 @@ test("the page's caveat is byte-for-byte the one in watch/versiondiff.ts", { ski
   const m = /const NO_CHANGE_CAVEAT = ("(?:[^"\\]|\\.)*");/.exec(html);
   assert.ok(m, "the page does not carry an injected NO_CHANGE_CAVEAT");
   assert.equal(JSON.parse(m[1]!), NO_CHANGE_CAVEAT, "the page's caveat has drifted from the module's");
+  const a = /const ALWAYS_NOT_COMPARED = (\[[^\n]*?\]);/.exec(html);
+  assert.ok(a, "the page does not carry an injected ALWAYS_NOT_COMPARED");
+  const { ALWAYS_NOT_COMPARED } = await import("../watch/versiondiff.ts");
+  assert.deepEqual(JSON.parse(a[1]!), ALWAYS_NOT_COMPARED, "the page's always-not-compared list has drifted");
   /* and nothing hand-wrote a second copy of the sentence into the client */
   const client = readFileSync(join(ROOT, "site", "diff-client.js"), "utf8");
   assert.ok(!client.includes("does not test what any tool does"), "diff-client.js keeps its own copy of the caveat");
 });
 
-test("the page's no-change output carries the caveat, with and without detail", { skip: !built }, async () => {
-  const { NO_CHANGE_CAVEAT } = await import("../watch/versiondiff.ts");
+test("the page's no-change is two named lists, and a finding is not", { skip: !built }, async () => {
+  const { ALWAYS_NOT_COMPARED, NO_CHANGE_CAVEAT } = await import("../watch/versiondiff.ts");
   const same = recs([{ name: "a", description: "d", inputSchema: { type: "object" } }]);
-  assert.ok(summaryOf(diffTools(same, same), true, NO_CHANGE_CAVEAT).endsWith(NO_CHANGE_CAVEAT));
+  assert.equal(summaryOf(diffTools(same, same), true), null, "a no-change still produced a one-line summary");
+
+  const withDetail = noChangeBlock(diffTools(same, same), true, ALWAYS_NOT_COMPARED, NO_CHANGE_CAVEAT);
+  assert.ok(withDetail.compared.some((x) => x.startsWith("tool names: 1 in both, 0 added, 0 removed")));
+  assert.ok(withDetail.compared.some((x) => x.startsWith("tool descriptions: none changed")));
+  assert.ok(withDetail.compared.some((x) => x.startsWith("tool input schemas: none changed")));
+  assert.equal(withDetail.caveat, NO_CHANGE_CAVEAT);
+
   const names = recs(parseToolList(["a", "b"]));
-  assert.ok(summaryOf(diffTools(names, names), false, NO_CHANGE_CAVEAT).endsWith(NO_CHANGE_CAVEAT));
-  /* a comparison that DID find something does not carry it: it is a
-   * no-change's limit, and tacking it onto a finding would dilute both */
+  const namesOnly = noChangeBlock(diffTools(names, names), false, ALWAYS_NOT_COMPARED, NO_CHANGE_CAVEAT);
+  assert.ok(namesOnly.notCompared.some((x) => x.startsWith("tool descriptions")), "descriptions are not named as uncompared");
+  assert.ok(namesOnly.notCompared.some((x) => x.startsWith("tool input schemas")), "schemas are not named as uncompared");
+  assert.ok(!namesOnly.compared.some((x) => x.includes("description")), "descriptions were claimed as compared");
+
+  /* Both permanent entries, in every shape. */
+  for (const block of [withDetail, namesOnly]) {
+    for (const always of ALWAYS_NOT_COMPARED) assert.ok(block.notCompared.includes(always), `missing: ${always}`);
+    assert.ok(
+      block.notCompared.some((x) => x.startsWith("what either version did at startup")),
+      "the page claims nothing about startup, and must say so",
+    );
+  }
+
+  /* A finding is a sentence and carries neither list nor caveat. */
   const moved = diffTools(recs([{ name: "a" }]), recs([{ name: "a" }, { name: "b" }]));
-  assert.ok(!summaryOf(moved, false, NO_CHANGE_CAVEAT).includes(NO_CHANGE_CAVEAT));
+  const found = summaryOf(moved, false);
+  assert.ok(found && !found.includes(NO_CHANGE_CAVEAT));
 });

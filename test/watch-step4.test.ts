@@ -288,8 +288,13 @@ test("an alert with no captures says so rather than implying nothing changed", (
     tools: null,
     toolsWhy: "no tool captures stored for 2.0.0",
   });
-  assert.match(text, /not compared \(no tool captures stored for 2\.0\.0\)/);
-  assert.match(text, /is not\s+answered either way/);
+  /* The no-change block names both, with the reason, under Not compared.
+   * The standing explanation is not repeated after it. */
+  const flat = text.replace(/\s+/g, " ");
+  assert.match(flat, /Not compared:/);
+  assert.match(flat, /- tool descriptions \(no tool captures stored for 2\.0\.0\)/);
+  assert.match(flat, /- tool input schemas \(no tool captures stored for 2\.0\.0\)/);
+  assert.equal(flat.split("no tool captures stored for 2.0.0").length - 1, 2, "the reason is printed more than once per field");
   assert.ok(!/DESCRIPTIONS CHANGED: 0/.test(text), "it reported zero changed descriptions having looked at none");
 });
 

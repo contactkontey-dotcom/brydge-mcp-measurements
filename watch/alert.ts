@@ -26,7 +26,7 @@
  */
 import { NEW_LABEL, type Check } from "./approved.ts";
 import { firstDifference, type ToolDiff } from "./tools.ts";
-import { noChangeParts, wrapTo, type Diff } from "./versiondiff.ts";
+import { noChangeBlock, wrapTo, type Diff } from "./versiondiff.ts";
 
 /*
  * HOW MUCH OF A DESCRIPTION AN ALERT CARRIES.
@@ -145,6 +145,9 @@ export function renderAlert(a: AlertInput): string {
   if (d || t || a.toolsWhy) {
     const span = d ? `${d.a} AND ${d.b}` : `${a.approved} AND ${a.found}`;
     const toolsMoved = !!t && (t.added.length > 0 || t.removed.length > 0 || t.changed.length > 0);
+    /* Set when the no-change block has already named every uncompared thing,
+     * so the standing explanation below is not printed a second time. */
+    let listed = false;
 
     if (d && d.outcome !== "compared") {
       out.push(`BETWEEN ${span}: ${d.says}`);
@@ -156,19 +159,29 @@ export function renderAlert(a: AlertInput): string {
        * out of context is a claim nobody here made.
        */
       const names = d.counts.find((c) => c.field === "tools offered");
-      const parts = noChangeParts({
+      const shaky = new Set(d.cannotTell);
+      const others = d.counts.filter((c) => c.field !== "tools offered").map((c) => c.field);
+      out.push(`BETWEEN ${span}:`);
+      for (const line of noChangeBlock({
         namesA: names?.a ?? 0,
         namesB: names?.b ?? 0,
         added: t ? t.added.length : 0,
         removed: t ? t.removed.length : 0,
         descriptionsChanged: t ? t.changed.filter((c) => c.what.includes("description")).length : null,
         schemasChanged: t ? t.changed.filter((c) => c.what.includes("input schema")).length : null,
-      });
-      /* The verdict and the three comparisons on one line; the limit that
-       * travels with it wrapped below, so neither is read without the other. */
-      out.push(`BETWEEN ${span}: ${parts.slice(0, -1).join(" ")}`);
-      out.push(...wrapTo(parts[parts.length - 1]!, 96, "  "));
-      /* The reason is not repeated here: the block below prints it in full. */
+        why: a.toolsWhy ?? null,
+        alsoCompared: [
+          ...others.filter((f) => !shaky.has(f)),
+          ...(d.readme === "same" ? ["README digest"] : []),
+        ],
+        alsoNotCompared: [
+          ...others.filter((f) => shaky.has(f)).map((f) => `${f} (the two runs of one version disagreed about it)`),
+          ...(d.readme === "can't tell" ? ["README digest (the two runs of one version disagreed about it)"] : []),
+        ],
+      })) {
+        out.push(...wrapTo(line, 94, "  "));
+      }
+      listed = true;
     } else {
       out.push(`BETWEEN ${span}:`);
     }
@@ -284,8 +297,10 @@ export function renderAlert(a: AlertInput): string {
       out.push("");
       out.push(`  ${t.unchanged} tool${t.unchanged === 1 ? "" : "s"} identical in name, description, input schema and every other field.`);
       out.push("");
-    } else if (a.toolsWhy) {
-      /* Said, not implied. Silence here reads as "no description changed". */
+    } else if (a.toolsWhy && !listed) {
+      /* Said, not implied. Silence here reads as "no description changed".
+       * Skipped when the no-change block above already named it with its
+       * reason, which is the same fact twice. */
       out.push("");
       out.push(`  DESCRIPTIONS AND INPUT SCHEMAS: not compared (${a.toolsWhy}).`);
       out.push(`  Tool names are compared below. Whether any tool changed what it says about itself is not`);
