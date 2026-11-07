@@ -795,8 +795,11 @@ function notePage(n: Note): string {
       `- **Not calibration-backed.** These two measurements did not pass the publication gate that the 67 report pages pass, so this page does not carry their standing.`,
       `- **Versions were released between these two and were not measured.** How many is recorded as ${n.gap}, because nothing here has counted them.`,
       ``,
-      `Measured ${n.measuredAt.a[0]?.slice(0, 10)}, instrument \`${n.instrumentFingerprint.slice(0, 12)}\`. The full record,`,
-      `both runs and both tool lists are in [the public repository](${REPO}).`,
+      `## Check it yourself`,
+      ``,
+      `[Compare two tool lists](/diff.html) takes a pasted list from each of two versions and runs the same comparison in your browser, sending nothing. Its **Load the demo** button fills both boxes with this pair's tool names, so the ${n.added.length} added above are the ${n.added.length} it finds.`,
+      ``,
+      `Measured ${n.measuredAt.a[0]?.slice(0, 10)}, instrument \`${n.instrumentFingerprint.slice(0, 12)}\`. The full record, both runs and both tool lists are in [the public repository](${REPO}).`,
     ].join("\n"),
   );
   return shell({
@@ -805,6 +808,184 @@ function notePage(n: Note): string {
     canonical: `${SITE}/notes/${slugOf(n.package)}-${n.a}-${n.b}.html`,
     body,
     mistakeTitle: `Mistake on the ${n.package} ${n.a}-to-${n.b} note`,
+  });
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * TWO TOOL LISTS, COMPARED IN THE READER'S BROWSER.
+ *
+ * Same rule as the paste page: the comparison is inlined, the CSP forbids
+ * connections, and nothing a reader pastes can leave the page. Somebody
+ * checking what moved between two versions of a server they run is pasting
+ * the surface of their own tooling, and that is theirs.
+ *
+ * The demo is the kolbo pair, NAMES ONLY. The note page's record carries
+ * every description and schema for both versions, and a maintainer's writing
+ * republished at scale is a different act from publishing a measurement. Two
+ * lists of names demonstrate added and removed, and the page says plainly
+ * that names alone cannot answer the other two questions.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+function diffPage(demo: { package: string; a: { version: string; names: string[] }; b: { version: string; names: string[] } } | null): string {
+  const client = readFileSync(join(ROOT, "site", "diff-client.js"), "utf8");
+  const ui = `
+const DEMO = ${demo ? JSON.stringify(demo) : "null"};
+const A = document.getElementById('a');
+const B = document.getElementById('b');
+const out = document.getElementById('out');
+const demoBtn = document.getElementById('demo');
+const clearBtn = document.getElementById('clear');
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function names(xs){ return xs.map(function(n){ return '<li><code>' + esc(n) + '</code></li>'; }).join(''); }
+
+function section(title, n, inner){
+  if(!n) return '';
+  return '<h3>' + esc(title) + ' <span class="n">' + n + '</span></h3>' + inner;
+}
+
+function render(){
+  const ta = A.value.trim(), tb = B.value.trim();
+  if(!ta && !tb){ out.innerHTML = '<p class="hint">Paste a tool list into each box. A whole <code>tools/list</code> reply, its <code>result</code>, a bare array of tools, or just an array of names.</p>'; return; }
+  if(!ta || !tb){ out.innerHTML = '<p class="hint">One box still to fill.</p>'; return; }
+
+  const ra = readList(ta), rb = readList(tb);
+  if(!ra.ok || !rb.ok){
+    let m = '';
+    if(!ra.ok) m += '<p class="bad"><strong>Left box:</strong> ' + esc(ra.because) + '</p>';
+    if(!rb.ok) m += '<p class="bad"><strong>Right box:</strong> ' + esc(rb.because) + '</p>';
+    out.innerHTML = m;
+    return;
+  }
+
+  const la = ra.tools.map(recordOf), lb = rb.tools.map(recordOf);
+  const detail = carriesDetail(la) && carriesDetail(lb);
+  const d = diffTools(la, lb);
+
+  let html = '<p class="summary">' + esc(summaryOf(d, detail)) + '</p>';
+  if(!detail){
+    html += '<p class="hint">One of these lists carries names only, so this compares names. ' +
+            'Added and removed are answered; changed description and changed input schema are not, ' +
+            'and are left out rather than reported as none.</p>';
+  }
+
+  html += section('Added', d.added.length, '<ul class="tools">' + names(d.added) + '</ul>');
+  html += section('Removed', d.removed.length, '<ul class="tools">' + names(d.removed) + '</ul>');
+
+  if(detail){
+    html += section('Changed description', d.descriptionChanged.length, '<ul class="tools">' + d.descriptionChanged.map(function(c){
+      const f = firstDifference(c.before, c.after);
+      let row = '<li><code>' + esc(c.name) + '</code>';
+      if(f){
+        row += '<div class="was"><span class="lbl">line ' + f.at + ', before</span>' + esc(f.before) + '</div>';
+        row += '<div class="now"><span class="lbl">after</span>' + esc(f.after) + '</div>';
+      }
+      return row + '</li>';
+    }).join('') + '</ul>');
+
+    html += section('Changed input schema', d.schemaChanged.length, '<ul class="tools">' + d.schemaChanged.map(function(c){
+      return '<li><code>' + esc(c.name) + '</code></li>';
+    }).join('') + '</ul>');
+
+    if(d.otherChanged.length){
+      const tally = {};
+      d.otherChanged.forEach(function(o){ o.fields.forEach(function(f){ tally[f] = (tally[f]||0) + 1; }); });
+      const parts = Object.keys(tally).sort().map(function(f){ return tally[f] + ' in <code>' + esc(f) + '</code>'; });
+      html += '<h3>Differing in another field <span class="n">' + d.otherChanged.length + '</span></h3>';
+      html += '<p class="hint">' + parts.join(', ') + '. Counted apart from the two above, so neither number stands in for the other. This does not say what in the field moved.</p>';
+    }
+
+    html += '<p class="hint">' + d.unchanged + ' identical in name, description, input schema and every other field.</p>';
+  }
+
+  out.innerHTML = html;
+}
+
+if(demoBtn && DEMO){
+  demoBtn.addEventListener('click', function(){
+    A.value = JSON.stringify(DEMO.a.names, null, 2);
+    B.value = JSON.stringify(DEMO.b.names, null, 2);
+    render();
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+clearBtn.addEventListener('click', function(){ A.value = ''; B.value = ''; render(); });
+A.addEventListener('input', render);
+B.addEventListener('input', render);
+render();
+`;
+
+  const form = `
+<div class="boxes">
+  <div><label for="a">Earlier version</label><textarea id="a" spellcheck="false" placeholder="paste the tool list"></textarea></div>
+  <div><label for="b">Later version</label><textarea id="b" spellcheck="false" placeholder="paste the tool list"></textarea></div>
+</div>
+<p class="actions">${demo ? `<button type="button" id="demo">Load the demo</button>` : ""}<button type="button" id="clear">Clear</button></p>
+<div id="out" class="out"></div>
+<style>
+  .boxes{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0 .6rem}
+  @media (max-width:640px){.boxes{grid-template-columns:1fr}}
+  .boxes label{display:block;font:500 .82rem/1.4 "Instrument Sans",system-ui,sans-serif;letter-spacing:.02em;margin-bottom:.35rem}
+  .boxes textarea{width:100%;box-sizing:border-box;min-height:11rem;resize:vertical;font:400 .8rem/1.5 "IBM Plex Mono",ui-monospace,monospace;padding:.7rem;border:1px solid currentColor;border-radius:3px;background:transparent;color:inherit}
+  .actions{display:flex;gap:.6rem;margin:0 0 1.4rem}
+  .actions button{font:500 .85rem/1 "Instrument Sans",system-ui,sans-serif;padding:.6rem 1rem;border:1px solid currentColor;border-radius:3px;background:transparent;color:inherit;cursor:pointer}
+  .out .summary{font:500 1rem/1.6 "Instrument Sans",system-ui,sans-serif}
+  .out .hint{font:400 .88rem/1.6 "Instrument Sans",system-ui,sans-serif;opacity:.75}
+  .out .bad{font:400 .9rem/1.6 "IBM Plex Mono",ui-monospace,monospace}
+  .out h3{font:500 .95rem/1.4 "Instrument Sans",system-ui,sans-serif;margin:1.6rem 0 .5rem}
+  .out h3 .n{font:400 .8rem/1 "IBM Plex Mono",ui-monospace,monospace;opacity:.6;margin-left:.4rem}
+  ul.tools{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:.3rem .8rem}
+  ul.tools li{font:400 .8rem/1.7 "IBM Plex Mono",ui-monospace,monospace;flex:0 0 auto}
+  ul.tools li:has(.was){flex:1 1 100%;margin:.5rem 0}
+  .was,.now{font:400 .78rem/1.6 "IBM Plex Mono",ui-monospace,monospace;padding:.25rem .5rem;margin:.2rem 0;border-left:2px solid currentColor;opacity:.85;overflow-x:auto}
+  .was .lbl,.now .lbl{display:block;font:500 .7rem/1.4 "Instrument Sans",system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.55}
+</style>`;
+
+  const body = [
+    markdownToHtml(
+      [
+        `# Compare two tool lists`,
+        ``,
+        `Paste what a server offered in one version on the left, and in another version on the right. This shows which tools were added, which were removed, and which existing tools describe themselves differently or take different input.`,
+        ``,
+        `**It runs in your browser and sends nothing.** The comparison is part of this page, there is no server to send to, and the page carries a rule the browser enforces whatever the code does: it may open no connection at all. Close the tab and what you pasted is gone.`,
+      ].join("\n"),
+    ),
+    form,
+    markdownToHtml(
+      [
+        `## Where to get a tool list`,
+        ``,
+        `Any of these pastes without editing: a whole \`tools/list\` reply, the \`result\` object inside it, the bare array of tools, or a file with a \`tools\` key. A plain array of names works too, and answers the two questions names can answer.`,
+        ``,
+        `## What this does not say`,
+        ``,
+        `- **No tool is called, here or anywhere on this site.** This reads two descriptions of what a server offers. It does not run either version and does not check whether a tool does what it says.`,
+        `- **A tool list can depend on configuration.** Two lists captured under different settings differ for that reason, and this cannot tell that apart from a change between versions. Capture both the same way.`,
+        `- **Nothing here judges what it finds.** A tool that is new is a tool that is new. Whether any difference matters depends on your configuration and your reading of it, neither of which this page has.`,
+        `- **Order and key order do not count as changes.** Object keys are sorted at every depth before comparing, so a serialiser that reorders a schema does not show up as a changed schema.`,
+        ``,
+        ...(demo
+          ? [
+              `## The demo`,
+              ``,
+              `**Load the demo** fills both boxes with the tool names ${demo.package} offered in ${demo.a.version} and in ${demo.b.version} — ${demo.a.names.length} names and ${demo.b.names.length}, measured by this project. Names only: the full lists carry every tool's description and input schema, and republishing a maintainer's writing at that scale is a different act from publishing a measurement. So the demo shows added and removed, and the page says why the other two sections are absent. [The note on that pair](/notes/${slugOf(demo.package)}-${demo.a.version}-${demo.b.version}.html) reports all four from the saved record.`,
+            ]
+          : []),
+      ].join("\n"),
+    ),
+    `<script type="module">${client.replace(/^export /gm, "")}
+${ui}</script>`,
+  ].join("\n");
+
+  return shell({
+    title: "Compare two tool lists",
+    description: "Paste the tool list from two versions of an MCP server and see what was added, removed, re-described or re-shaped. Runs entirely in your browser; nothing is uploaded.",
+    canonical: `${SITE}/diff.html`,
+    body,
+    mistakeTitle: "Mistake on the tool list comparison page",
+    csp: "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'",
   });
 }
 
@@ -970,11 +1151,16 @@ function main(): void {
         .join("\n") +
       `\n</urlset>\n`,
   );
+  /* The comparison page, with the demo pair if its extract is committed. */
+  const DEMO_FILE = join(ROOT, "site", "notes", "demo-kolbo--mcp-names.json");
+  const demo = existsSync(DEMO_FILE) ? JSON.parse(readFileSync(DEMO_FILE, "utf8")) : null;
+  writeFileSync(join(DIST, "diff.html"), diffPage(demo));
+
   /* Note pages: one per committed extract under site/notes/. */
   const NOTES = join(ROOT, "site", "notes");
   if (existsSync(NOTES)) {
     mkdirSync(join(DIST, "notes"), { recursive: true });
-    for (const f of readdirSync(NOTES).filter((x) => x.endsWith(".json")).sort()) {
+    for (const f of readdirSync(NOTES).filter((x) => x.endsWith(".json") && !x.startsWith("demo-")).sort()) {
       const n = JSON.parse(readFileSync(join(NOTES, f), "utf8")) as Note;
       const name = `${slugOf(n.package)}-${n.a}-${n.b}.html`;
       writeFileSync(join(DIST, "notes", name), notePage(n));

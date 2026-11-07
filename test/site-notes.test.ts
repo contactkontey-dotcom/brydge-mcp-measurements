@@ -18,7 +18,9 @@ const NOTES = join(ROOT, "site", "notes");
 
 const notes = existsSync(NOTES)
   ? readdirSync(NOTES)
-      .filter((f) => f.endsWith(".json"))
+      /* `demo-*.json` is the comparison page's demo data, not a note extract;
+       * site/build.ts skips the same prefix when it writes the note pages. */
+      .filter((f) => f.endsWith(".json") && !f.startsWith("demo-"))
       .map((f) => ({ file: f, n: JSON.parse(readFileSync(join(NOTES, f), "utf8")) as Record<string, any> }))
   : [];
 

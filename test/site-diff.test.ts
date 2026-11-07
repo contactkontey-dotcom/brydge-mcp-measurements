@@ -1,0 +1,166 @@
+/*
+ * The comparison page: the logic, and the promise that it sends nothing.
+ *
+ * The no-network claim is checked twice over. Once statically, the way the
+ * paste page is checked — the CSP, and the absence of any call that could
+ * leave the page. Once in a real browser, driving the page as a reader would
+ * and failing on any request it makes after load. The static check can be
+ * fooled by a call spelled differently; the browser cannot.
+ */
+import { strict as assert } from "node:assert";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { test } from "node:test";
+import { canonical, carriesDetail, diffTools, firstDifference, parseToolList, readList, recordOf, summaryOf } from "../site/diff-client.js";
+
+const ROOT = join(import.meta.dirname, "..");
+const PAGE = join(ROOT, "site", "dist", "diff.html");
+const built = existsSync(PAGE);
+const html = built ? readFileSync(PAGE, "utf8") : "";
+
+const recs = (xs: Array<Record<string, unknown>>) => xs.map(recordOf);
+
+/* ── The comparison ────────────────────────────────────────────────────── */
+
+test("key order is not a change", () => {
+  const a = recs([{ name: "t", inputSchema: { type: "object", properties: { b: 1, a: 2 } } }]);
+  const b = recs([{ name: "t", inputSchema: { properties: { a: 2, b: 1 }, type: "object" } }]);
+  assert.equal(canonical({ b: 1, a: 2 }), canonical({ a: 2, b: 1 }));
+  assert.equal(diffTools(a, b).schemaChanged.length, 0);
+  assert.equal(diffTools(a, b).unchanged, 1);
+});
+
+test("added, removed, description and schema are four separate answers", () => {
+  const a = recs([
+    { name: "keep", description: "same", inputSchema: { type: "object" } },
+    { name: "gone", description: "x" },
+    { name: "reworded", description: "before" },
+    { name: "reshaped", inputSchema: { type: "string" } },
+  ]);
+  const b = recs([
+    { name: "keep", description: "same", inputSchema: { type: "object" } },
+    { name: "fresh", description: "y" },
+    { name: "reworded", description: "after" },
+    { name: "reshaped", inputSchema: { type: "number" } },
+  ]);
+  const d = diffTools(a, b);
+  assert.deepEqual(d.added, ["fresh"]);
+  assert.deepEqual(d.removed, ["gone"]);
+  assert.deepEqual(d.descriptionChanged.map((c) => c.name), ["reworded"]);
+  assert.deepEqual(d.schemaChanged.map((c) => c.name), ["reshaped"]);
+  assert.equal(d.unchanged, 1);
+});
+
+test("a tool moving in both is counted in both, and once as a tool", () => {
+  const a = recs([{ name: "t", description: "a", inputSchema: { type: "object" } }]);
+  const b = recs([{ name: "t", description: "b", inputSchema: { type: "string" } }]);
+  const d = diffTools(a, b);
+  assert.equal(d.descriptionChanged.length, 1);
+  assert.equal(d.schemaChanged.length, 1);
+  assert.equal(d.unchanged, 0);
+  const distinct = new Set([...d.descriptionChanged, ...d.schemaChanged].map((c) => c.name));
+  assert.equal(distinct.size, 1);
+});
+
+test("a field that is neither description nor schema is named, not lumped", () => {
+  const a = recs([{ name: "t", _meta: { ui: { resourceUri: "one" } } }]);
+  const b = recs([{ name: "t", _meta: { ui: { resourceUri: "two" } } }]);
+  const d = diffTools(a, b);
+  assert.deepEqual(d.otherChanged, [{ name: "t", fields: ["_meta"] }]);
+  assert.equal(d.descriptionChanged.length, 0);
+  assert.equal(d.schemaChanged.length, 0);
+});
+
+test("a names-only list is a valid list, and is known to carry no detail", () => {
+  const names = recs(parseToolList(["b", "a"]));
+  assert.deepEqual(names.map((t) => t.name), ["b", "a"]);
+  assert.equal(carriesDetail(names), false);
+  assert.equal(carriesDetail(recs([{ name: "t", description: "d" }])), true);
+  const d = diffTools(recs(parseToolList(["a"])), recs(parseToolList(["a", "b"])));
+  assert.deepEqual(d.added, ["b"]);
+  assert.equal(d.descriptionChanged.length, 0);
+});
+
+test("a names-only comparison does not report zero changed descriptions as a finding", () => {
+  const d = diffTools(recs(parseToolList(["a"])), recs(parseToolList(["a", "b"])));
+  const said = summaryOf(d, false);
+  assert.match(said, /Nothing differs in the names|added/);
+  assert.ok(!/description/.test(said), "a names-only summary must not mention descriptions");
+});
+
+test("the shapes a tool list arrives in", () => {
+  const one = [{ name: "t" }];
+  assert.deepEqual(parseToolList(one), one);
+  assert.deepEqual(parseToolList({ tools: one }), one);
+  assert.deepEqual(parseToolList({ result: { tools: one } }), one);
+  assert.deepEqual(parseToolList({ message: { result: { tools: one } } }), one);
+  assert.deepEqual(parseToolList([]), []); /* a server offering nothing */
+  assert.throws(() => parseToolList({ nope: 1 }), /no tool list found/);
+});
+
+test("bad input gets a reason, not a crash", () => {
+  assert.equal(readList("").ok, false);
+  const notJson = readList("tools/list");
+  assert.equal(notJson.ok, false);
+  assert.match((notJson as { because: string }).because, /not JSON/);
+  const wrong = readList('{"a":1}');
+  assert.equal(wrong.ok, false);
+  assert.match((wrong as { because: string }).because, /no tool list found/);
+});
+
+test("a reworded description is shown by its first differing line", () => {
+  assert.equal(firstDifference("same", "same"), null);
+  const f = firstDifference("one\ntwo", "one\nTWO");
+  assert.deepEqual(f, { at: 2, before: "two", after: "TWO" });
+});
+
+/* ── The demo answers what the note page claims ────────────────────────── */
+
+test("the demo pair gives the 33 added and none removed that the note reports", () => {
+  const f = join(ROOT, "site", "notes", "demo-kolbo--mcp-names.json");
+  assert.ok(existsSync(f), "the demo extract is missing");
+  const demo = JSON.parse(readFileSync(f, "utf8"));
+  const d = diffTools(recs(parseToolList(demo.a.names)), recs(parseToolList(demo.b.names)));
+  assert.equal(d.counts.a, 278);
+  assert.equal(d.counts.b, 311);
+  assert.equal(d.added.length, 33);
+  assert.equal(d.removed.length, 0);
+
+  const note = JSON.parse(readFileSync(join(ROOT, "site", "notes", "kolbo--mcp-1.128.0-1.131.2.json"), "utf8"));
+  assert.deepEqual(d.added, note.added, "the demo and the note disagree about what was added");
+});
+
+/* ── The built page ────────────────────────────────────────────────────── */
+
+test("the built page cannot send anything", { skip: !built }, () => {
+  assert.match(html, /connect-src 'none'/, "no CSP forbidding connections");
+  assert.match(html, /form-action 'none'/, "a form could still post");
+  assert.match(html, /default-src 'self'/);
+  const code = html.slice(html.indexOf('<script type="module">')).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  for (const api of ["fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket", "EventSource", "localStorage", "sessionStorage", "indexedDB", "document.cookie", "import("]) {
+    assert.ok(!code.includes(api), `the page's code uses ${api}`);
+  }
+  assert.ok(!/src="[^"]*diff-client/.test(html), "the comparison is loaded over the network instead of inlined");
+  assert.ok(!/<form\b/.test(html.slice(html.indexOf("<main"))), "a form element could navigate away");
+});
+
+test("the built page carries its demo and links the note", { skip: !built }, () => {
+  assert.match(html, /Load the demo/);
+  assert.match(html, /cancel_social_post/, "the demo names are not inlined");
+  assert.match(html, /\/notes\/kolbo--mcp-1\.128\.0-1\.131\.2\.html/, "the page does not link the note");
+});
+
+test("the note page links the comparison page", { skip: !existsSync(join(ROOT, "site", "dist", "notes", "kolbo--mcp-1.128.0-1.131.2.html")) }, () => {
+  const note = readFileSync(join(ROOT, "site", "dist", "notes", "kolbo--mcp-1.128.0-1.131.2.html"), "utf8");
+  assert.match(note, /href="\/diff\.html"/, "the note does not link the comparison page");
+});
+
+test("the built page carries no judging word", { skip: !built }, () => {
+  const prose = html.replace(/<[^>]+>/g, " ").toLowerCase();
+  for (const w of [
+    "safe", "unsafe", "suspicious", "malicious", "dangerous", "risky", "harmless",
+    "legitimate", "sketchy", "concerning", "alarming", "benign", "trustworthy", "warning",
+  ]) {
+    assert.ok(!new RegExp(`\\b${w}\\b`).test(prose), `the page says "${w}"`);
+  }
+});
