@@ -51,7 +51,7 @@ test("fields we do not single out are kept and still counted in the whole-tool h
   assert.equal(a.schemaHash, b.schemaHash);
   assert.notEqual(a.hash, b.hash, "a change outside description and schema went unnoticed");
   const d = diffTools([a], [b]);
-  assert.deepEqual(d.changed[0]!.what, ["annotations"], "the field that moved was not named");
+  assert.deepEqual(d.changed[0]!.what, ["/annotations/readOnlyHint"], "the field that moved was not named");
 });
 
 /* ── the shapes a list arrives in ───────────────────────────────────────── */

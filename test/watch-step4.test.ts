@@ -274,7 +274,9 @@ test("tools differing only in _meta are one counted line, never a list", () => {
   const many = (n: number, v: string) =>
     Array.from({ length: n }, (_, i) => ({ name: `t${i}`, _meta: { ui: { resourceUri: v } } }));
   const text = renderAlert({ ...alertBase, diff: null, tools: toolDiffOf(many(47, "one"), many(47, "two")) });
-  assert.match(text, /47 tools differ only in _meta\. Not listed individually\./);
+  /* The key is named with a JSON Pointer now, not just the top-level field. */
+  assert.match(text, /47 tools differ only at \/_meta\/ui\/resourceUri\. Not listed individually\./);
+  assert.ok(!text.includes("differ only in _meta"), "it still names only the top-level field");
   assert.ok(!text.includes("t0:"), "a _meta-only tool was listed by name");
   assert.ok(!text.includes("t46"), "a _meta-only tool was listed by name");
 });

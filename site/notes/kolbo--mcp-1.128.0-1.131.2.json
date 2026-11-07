@@ -75,7 +75,8 @@
     "upload_media"
   ],
   "changedOnlyInOtherFields": {
-    "_meta": 47
+    "/_meta/ui/resourceUri": 47,
+    "/_meta/ui~1resourceUri": 47
   },
   "toolsUnchanged": 223,
   "otherFields": [
@@ -122,5 +123,6 @@
     "a": "sha512-DXMVIWcQEouQQ1Fc1L0dKg6tfddn9W8IzyTpO5jmQsVMU6rsPICTrWnOqsIZqLTd2xgh/karQDKZoQeOl2jr8g==",
     "b": "sha512-QvOKSxlwGWSO/X2iBHRPntTq75T1UtXkZ/KDRcWVqDvJXypUflDiNJDD73lmB6SnGjbF3lsEy6TLTYMlSgnIoQ=="
   },
-  "gap": "unknown"
+  "gap": "unknown",
+  "changedOnlyInOtherFieldsTools": 47
 }

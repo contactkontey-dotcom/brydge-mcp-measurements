@@ -140,16 +140,70 @@ export function captureFrom(pkg: string, version: string, tools: Record<string, 
 
 /* ── Comparing two captures ─────────────────────────────────────────────── */
 
+/*
+ * WHICH KEY MOVED, NOT JUST WHICH TOP-LEVEL FIELD.
+ *
+ * Naming the top-level field was already better than "other fields", but it
+ * stopped one level too high: "47 tools differ only in _meta" still leaves a
+ * reader to guess what in `_meta`. This walks down to the leaves and names
+ * each one.
+ *
+ * JSON POINTER (RFC 6901), NOT A DOTTED PATH. @kolbo/mcp's `_meta` carries
+ * BOTH a literal key named "ui/resourceUri" AND a nested ui.resourceUri, and
+ * both move together. A dotted path writes them identically and a reader
+ * cannot tell which one is meant. A pointer escapes "~" as "~0" and "/" as
+ * "~1", so /_meta/ui~1resourceUri and /_meta/ui/resourceUri are different
+ * strings for different things, and the escaping is somebody else's spec
+ * rather than ours.
+ *
+ * Depth is capped. A server with a large churning structure would otherwise
+ * turn one line into hundreds; past the cap the ancestor is named and the
+ * output says the walk stopped there rather than implying it reached bottom.
+ */
+export const POINTER_DEPTH = 6;
+
+/** One path segment, escaped per RFC 6901. */
+export function escapePointer(segment: string): string {
+  return segment.replace(/~/g, "~0").replace(/\//g, "~1");
+}
+
+/**
+ * JSON Pointers to the leaves at which two values differ.
+ *
+ * `atCap` marks a pointer that names a subtree rather than a leaf, because
+ * the walk stopped at the depth cap.
+ */
+export function differingPointers(
+  a: unknown,
+  b: unknown,
+  base = "",
+  depth = 0,
+): Array<{ pointer: string; atCap: boolean }> {
+  if (canonical(a) === canonical(b)) return [];
+  const plain = (v: unknown) => v !== null && typeof v === "object" && !Array.isArray(v);
+  if (!plain(a) || !plain(b)) return [{ pointer: base || "/", atCap: false }];
+  if (depth >= POINTER_DEPTH) return [{ pointer: base || "/", atCap: true }];
+
+  const out: Array<{ pointer: string; atCap: boolean }> = [];
+  const A = a as Record<string, unknown>;
+  const B = b as Record<string, unknown>;
+  for (const k of [...new Set([...Object.keys(A), ...Object.keys(B)])].sort()) {
+    out.push(...differingPointers(A[k], B[k], `${base}/${escapePointer(k)}`, depth + 1));
+  }
+  return out;
+}
+
 export interface ToolChange {
   name: string;
-  /* `description`, `input schema`, or the name of each other field that moved
-   * — `_meta`, `annotations`, whatever the server sent. Naming it matters:
-   * 47 of @kolbo/mcp's tools differed between two versions only at
-   * `_meta.ui.resourceUri`. Under the label "other fields" that reads like 47
-   * changed tools; named, it reads like 47 tools differing at one field,
-   * which is what the comparison saw. What that field is for is not
-   * something this measured, and nothing here characterises it. */
+  /* `description`, `input schema`, or a JSON Pointer to each other leaf that
+   * moved. Naming it matters: 50 of @kolbo/mcp's tools differed between two
+   * versions only under `_meta`, and "other fields" reads like 50 changed
+   * tools. A pointer says exactly which key, and says nothing about what the
+   * key is for — that would be a reading of somebody else's build, not a
+   * measurement. */
   what: string[];
+  /** The pointers among `what`, kept apart so a renderer can group by them. */
+  pointers?: Array<{ pointer: string; atCap: boolean }>;
   before?: { description: string | null };
   after?: { description: string | null };
 }
@@ -180,13 +234,12 @@ export function diffTools(a: ToolRecord[], b: ToolRecord[]): ToolDiff {
     const what: ToolChange["what"] = [];
     if (x.descriptionHash !== y.descriptionHash) what.push("description");
     if (x.schemaHash !== y.schemaHash) what.push("input schema");
-    for (const k of [...new Set([...Object.keys(x.extra), ...Object.keys(y.extra)])].sort()) {
-      if (canonical(x.extra[k]) !== canonical(y.extra[k])) what.push(k);
-    }
+    const pointers = differingPointers(x.extra, y.extra);
+    for (const p of pointers) what.push(p.pointer);
     /* The whole-tool hash moved and nothing we can name did: say that rather
      * than claim a field. */
     if (!what.length) what.push("something not broken out here");
-    changed.push({ name, what, before: { description: x.description }, after: { description: y.description } });
+    changed.push({ name, what, pointers, before: { description: x.description }, after: { description: y.description } });
   }
   changed.sort((p, q) => p.name.localeCompare(q.name));
   return { added, removed, changed, unchanged };

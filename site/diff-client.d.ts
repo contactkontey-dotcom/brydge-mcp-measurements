@@ -9,7 +9,7 @@ export interface ToolDiff {
   removed: string[];
   descriptionChanged: Array<{ name: string; before: string | null; after: string | null }>;
   schemaChanged: Array<{ name: string; before: string | null; after: string | null }>;
-  otherChanged: Array<{ name: string; fields: string[] }>;
+  otherChanged: Array<{ name: string; fields: string[]; pointers: Array<{ pointer: string; atCap: boolean }> }>;
   unchanged: number;
   counts: { a: number; b: number };
 }
@@ -27,3 +27,11 @@ export function noChangeBlock(
   alwaysNotCompared: string[],
   caveat: string,
 ): { compared: string[]; notCompared: string[]; caveat: string };
+export declare const POINTER_DEPTH: number;
+export function escapePointer(segment: string): string;
+export function differingPointers(
+  a: unknown,
+  b: unknown,
+  base?: string,
+  depth?: number,
+): Array<{ pointer: string; atCap: boolean }>;

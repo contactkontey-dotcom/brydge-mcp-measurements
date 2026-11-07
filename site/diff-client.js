@@ -109,6 +109,41 @@ export function carriesDetail(tools) {
   return tools.some((t) => t.description !== null || t.schema !== null || Object.keys(t.extra).length > 0);
 }
 
+/*
+ * WHICH KEY MOVED, NOT JUST WHICH TOP-LEVEL FIELD.
+ *
+ * JSON Pointer (RFC 6901), not a dotted path. A `_meta` can hold BOTH a
+ * literal key named "ui/resourceUri" AND a nested ui.resourceUri — the kolbo
+ * pair does — and a dotted path writes the two identically. A pointer
+ * escapes "~" as "~0" and "/" as "~1", so they are different strings.
+ *
+ * Depth is capped: past the cap the branch is named rather than the leaf,
+ * and the caller is told the walk stopped, so a large churning structure
+ * cannot turn one line into hundreds.
+ *
+ * This mirrors watch/tools.ts. The page cannot import it — that is a Node
+ * module and this runs in a browser — so a test compares the two on the same
+ * input rather than trusting them to stay alike.
+ */
+export const POINTER_DEPTH = 6;
+
+export function escapePointer(segment) {
+  return String(segment).replace(/~/g, "~0").replace(/\//g, "~1");
+}
+
+export function differingPointers(a, b, base, depth) {
+  base = base || "";
+  depth = depth || 0;
+  if (canonical(a) === canonical(b)) return [];
+  const plain = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+  if (!plain(a) || !plain(b)) return [{ pointer: base || "/", atCap: false }];
+  if (depth >= POINTER_DEPTH) return [{ pointer: base || "/", atCap: true }];
+  const out = [];
+  const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
+  for (const k of keys) out.push(...differingPointers(a[k], b[k], base + "/" + escapePointer(k), depth + 1));
+  return out;
+}
+
 export function diffTools(a, b) {
   const A = new Map(a.map((t) => [t.name, t]));
   const B = new Map(b.map((t) => [t.name, t]));
@@ -131,12 +166,9 @@ export function diffTools(a, b) {
       fields.push("input schema");
       schemaChanged.push({ name, before: x.schema, after: y.schema });
     }
-    const other = [];
-    for (const k of [...new Set([...Object.keys(x.extra), ...Object.keys(y.extra)])].sort()) {
-      if (canonical(x.extra[k]) !== canonical(y.extra[k])) other.push(k);
-    }
-    if (other.length) otherChanged.push({ name, fields: other });
-    if (!fields.length && !other.length) unchanged++;
+    const pointers = differingPointers(x.extra, y.extra);
+    if (pointers.length) otherChanged.push({ name, fields: pointers.map((p) => p.pointer), pointers: pointers });
+    if (!fields.length && !pointers.length) unchanged++;
   }
 
   descriptionChanged.sort((p, q) => p.name.localeCompare(q.name));

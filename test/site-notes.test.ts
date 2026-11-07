@@ -55,8 +55,17 @@ for (const { file, n } of notes) {
     assert.equal(n.toolsUnchanged, r.tools.unchanged);
 
     const other: Record<string, number> = {};
-    for (const o of r.tools.otherChanged) for (const f of o.fields) other[f] = (other[f] ?? 0) + 1;
+    for (const o of r.tools.otherChanged) for (const p of o.pointers) other[p.pointer] = (other[p.pointer] ?? 0) + 1;
     assert.deepEqual(n.changedOnlyInOtherFields, other);
+    /* The tool count is a count of tools, never the sum of the pointer
+     * counts: one tool moving at two keys appears twice above. */
+    assert.equal(n.changedOnlyInOtherFieldsTools, r.tools.otherChanged.length);
+    if (Object.keys(other).length > 1) {
+      assert.ok(
+        Object.values(other).reduce((a, b) => a + b, 0) > n.changedOnlyInOtherFieldsTools,
+        "the fixture no longer exercises a tool moving at several keys",
+      );
+    }
 
     assert.deepEqual(n.otherFields, r.diff.counts.filter((c: any) => c.field !== "tools offered"));
     assert.equal(n.readme, r.diff.readme);

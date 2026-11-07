@@ -25,7 +25,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { NEW_LABEL, type Check } from "./approved.ts";
-import { firstDifference, type ToolDiff } from "./tools.ts";
+import { firstDifference, POINTER_DEPTH, type ToolDiff } from "./tools.ts";
 import { noChangeBlock, wrapTo, type Diff } from "./versiondiff.ts";
 
 /*
@@ -268,20 +268,43 @@ export function renderAlert(a: AlertInput): string {
       }
 
       /*
-       * Tools that moved only in a field that is neither: ONE LINE, counted
-       * and never listed. 47 of the kolbo pair's tools differ only in
-       * `_meta`; 47 names in a forwarded message reads as 47 changed tools,
-       * and the count with the field named says what the comparison saw and
-       * stops there. What the field is for is not something this measured.
+       * Tools that moved only somewhere else: ONE LINE PER KEY, counted, and
+       * the tools never listed. 50 of the kolbo pair's tools move only under
+       * `_meta`, and 50 names in a forwarded message reads as 50 changed
+       * tools. The key is named with a JSON Pointer, which is exact where a
+       * dotted path is not: that `_meta` holds BOTH a literal key called
+       * "ui/resourceUri" and a nested ui.resourceUri, and the two write the
+       * same dotted path.
+       *
+       * The line says which key moved and stops. What the key is for, and
+       * whether its movement is incidental, is a reading of somebody else's
+       * build that no measurement here supports.
        */
       if (otherOnly.length) {
-        const byField = new Map<string, number>();
-        for (const c of otherOnly) for (const f of c.what) byField.set(f, (byField.get(f) ?? 0) + 1);
-        out.push("");
-        for (const [field, n] of [...byField].sort((x, y) => y[1] - x[1])) {
-          out.push(`  ${n} tool${n === 1 ? "" : "s"} differ only in ${field}. Not listed individually.`);
+        const byPointer = new Map<string, { n: number; atCap: boolean }>();
+        for (const c of otherOnly) {
+          for (const p of c.pointers ?? []) {
+            const was = byPointer.get(p.pointer) ?? { n: 0, atCap: false };
+            byPointer.set(p.pointer, { n: was.n + 1, atCap: was.atCap || p.atCap });
+          }
+          /* A tool whose whole-tool hash moved with no nameable leaf. */
+          if (!(c.pointers ?? []).length) {
+            const was = byPointer.get("(not broken out)") ?? { n: 0, atCap: false };
+            byPointer.set("(not broken out)", { n: was.n + 1, atCap: was.atCap });
+          }
         }
-        out.push(`  That field is neither the description nor the input schema, and this does not say what in it moved.`);
+        out.push("");
+        for (const [pointer, { n, atCap } ] of [...byPointer].sort((x, y) => y[1].n - x[1].n || x[0].localeCompare(y[0]))) {
+          out.push(
+            `  ${n} tool${n === 1 ? "" : "s"} differ only at ${pointer}${atCap ? " or below it" : ""}. Not listed individually.`,
+          );
+        }
+        if ([...byPointer.values()].some((v) => v.atCap)) {
+          out.push(`  "or below it" means the comparison stopped at ${POINTER_DEPTH} levels deep and names the branch, not the leaf.`);
+        }
+        out.push(`  These are JSON Pointers (RFC 6901) into each tool's other fields: "~1" is a "/"`);
+        out.push(`  inside a key name. Neither the description nor the input schema is among them,`);
+        out.push(`  and this does not say what the key is for.`);
       }
 
       if (t.added.length) {

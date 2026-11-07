@@ -765,6 +765,11 @@ interface Note {
   descriptionOrSchemaChanged: string[];
   descriptionChanged: string[];
   schemaChanged: string[];
+  /* How many TOOLS moved only in another field. Not the sum of the pointer
+   * counts: one tool can move at several keys, and the kolbo pair's 47 each
+   * move at two. Summing them would report 94 changed tools. */
+  changedOnlyInOtherFieldsTools: number;
+  /* Pointer -> how many tools moved at it. */
   changedOnlyInOtherFields: Record<string, number>;
   toolsUnchanged: number;
   otherFields: Array<{ field: string; a: number; b: number }>;
@@ -804,7 +809,7 @@ function notePage(n: Note): string {
       ``,
       ...(other.length
         ? [
-            `A further ${other.map(([f, c]) => `${c} differ only in \`${f}\``).join(", ")}. That field is not the tool's description or its input, and this does not say what in it moved or why — only that the ${other.reduce((a, [, c]) => a + c, 0)} are counted here and not among the ${n.descriptionOrSchemaChanged.length} above, so neither number stands in for the other.`,
+            `A further **${n.changedOnlyInOtherFieldsTools} tools** differ in neither their description nor their input schema, but somewhere else: ${other.map(([f, c]) => `${c} at \`${f}\``).join(", ")}. Those are JSON Pointers into each tool's other fields, where \`~1\` is a \`/\` inside a key name — this package's \`_meta\` holds both a literal key called \`ui/resourceUri\` and a nested \`ui.resourceUri\`, so a dotted path would write the two the same. The counts above add to more than ${n.changedOnlyInOtherFieldsTools} because a tool can move at more than one key. These ${n.changedOnlyInOtherFieldsTools} are counted apart from the ${n.descriptionOrSchemaChanged.length} above, so neither number stands in for the other, and this does not say what any of those keys is for.`,
             ``,
           ]
         : []),
@@ -870,6 +875,10 @@ const DEMO = ${demo ? JSON.stringify(demo) : "null"};
 /* The one copy of each, from watch/versiondiff.ts. Tests assert they match. */
 const NO_CHANGE_CAVEAT = ${JSON.stringify(NO_CHANGE_CAVEAT)};
 const ALWAYS_NOT_COMPARED = ${JSON.stringify(ALWAYS_NOT_COMPARED)};
+/* POINTER_DEPTH is NOT injected here: diff-client.js exports its own, and a
+ * second declaration of the same name in one scope is a SyntaxError that
+ * kills the whole inlined script. A test compares the two values instead.
+ * (No backticks in this comment: it lives inside a template literal.) */
 const A = document.getElementById('a');
 const B = document.getElementById('b');
 const out = document.getElementById('out');
@@ -967,11 +976,23 @@ function render(){
 
   if(detail){
     if(d.otherChanged.length){
+      /* One line per key that moved, named with a JSON Pointer. It says
+       * which key and stops: what the key is for is a reading of somebody
+       * else's build that nothing here measured. */
       const tally = {};
-      d.otherChanged.forEach(function(o){ o.fields.forEach(function(f){ tally[f] = (tally[f]||0) + 1; }); });
-      const parts = Object.keys(tally).sort().map(function(f){ return tally[f] + ' in <code>' + esc(f) + '</code>'; });
+      let capped = false;
+      d.otherChanged.forEach(function(o){
+        (o.pointers || []).forEach(function(p){
+          tally[p.pointer] = (tally[p.pointer] || 0) + 1;
+          if (p.atCap) capped = true;
+        });
+      });
+      const parts = Object.keys(tally).sort(function(a,b){ return tally[b]-tally[a] || a.localeCompare(b); })
+        .map(function(f){ return tally[f] + ' at <code>' + esc(f) + '</code>'; });
       html += '<h3>Differing in another field <span class="n">' + d.otherChanged.length + '</span></h3>';
-      html += '<p class="hint">' + parts.join(', ') + '. Counted apart from the two above, so neither number stands in for the other. This does not say what in the field moved.</p>';
+      html += '<p class="hint">' + parts.join(', ') + '. Counted apart from the two above, so neither number stands in for the other.' +
+              (capped ? ' A pointer shown without its last step is a branch: the comparison stopped ' + POINTER_DEPTH + ' levels deep.' : '') +
+              ' These are JSON Pointers (RFC 6901) into the other fields of each tool; <code>~1</code> is a <code>/</code> inside a key name. This does not say what the key is for.</p>';
     }
 
     html += '<p class="hint">' + d.unchanged + ' identical in name, description, input schema and every other field.</p>';

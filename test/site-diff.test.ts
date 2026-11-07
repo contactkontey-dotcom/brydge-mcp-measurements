@@ -66,7 +66,11 @@ test("a field that is neither description nor schema is named, not lumped", () =
   const a = recs([{ name: "t", _meta: { ui: { resourceUri: "one" } } }]);
   const b = recs([{ name: "t", _meta: { ui: { resourceUri: "two" } } }]);
   const d = diffTools(a, b);
-  assert.deepEqual(d.otherChanged, [{ name: "t", fields: ["_meta"] }]);
+  /* The pointer, not just the top-level field: a dotted path cannot tell a
+   * nested ui.resourceUri from a literal key named "ui/resourceUri". */
+  assert.deepEqual(d.otherChanged, [
+    { name: "t", fields: ["/_meta/ui/resourceUri"], pointers: [{ pointer: "/_meta/ui/resourceUri", atCap: false }] },
+  ]);
   assert.equal(d.descriptionChanged.length, 0);
   assert.equal(d.schemaChanged.length, 0);
 });

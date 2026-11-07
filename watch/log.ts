@@ -70,7 +70,7 @@ export interface ToolSection {
   removed: string[];
   descriptionChanged: Array<{ name: string; before: string | null; after: string | null }>;
   schemaChanged: string[];
-  otherChanged: Array<{ name: string; fields: string[] }>;
+  otherChanged: Array<{ name: string; fields: string[]; pointers: Array<{ pointer: string; atCap: boolean }> }>;
   unchanged: number;
 }
 
@@ -196,7 +196,7 @@ export function recordFor(pkg: string, a: string, b: string, now = new Date().to
       schemaChanged: d.changed.filter((c) => c.what.includes("input schema")).map((c) => c.name),
       otherChanged: d.changed
         .filter((c) => !c.what.includes("description") && !c.what.includes("input schema"))
-        .map((c) => ({ name: c.name, fields: c.what })),
+        .map((c) => ({ name: c.name, fields: c.what, pointers: c.pointers ?? [] })),
       unchanged: d.unchanged,
     };
   }
@@ -439,7 +439,13 @@ export function renderTimeline(pkg: string, recs: LogRecord[]): string {
       if (t.removed.length) bits.push(`${t.removed.length} removed`);
       if (t.descriptionChanged.length) bits.push(`${t.descriptionChanged.length} description changed`);
       if (t.schemaChanged.length) bits.push(`${t.schemaChanged.length} schema changed`);
-      for (const o of t.otherChanged) for (const f of o.fields) bits.push(`${o.name}: ${f}`);
+      /* Grouped by the key that moved, not listed per tool: 50 names reads
+       * as 50 changed tools where one counted line reads as one key. */
+      const byPointer = new Map<string, number>();
+      for (const o of t.otherChanged) for (const p of o.pointers) byPointer.set(p.pointer, (byPointer.get(p.pointer) ?? 0) + 1);
+      for (const [pointer, n] of [...byPointer].sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))) {
+        bits.push(`${n} at ${pointer}`);
+      }
       out.push(`        tools: ${bits.length ? bits.join(", ") : "nothing moved"}, ${t.unchanged} unchanged`);
     } else {
       out.push(`        tools: not compared (${r.toolsWhy})`);

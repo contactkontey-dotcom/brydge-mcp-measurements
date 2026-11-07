@@ -63,7 +63,20 @@ test("the page requests nothing but its own document and its fonts, ever", { ski
     page.on("request", (r: any) => seen.push(r.url()));
     page.on("websocket", (w: any) => seen.push(w.url()));
 
+    /*
+     * Report what the page said, not that we waited for it.
+     *
+     * A duplicate `const` in the inlined script is a SyntaxError that kills
+     * every handler, and this test then failed with "Timeout 30000ms
+     * exceeded" — thirty seconds spent to learn nothing. One line of
+     * listener turns that into the parser's own message.
+     */
+    const pageErrors: string[] = [];
+    page.on("pageerror", (e: any) => pageErrors.push(String(e.message ?? e)));
+
     await page.goto("file://" + PAGE, { waitUntil: "load" });
+    await page.waitForTimeout(200);
+    assert.deepEqual(pageErrors, [], `the page's script threw:\n${pageErrors.join("\n")}`);
 
     /* Use it as a reader would: the demo, then a hand-typed pair. */
     await page.click("#demo");
@@ -90,6 +103,7 @@ test("the page requests nothing but its own document and its fonts, ever", { ski
 
     /* Give anything deferred a chance to fire before calling it quiet. */
     await page.waitForTimeout(800);
+    assert.deepEqual(pageErrors, [], `the page's script threw while in use:\n${pageErrors.join("\n")}`);
 
     /*
      * The only requests allowed: this file, and the webfonts every page here
