@@ -5,6 +5,7 @@
  *   node watch/cli.ts measure  <package@version>          store two runs
  *   node watch/cli.ts diff     <package> <A> <B>          compare two stored versions
  *   node watch/cli.ts approve  <package@version> [who]    add it to the approved list
+ *   node watch/cli.ts approve  <pkg@ver> --export claude-code --alias <name>
  *   node watch/cli.ts check    <package@version>          label what is not on the list
  *
  * `--list <file>` points approve and check at a particular list. Customer
@@ -34,6 +35,7 @@ import { agree } from "./fields.ts";
 import { checkAgainst, deserialize, entryFrom, keyOf, renderCheck, serialize, type ApprovedList } from "./approved.ts";
 import { parseLines, pollOne, renderPoll } from "./poll.ts";
 import { renderAlert } from "./alert.ts";
+import { exportClaudeCode, isRefusal } from "./export-claude-code.ts";
 import { folderOf, getRuns, putRun, versionsOf } from "./store.ts";
 import { renderDiff, versiondiff } from "./versiondiff.ts";
 import { captureFrom, diffTools, parseToolList, renderToolDiff, toolsFromSession, type Capture } from "./tools.ts";
@@ -212,6 +214,35 @@ function approve(ref: string, who: string | undefined, path: string): void {
   console.error(
     `approved ${key}: ${e.tools.length} tool(s), ${e.hosts.length} website(s), ${e.programs.length} program(s) -> ${path}`,
   );
+}
+
+/**
+ * An approved list as Claude Code permission lines.
+ *
+ * Reads a list and prints; it writes nothing and never touches a settings
+ * file. The one format is `claude-code`, named rather than assumed, so a
+ * second one later does not change what this one means.
+ */
+function exportList(ref: string, format: string, alias: string, path: string): void {
+  if (format !== "claude-code") {
+    console.error(`Unknown export format "${format}". The only one is: claude-code`);
+    process.exit(1);
+  }
+  const { name, version } = split(ref);
+  const list = loadApproved(path);
+  const entry = list[keyOf(name, version)];
+  if (!entry) {
+    console.error(`Nothing approved for ${name}@${version} in ${path}.`);
+    console.error(`Approve it first: node watch/cli.ts approve ${name}@${version}`);
+    process.exit(1);
+  }
+  const out = exportClaudeCode(entry, alias);
+  if (isRefusal(out)) {
+    console.error(`Refusing to export: ${out.because}.`);
+    console.error(out.instead);
+    process.exit(1);
+  }
+  console.log(out.text);
 }
 
 function check(ref: string, path: string): void {
@@ -472,7 +503,27 @@ async function main(): Promise<void> {
   const [cmd, ...rest] = i === -1 ? argv : [...argv.slice(0, i), ...argv.slice(i + 2)];
   if (cmd === "measure" && rest.length === 1) return measure(rest[0]!);
   if (cmd === "diff" && rest.length === 3) return diff(rest[0]!, rest[1]!, rest[2]!);
-  if (cmd === "approve" && (rest.length === 1 || rest.length === 2)) return approve(rest[0]!, rest[1], path);
+  if (cmd === "approve") {
+    const flag = (f: string) => {
+      const i = rest.indexOf(f);
+      return i === -1 ? null : (rest[i + 1] ?? "");
+    };
+    const format = flag("--export");
+    const alias = flag("--alias");
+    const positional = rest.filter((r, i) => !r.startsWith("--") && !rest[i - 1]?.startsWith("--"));
+    if (format !== null) {
+      if (alias === null) {
+        console.error("--export needs --alias <name>: the key you gave this server in your config's mcpServers.");
+        process.exit(1);
+      }
+      if (positional.length !== 1) {
+        console.error("usage: node watch/cli.ts approve <package@version> --export claude-code --alias <name>");
+        process.exit(1);
+      }
+      return exportList(positional[0]!, format, alias, path);
+    }
+    if (positional.length === 1 || positional.length === 2) return approve(positional[0]!, positional[1], path);
+  }
   if (cmd === "check" && rest.length === 1) return check(rest[0]!, path);
   if (cmd === "poll" && rest.length === 1) return poll(rest[0]!);
   if (cmd === "alert" && rest.length === 3) return alert(rest[0]!, rest[1]!, rest[2]!, path);
@@ -497,6 +548,7 @@ async function main(): Promise<void> {
       "  node watch/cli.ts measure  <package@version>",
       "  node watch/cli.ts diff     <package> <versionA> <versionB>",
       "  node watch/cli.ts approve  <package@version> [who]",
+      "  node watch/cli.ts approve  <package@version> --export claude-code --alias <name>",
       "  node watch/cli.ts check    <package@version>",
       "  node watch/cli.ts poll     <file of package@version lines>",
       "  node watch/cli.ts alert    <package> <approvedVersion> <newVersion>",
