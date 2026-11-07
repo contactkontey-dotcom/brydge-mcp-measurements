@@ -164,3 +164,36 @@ test("the built page carries no judging word", { skip: !built }, () => {
     assert.ok(!new RegExp(`\\b${w}\\b`).test(prose), `the page says "${w}"`);
   }
 });
+
+/* ── The no-network claim must match what the page actually does ───────── */
+
+test("neither page claims it makes no request at all", { skip: !built }, () => {
+  /*
+   * Both pages used to say so. It was false: each fetches a stylesheet from
+   * fonts.googleapis.com and the font files it names from fonts.gstatic.com,
+   * four requests in Chromium, all at load. The true claim is narrower and
+   * is the one a reader cares about — nothing is sent while they paste.
+   *
+   * The CSP backs the narrow claim and not the wide one: connect-src 'none'
+   * stops fetch, form posts and sockets; style-src and font-src name those
+   * two hosts and let them through.
+   */
+  const paste = join(ROOT, "site", "dist", "paste.html");
+  for (const [name, text] of [["diff.html", html], ["paste.html", existsSync(paste) ? readFileSync(paste, "utf8") : ""]] as const) {
+    if (!text) continue;
+    const prose = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+    for (const overclaim of [
+      "no connection at all",
+      "no request can be made from it at all",
+      "makes no requests",
+      "sends nothing at all",
+      "The one request it makes",
+    ]) {
+      assert.ok(!prose.includes(overclaim), `${name} still says "${overclaim}"`);
+    }
+    /* And it names the hosts it does reach, so the reader can check. */
+    assert.ok(prose.includes("fonts.googleapis.com"), `${name} does not name the stylesheet host it fetches`);
+    assert.ok(prose.includes("fonts.gstatic.com"), `${name} does not name the font host it fetches`);
+    assert.match(prose, /connect-src 'none'/, `${name} does not state the rule that holds`);
+  }
+});
