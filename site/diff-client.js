@@ -170,7 +170,23 @@ export function summaryOf(d, detail) {
   if (d.removed.length) bits.push(d.removed.length + " removed");
   const head = d.counts.a + (d.counts.a === 1 ? " tool" : " tools") + " on the left, " + d.counts.b + " on the right.";
   if (!bits.length) {
-    return head + " Nothing differs in " + (detail ? "name, description or input schema." : "the names.");
+    /*
+     * A no-change says what was compared, one thing at a time, and never
+     * offers the two totals as the comparison. 46 and 46 is also what a
+     * one-for-one swap looks like, and a count of names says nothing at all
+     * about a description or an input schema. Where either was not compared
+     * the qualification leads, rather than trailing a reassuring sentence.
+     */
+    const same = d.counts.a === d.counts.b;
+    const names =
+      "Tool names: " +
+      (same ? d.counts.a + " in both" : d.counts.a + " then " + d.counts.b) +
+      ", " + d.added.length + " added, " + d.removed.length + " removed.";
+    const said = detail ? "compared, none changed" : "not compared";
+    return (
+      (detail ? "No change." : "No change in what could be compared.") +
+      " " + names + " Descriptions: " + said + ". Input schemas: " + said + "."
+    );
   }
   return head + " " + bits.join(", ") + ".";
 }

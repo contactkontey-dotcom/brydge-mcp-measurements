@@ -54,7 +54,7 @@ import { shapeOf } from "./fields.ts";
 import { compareVersions } from "./poll.ts";
 import { folderOf, versionsOf } from "./store.ts";
 import { diffTools, type Capture, type ToolRecord } from "./tools.ts";
-import { versiondiff, type Diff } from "./versiondiff.ts";
+import { noChangeLine, versiondiff, type Diff } from "./versiondiff.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const LOG = join(ROOT, "watch", "log");
@@ -380,10 +380,27 @@ export function renderTimeline(pkg: string, recs: LogRecord[]): string {
       const still = r.diff.counts.filter((k) => !r.diff.changes.some((c) => c.field === k.field));
       if (still.length) out.push(`        equal in: ${still.map((k) => `${k.field} (${k.a})`).join(", ")}`);
     } else if (r.state === "no change") {
-      const sa = r.diff.sound.a;
-      const sb = r.diff.sound.b;
-      out.push(`        all 6 fields compared and equal; both versions measured twice with both`);
-      out.push(`        runs agreeing, and a tool list answered (${sa.toolCount} tools, then ${sb.toolCount})`);
+      /*
+       * This row used to print the two tool counts and call it evidence.
+       * 46 and 46 is also what a one-for-one swap looks like, and neither
+       * number says anything at all about a description or a schema.
+       */
+      const names = r.diff.counts.find((c) => c.field === "tools offered");
+      const t = r.tools;
+      for (const line of noChangeLine({
+        namesA: names?.a ?? r.diff.sound.a.toolCount,
+        namesB: names?.b ?? r.diff.sound.b.toolCount,
+        added: t ? t.added.length : 0,
+        removed: t ? t.removed.length : 0,
+        descriptionsChanged: t ? t.descriptionChanged.length : null,
+        schemasChanged: t ? t.schemaChanged.length : null,
+      }).split(". ").filter(Boolean)) {
+        out.push(`        ${line.endsWith(".") ? line : line + "."}`);
+      }
+      /* The reason is not repeated here: every row ends with a `tools:` line
+       * that carries it. */
+      out.push(`        The other compared fields are equal, and both versions were measured twice`);
+      out.push(`        with their runs agreeing.`);
     } else {
       out.push(`        ${r.diff.says}`);
     }

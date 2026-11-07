@@ -75,6 +75,48 @@ export function soundnessOf(m: Measured): Soundness {
   return { reproduced: a.ok, started, answered, toolCount: r1.sets["tools offered"].length, missing };
 }
 
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * WHAT A "NO CHANGE" IS ALLOWED TO SAY.
+ *
+ * "Nothing changed in the 6 fields that could be compared" was true and read
+ * as a clean bill. Two versions can offer the same 46 names while one tool's
+ * input schema or its description has been rewritten, and this function's
+ * caller — versiondiff on its own — has never looked at either: its "tools
+ * offered" field is a set of NAMES.
+ *
+ * So a no-change line now names each thing separately and says, for each,
+ * whether it was compared at all. Counts are not the comparison and are never
+ * printed as if they were: "46 in both" is stated beside "0 added, 0
+ * removed", because 46 and 46 is also what a one-for-one swap looks like.
+ *
+ * Where anything was not compared, the line leads with "No change in what
+ * could be compared", so the qualification is the first thing read and not a
+ * footnote after a reassuring sentence.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+export interface Compared {
+  namesA: number;
+  namesB: number;
+  added: number;
+  removed: number;
+  /** null when nothing looked; a count when something did. */
+  descriptionsChanged: number | null;
+  schemasChanged: number | null;
+}
+
+export function noChangeLine(c: Compared): string {
+  const partial = c.descriptionsChanged === null || c.schemasChanged === null;
+  const head = partial ? "No change in what could be compared." : "No change.";
+  const names =
+    c.namesA === c.namesB
+      ? `Tool names: ${c.namesA} in both, ${c.added} added, ${c.removed} removed.`
+      : `Tool names: ${c.namesA} then ${c.namesB}, ${c.added} added, ${c.removed} removed.`;
+  const said = (n: number | null) =>
+    n === null ? "not compared" : n === 0 ? "compared, none changed" : `compared, ${n} changed`;
+  return `${head} ${names} Descriptions: ${said(c.descriptionsChanged)}. Input schemas: ${said(c.schemasChanged)}.`;
+}
+
 export interface Diff {
   package: string;
   a: string;
@@ -192,9 +234,20 @@ export function versiondiff(pkg: string, A: Measured, B: Measured): Diff {
     outcome: "compared",
     says:
       n === 0
-        ? `Nothing changed in the ${BEHAVIOUR.length - shaky.size} fields that could be compared. ` +
-          `Both versions answered with a tool list (${sound.a.toolCount} and ${sound.b.toolCount} tools), ` +
-          `each measured twice with both runs agreeing.`
+        ? /*
+           * Always "not compared" for both: this function sees names and
+           * never a description or a schema. Saying so is the difference
+           * between a no-change that has been earned and one that has only
+           * not been contradicted.
+           */
+          `${noChangeLine({
+            namesA: sound.a.toolCount,
+            namesB: sound.b.toolCount,
+            added: 0,
+            removed: 0,
+            descriptionsChanged: null,
+            schemasChanged: null,
+          })} The other ${BEHAVIOUR.length - 1 - shaky.size} compared fields are equal, and both versions were measured twice with their runs agreeing.`
         : `${n} of the ${BEHAVIOUR.length - shaky.size} fields that could be compared changed.`,
     changes,
     readme,

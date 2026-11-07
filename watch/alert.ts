@@ -26,7 +26,7 @@
  */
 import { NEW_LABEL, type Check } from "./approved.ts";
 import { firstDifference, type ToolDiff } from "./tools.ts";
-import type { Diff } from "./versiondiff.ts";
+import { noChangeLine, type Diff } from "./versiondiff.ts";
 
 /*
  * HOW MUCH OF A DESCRIPTION AN ALERT CARRIES.
@@ -148,8 +148,26 @@ export function renderAlert(a: AlertInput): string {
 
     if (d && d.outcome !== "compared") {
       out.push(`BETWEEN ${span}: ${d.says}`);
-    } else if (d && !d.changes.length && !toolsMoved && !a.toolsWhy) {
-      out.push(`BETWEEN ${span}: nothing changed in the fields that could be compared.`);
+    } else if (d && !d.changes.length && !toolsMoved) {
+      /*
+       * The one line that has to carry its own limits. It names each thing
+       * compared and says, for each, whether anything looked — because the
+       * alert is the piece that gets forwarded, and "nothing changed" quoted
+       * out of context is a claim nobody here made.
+       */
+      const names = d.counts.find((c) => c.field === "tools offered");
+      out.push(
+        `BETWEEN ${span}: ` +
+          noChangeLine({
+            namesA: names?.a ?? 0,
+            namesB: names?.b ?? 0,
+            added: t ? t.added.length : 0,
+            removed: t ? t.removed.length : 0,
+            descriptionsChanged: t ? t.changed.filter((c) => c.what.includes("description")).length : null,
+            schemasChanged: t ? t.changed.filter((c) => c.what.includes("input schema")).length : null,
+          }),
+      );
+      /* The reason is not repeated here: the block below prints it in full. */
     } else {
       out.push(`BETWEEN ${span}:`);
     }

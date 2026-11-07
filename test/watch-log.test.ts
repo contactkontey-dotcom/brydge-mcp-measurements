@@ -145,8 +145,13 @@ test("a no-change row states the evidence it rests on", () => {
     for (const n of [1, 2] as const) plantRun(PKG, "1.1.0", n, "ffff6666", ["a", "b", "c"]);
     const text = renderTimeline(PKG, [recordFor(PKG, "1.0.0", "1.1.0")]);
     assert.match(text, /no change/);
-    assert.match(text, /both versions measured twice with both/);
-    assert.match(text, /3 tools, then 3/);
+    assert.match(text, /Tool names: 3 in both, 0 added, 0 removed\./);
+    /* no captures were planted, so neither of these was looked at */
+    assert.match(text, /Descriptions: not compared\./);
+    assert.match(text, /Input schemas: not compared\./);
+    assert.match(text, /No change in what could be compared\./);
+    /* the two bare totals are no longer offered as the evidence */
+    assert.ok(!/3 tools, then 3/.test(text), "the row still prints the totals as the comparison");
   } finally {
     clean();
   }

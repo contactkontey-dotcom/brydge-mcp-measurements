@@ -51,7 +51,10 @@ test("identical versions produce no changes and no can't-tells", () => {
   assert.deepEqual(d.changes, []);
   assert.deepEqual(d.cannotTell, []);
   assert.equal(d.readme, "same");
-  assert.match(d.says, /Nothing changed/);
+  /* versiondiff never looks at a description or a schema, and its no-change
+   * line has to say so rather than read as a clean bill. */
+  assert.match(d.says, /No change in what could be compared\./);
+  assert.match(d.says, /Descriptions: not compared\. Input schemas: not compared\./);
 });
 
 test("a tool added and a website reached for are reported with their direction", () => {
@@ -70,7 +73,7 @@ test("a README edit is its own line and is never counted as behaviour", () => {
   const d = versiondiff("thing-mcp", both("1.0.0", ev()), both("1.0.1", b));
   assert.equal(d.readme, "changed");
   assert.deepEqual(d.changes, [], "a README edit was counted as a behaviour change");
-  assert.match(d.says, /Nothing changed/);
+  assert.match(d.says, /No change in what could be compared\./);
   assert.match(renderDiff(d), /means the text differs and nothing more/);
 });
 
@@ -206,11 +209,21 @@ test("a could-not-start keeps its own sentence rather than becoming not-comparab
   assert.match(d.says, /could not start, nothing compared/);
 });
 
-test("a no-change states the counts behind it, so 311-and-311 reads differently from 0-and-0", () => {
+test("a no-change names each thing compared and never offers the totals as the comparison", () => {
+  /*
+   * "46 and 46" is also what a one-for-one swap looks like, and a count of
+   * names says nothing at all about a description or an input schema. So the
+   * line states the names WITH their added and removed, and says for each of
+   * the other two whether anything looked.
+   */
   const d = versiondiff("thing-mcp", both("1.0.0", ev()), both("1.0.1", ev()));
   assert.equal(d.outcome, "compared");
-  assert.match(d.says, /Both versions answered with a tool list \(2 and 2 tools\)/);
-  assert.match(d.says, /each measured twice with both runs agreeing/);
+  assert.match(d.says, /Tool names: 2 in both, 0 added, 0 removed\./);
+  assert.match(d.says, /Descriptions: not compared\./);
+  assert.match(d.says, /Input schemas: not compared\./);
+  assert.match(d.says, /both versions were measured twice with their runs agreeing/);
+  /* and the bare pair of totals is gone */
+  assert.ok(!/\(2 and 2 tools\)/.test(d.says), "the two totals are still offered as the comparison");
 });
 
 test("a server that genuinely offers nothing is comparable, and says zero out loud", () => {
@@ -219,7 +232,7 @@ test("a server that genuinely offers nothing is comparable, and says zero out lo
   const none = ev({ observed: { ...ev().observed, offered: [] } });
   const d = versiondiff("thing-mcp", both("1.0.0", none), both("1.0.1", none));
   assert.equal(d.outcome, "compared");
-  assert.match(d.says, /\(0 and 0 tools\)/);
+  assert.match(d.says, /Tool names: 0 in both, 0 added, 0 removed\./);
   const text = renderDiff(d);
   assert.match(text, /tools offered\s+0\s+0/);
 });
