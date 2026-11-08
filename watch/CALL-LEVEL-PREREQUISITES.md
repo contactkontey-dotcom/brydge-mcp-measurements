@@ -61,18 +61,70 @@ the namespace, or a small `prlimit` wrapper between `setpriv` and the
 server. The cgroup also gives a usage figure afterwards, which a `prlimit`
 wrapper does not.
 
-## Why this is a prerequisite and not a task
+## Tested: an outer wrapper does it, and the fingerprint is untouched
 
-Every limit above is a change to how the measured process is started, which
-is `harness/session.ts`, which is **inside the instrument fingerprint**
-(`ca9170df…`). Adding them invalidates the calibration behind all 67
-published measurements, so it means a recalibration run and a re-measure,
-not an afternoon.
+This section replaces what stood here before, which was wrong. It said the
+limits meant changing `harness/session.ts`, which is inside the instrument
+fingerprint, and therefore cost a recalibration and a re-measure of all 67.
+That was reasoning, not a test. Tested, **the recalibration cost is zero.**
 
-The ordering follows from that: limits, then recalibration, then the first
-call. A call-level diff built before them is one unbounded `malloc` in one
-tool away from taking the machine down mid-sweep — and the sweep is the
-thing that produces the evidence.
+Everything below was measured in this container, through the exact chain the
+room uses: `unshare -n -m` → `strace` → `setpriv --reuid 996`.
+
+**rlimits propagate and enforce.** Neither `unshare`, `strace` nor `setpriv`
+resets them, so a `prlimit` around the whole run reaches the measured server:
+
+| limit | propagates | enforces |
+|---|---|---|
+| `RLIMIT_NPROC` | yes | 14 forks succeeded of 60 attempted at a cap of 15 |
+| `RLIMIT_FSIZE` | yes | killed at exactly the cap, 1048576 bytes written of 4 MB |
+| `RLIMIT_CPU` | yes | visible in the server's own `/proc/self/limits` |
+| `RLIMIT_NOFILE` | yes | visible in the server's own `/proc/self/limits` |
+
+**`RLIMIT_NPROC` is uid-scoped, which is exactly the shape wanted.** It is
+counted per real uid and root is exempt through `CAP_SYS_RESOURCE`: at a cap
+of 15, root forked 60 of 60 while uid 996 managed 14. So one outer limit
+constrains the measured server and leaves the harness's own `npm install`
+alone.
+
+**Proved end to end on a real measurement.** `prlimit --nproc=3` →
+"could not start at initialize" on both runs of `wikipedia-mcp@1.0.3`;
+`--nproc=128` → 2 tools measured. The limit reaches the server, not just the
+harness, and npm install was untouched either way. A full measure passes
+under `--nproc=128 --fsize=2147483648 --cpu=900 --nofile=4096`.
+
+**`RLIMIT_AS` is the wrong knob and must not be used.** It caps *virtual*
+address space, and Node's TypeScript stripper runs on WebAssembly, which
+reserves a large range regardless of what it uses. Measured: a `.ts`
+entrypoint fails at 8 GB of address space and works at 16 GB. A cap low
+enough to constrain a server kills the harness before it parses its own
+entry file, with `RangeError: WebAssembly.Instance(): Out of memory`.
+
+**Memory is a cgroup, and v1 is what this container has.** The v2 tree is
+mounted but `cgroup.controllers` is EMPTY, so `mkdir` under it succeeds and
+the files are inert — `memory.max` accepts a write and `memory.current` does
+not exist. Writing a limit there looks like it worked and does nothing. The
+memory controller is on cgroup v1, and a child there enforces: a process
+touching 400 MB under `memory.limit_in_bytes` of 256 MB was `Killed`.
+
+So the whole set is an outer wrapper:
+
+```
+prlimit --nproc=... --fsize=... --cpu=... --nofile=... -- <the run>
+```
+
+plus a cgroup v1 memory slice around it. **Nothing in `harness/`, `engine/`
+or `measure.ts` changes**, the fingerprint `ca9170df…` is unchanged, and no
+recalibration or re-measure is needed.
+
+### What the wrapper still cannot do
+
+It is one limit for the whole run, not one per call. A tool that allocates
+inside a generous whole-run cap is not caught by it, and the cap has to stay
+generous because `npm install`, `node` and `strace` live under the same
+ceiling for memory, file size and CPU — only `NPROC` separates the harness
+from the server, and only because of the uid. Per-call limits and per-call
+attribution are a later stage and would need the instrument to change.
 
 ## Not covered by limits
 
