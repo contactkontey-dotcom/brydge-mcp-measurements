@@ -7,6 +7,8 @@
  *   node watch/cli.ts approve  <package@version> [who]    add it to the approved list
  *   node watch/cli.ts approve  <pkg@ver> --export claude-code --alias <name>
  *   node watch/cli.ts check    <package@version>          label what is not on the list
+ *   node watch/cli.ts review   <package> <A> <B>          the queue of items to decide
+ *   node watch/cli.ts review   --apply <file>             take a reviewer's decisions
  *
  * `--list <file>` points approve and check at a particular list. Customer
  * lists live in watch/customers/, which is gitignored in full: a list names
@@ -40,8 +42,26 @@ import { folderOf, getRuns, putRun, versionsOf } from "./store.ts";
 import { renderDiff, versiondiff } from "./versiondiff.ts";
 import { captureFrom, diffTools, parseToolList, renderToolDiff, toolsFromSession, type Capture } from "./tools.ts";
 import { edgesOf, packagesWithRuns, read as readLog, recordFor, renderTimeline, write as writeLog } from "./log.ts";
+import { deserialize as readDecisions, serialize as writeDecisions, Refused, type DecisionsFile } from "./decisions.ts";
+import { apply, parseExport, queueFor, renderApplied, renderQueue, TOOLS_ONLY } from "./review.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+
+/** `--decisions <file>`, or the default one beside this script. */
+function decisionsPath(argv: string[]): string {
+  const i = argv.indexOf("--decisions");
+  if (i === -1) return join(HERE, "decisions.json");
+  const p = argv[i + 1];
+  if (!p) {
+    console.error("--decisions needs a file path");
+    process.exit(1);
+  }
+  return p;
+}
+
+function loadDecisions(path: string): DecisionsFile {
+  return existsSync(path) ? readDecisions(readFileSync(path, "utf8")) : {};
+}
 
 /** `--list <file>`, or the shared list when none is given. */
 function listPath(argv: string[]): string {
@@ -496,11 +516,126 @@ async function definitions(limit: number): Promise<void> {
   }
 }
 
+/* ── The review queue ───────────────────────────────────────────────────── */
+
+/**
+ * The queue for a pair of versions.
+ *
+ * Kinds and tool names only. The CONTENT of an item — the description text,
+ * the schema — is what the page in `review --page` shows, and printing it to
+ * a terminal where it would land in a shell history and a transcript is a
+ * different act from showing it to a person who asked for it.
+ */
+function reviewQueue(pkg: string, a: string, b: string): void {
+  const A = steadyCapture(pkg, a);
+  const B = steadyCapture(pkg, b);
+  console.log(renderQueue(queueFor(pkg, a, b, A.tools, B.tools)));
+}
+
+/**
+ * Apply a set of decisions a reviewer exported.
+ *
+ * Validates first and writes nothing until everything that can be checked
+ * has been: the package and both versions against the envelope, every
+ * decision against the item it claims to be about, and the newer version's
+ * capture against its own measured run. A decision that matches nothing is
+ * reported and skipped, never applied to the nearest thing.
+ */
+function reviewApply(file: string, alias: string | null, listFile: string, decisionsFile: string): void {
+  if (!existsSync(file)) {
+    console.error(`No such file: ${file}`);
+    process.exit(1);
+  }
+  let incoming;
+  try {
+    incoming = parseExport(readFileSync(file, "utf8"));
+  } catch (e) {
+    console.error(`Refusing to apply ${file}: ${(e as Error).message}`);
+    process.exit(1);
+  }
+  const pkg = incoming.package;
+  const A = steadyCapture(pkg, incoming.fromVersion);
+  const B = steadyCapture(pkg, incoming.toVersion);
+  const queue = queueFor(pkg, incoming.fromVersion, incoming.toVersion, A.tools, B.tools);
+
+  /* The capture and the run are two files from the same measurement. If they
+   * disagree about which tools exist, the list would be written from one and
+   * checked against the other. */
+  const shape = steadyShape(pkg, incoming.toVersion);
+  const offered = [...shape.sets["tools offered"]].sort();
+  if (canonicalJson(offered) !== canonicalJson(queue.offered)) {
+    console.error(`The stored capture and the stored run of ${pkg}@${incoming.toVersion} name different tools.`);
+    console.error(`  run: ${offered.length}, capture: ${queue.offered.length}`);
+    console.error(`Nothing is written. Measure it again: node watch/cli.ts measure ${pkg}@${incoming.toVersion}`);
+    process.exit(1);
+  }
+
+  const list = loadApproved(listFile);
+  const previous = list[keyOf(pkg, incoming.fromVersion)] ?? null;
+  let applied;
+  try {
+    applied = apply({
+      queue,
+      file: loadDecisions(decisionsFile),
+      incoming,
+      previous,
+      measured: {
+        tools: offered,
+        hosts: [...shape.sets["websites reached"]].sort(),
+        programs: [...shape.sets["programs started"]].sort(),
+      },
+      at: new Date().toISOString().slice(0, 10),
+    });
+  } catch (e) {
+    console.error(`Refusing to apply ${file}: ${(e as Error).message}`);
+    process.exit(e instanceof Refused ? 1 : 1);
+  }
+
+  mkdirSync(dirname(decisionsFile), { recursive: true });
+  writeFileSync(decisionsFile, writeDecisions(applied.merged));
+  if (applied.entry) {
+    list[keyOf(pkg, incoming.toVersion)] = applied.entry;
+    mkdirSync(dirname(listFile), { recursive: true });
+    writeFileSync(listFile, serialize(list));
+  }
+
+  console.log(renderApplied(applied));
+  console.error("");
+  console.error(`decisions -> ${decisionsFile}`);
+  if (applied.entry) console.error(`approved list -> ${listFile}`);
+  if (!previous) {
+    console.error(`There was no list for ${pkg}@${incoming.fromVersion}, so nothing was carried over.`);
+  }
+
+  /* The allow rules, re-printed from the entry just written. */
+  if (!applied.entry) return;
+  console.log("");
+  if (alias === null) {
+    console.log(`# For the by-name allow rules, with the key you gave this server in your own config:`);
+    console.log(`#   node watch/cli.ts approve ${pkg}@${incoming.toVersion} --export claude-code --alias <name>`);
+    return;
+  }
+  const out = exportClaudeCode(applied.entry, alias);
+  if (isRefusal(out)) {
+    console.error(`Refusing to print the allow rules: ${out.because}.`);
+    console.error(out.instead);
+    return;
+  }
+  console.log(out.text);
+}
+
+/** Sorted-key JSON, for comparing two lists of names. */
+const canonicalJson = (xs: string[]) => JSON.stringify([...xs].sort());
+
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const path = listPath(argv);
-  const i = argv.indexOf("--list");
-  const [cmd, ...rest] = i === -1 ? argv : [...argv.slice(0, i), ...argv.slice(i + 2)];
+  const decisions = decisionsPath(argv);
+  const without = (xs: string[], flag: string) => {
+    const i = xs.indexOf(flag);
+    return i === -1 ? xs : [...xs.slice(0, i), ...xs.slice(i + 2)];
+  };
+  const [cmd, ...rest] = without(without(argv, "--list"), "--decisions");
   if (cmd === "measure" && rest.length === 1) return measure(rest[0]!);
   if (cmd === "diff" && rest.length === 3) return diff(rest[0]!, rest[1]!, rest[2]!);
   if (cmd === "approve") {
@@ -523,6 +658,26 @@ async function main(): Promise<void> {
       return exportList(positional[0]!, format, alias, path);
     }
     if (positional.length === 1 || positional.length === 2) return approve(positional[0]!, positional[1], path);
+  }
+  if (cmd === "review") {
+    const flag = (f: string) => {
+      const i = rest.indexOf(f);
+      return i === -1 ? null : (rest[i + 1] ?? "");
+    };
+    const applyFile = flag("--apply");
+    const alias = flag("--alias");
+    const positional = rest.filter((r, i) => !r.startsWith("--") && !rest[i - 1]?.startsWith("--"));
+    if (applyFile !== null) {
+      if (!applyFile) {
+        console.error("--apply needs the file of decisions a reviewer exported");
+        process.exit(1);
+      }
+      return reviewApply(applyFile, alias, path, decisions);
+    }
+    if (positional.length === 3) return reviewQueue(positional[0]!, positional[1]!, positional[2]!);
+    console.error("usage: node watch/cli.ts review <package> <versionA> <versionB>");
+    console.error("       node watch/cli.ts review --apply <file> [--alias <name>]");
+    process.exit(1);
   }
   if (cmd === "check" && rest.length === 1) return check(rest[0]!, path);
   if (cmd === "poll" && rest.length === 1) return poll(rest[0]!);
@@ -550,6 +705,8 @@ async function main(): Promise<void> {
       "  node watch/cli.ts approve  <package@version> [who]",
       "  node watch/cli.ts approve  <package@version> --export claude-code --alias <name>",
       "  node watch/cli.ts check    <package@version>",
+      "  node watch/cli.ts review   <package> <versionA> <versionB>",
+      "  node watch/cli.ts review   --apply <file> [--alias <name>]",
       "  node watch/cli.ts poll     <file of package@version lines>",
       "  node watch/cli.ts alert    <package> <approvedVersion> <newVersion>",
       "  node watch/cli.ts tools diff  <package> <versionA> <versionB> [--full]",
@@ -561,6 +718,8 @@ async function main(): Promise<void> {
       "",
       "  --list <file>   use a particular approved list (customer lists live in",
       "                  watch/customers/, which is gitignored in full)",
+      "  --decisions <f> use a particular decisions file (the default is",
+      "                  watch/decisions.json, which is gitignored)",
     ].join("\n"),
   );
   process.exit(1);
