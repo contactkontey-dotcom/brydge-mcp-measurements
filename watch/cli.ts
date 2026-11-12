@@ -8,6 +8,7 @@
  *   node watch/cli.ts approve  <pkg@ver> --export claude-code --alias <name>
  *   node watch/cli.ts check    <package@version>          label what is not on the list
  *   node watch/cli.ts review   <package> <A> <B>          the queue of items to decide
+ *   node watch/cli.ts review   --page <pkg> <A> <B>       write the page to decide on
  *   node watch/cli.ts review   --apply <file>             take a reviewer's decisions
  *
  * `--list <file>` points approve and check at a particular list. Customer
@@ -44,6 +45,7 @@ import { captureFrom, diffTools, parseToolList, renderToolDiff, toolsFromSession
 import { edgesOf, packagesWithRuns, read as readLog, recordFor, renderTimeline, write as writeLog } from "./log.ts";
 import { deserialize as readDecisions, serialize as writeDecisions, Refused, type DecisionsFile } from "./decisions.ts";
 import { apply, parseExport, queueFor, renderApplied, renderQueue, TOOLS_ONLY } from "./review.ts";
+import { prepare, reviewPage } from "./page.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -533,6 +535,31 @@ function reviewQueue(pkg: string, a: string, b: string): void {
 }
 
 /**
+ * Write the review page for a pair of versions.
+ *
+ * To watch/review/, which is gitignored, and never to site/dist. The page
+ * carries the text of other people's tool descriptions, which is the right
+ * thing in front of the person deciding about them and not a thing to
+ * publish: the argument is the one watch/tools.ts makes about watch/runs.
+ */
+function reviewPageFor(pkg: string, a: string, b: string): void {
+  const A = steadyCapture(pkg, a);
+  const B = steadyCapture(pkg, b);
+  const queue = queueFor(pkg, a, b, A.tools, B.tools);
+  const client = readFileSync(join(HERE, "review-client.js"), "utf8");
+  const html = reviewPage(prepare(queue, new Date().toISOString().slice(0, 10)), client);
+  const dir = join(HERE, "review");
+  mkdirSync(dir, { recursive: true });
+  const file = join(dir, `${slugOf(pkg)}-${a}-${b}.html`);
+  writeFileSync(file, html);
+  /* The path and the counts go to stderr, so that a shell that redirects
+   * stdout gets nothing and the page's own text never lands in a log. */
+  console.error(`${queue.items.length} item(s) -> ${file}`);
+  console.error(`Open it in a browser. It makes no network request; decisions leave as a file you download.`);
+  console.error(`Then: node watch/cli.ts review --apply <that file> --alias <name>`);
+}
+
+/**
  * Apply a set of decisions a reviewer exported.
  *
  * Validates first and writes nothing until everything that can be checked
@@ -666,7 +693,19 @@ async function main(): Promise<void> {
     };
     const applyFile = flag("--apply");
     const alias = flag("--alias");
-    const positional = rest.filter((r, i) => !r.startsWith("--") && !rest[i - 1]?.startsWith("--"));
+    const page = rest.includes("--page");
+    /* --page takes no value, so it is dropped BEFORE the filter that skips
+     * the word after a flag; leaving it in made the filter eat the package
+     * name. */
+    const bare = rest.filter((r) => r !== "--page");
+    const positional = bare.filter((r, i) => !r.startsWith("--") && !bare[i - 1]?.startsWith("--"));
+    if (page) {
+      if (positional.length !== 3) {
+        console.error("usage: node watch/cli.ts review --page <package> <versionA> <versionB>");
+        process.exit(1);
+      }
+      return reviewPageFor(positional[0]!, positional[1]!, positional[2]!);
+    }
     if (applyFile !== null) {
       if (!applyFile) {
         console.error("--apply needs the file of decisions a reviewer exported");
@@ -706,6 +745,7 @@ async function main(): Promise<void> {
       "  node watch/cli.ts approve  <package@version> --export claude-code --alias <name>",
       "  node watch/cli.ts check    <package@version>",
       "  node watch/cli.ts review   <package> <versionA> <versionB>",
+      "  node watch/cli.ts review   --page <package> <versionA> <versionB>",
       "  node watch/cli.ts review   --apply <file> [--alias <name>]",
       "  node watch/cli.ts poll     <file of package@version lines>",
       "  node watch/cli.ts alert    <package> <approvedVersion> <newVersion>",

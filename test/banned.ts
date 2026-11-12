@@ -73,4 +73,6 @@ export const CHECKED = [
   "watch/schemadiff.ts",
   "watch/decisions.ts",
   "watch/review.ts",
+  "watch/page.ts",
+  "watch/review-client.js",
 ];
