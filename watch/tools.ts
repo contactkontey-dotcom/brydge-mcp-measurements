@@ -159,6 +159,16 @@ export function captureFrom(pkg: string, version: string, tools: Record<string, 
  * Depth is capped. A server with a large churning structure would otherwise
  * turn one line into hundreds; past the cap the ancestor is named and the
  * output says the walk stopped there rather than implying it reached bottom.
+ *
+ * THE CAP IS A PARAMETER, because 6 is the right number for one structure
+ * and not for another. `_meta` is shallow. A JSON Schema spends two segments
+ * on every level of nesting — `/properties/options/properties/retries` is
+ * two parameters deep and four segments in — so a cap tuned to `_meta`
+ * stops a schema walk three parameters down. When it stopped there, a
+ * change the schema diff had already NAMED came back as a capped ancestor
+ * the naming did not match, and one type change printed as two differences,
+ * the second of them unexplained. A caller that names its own pointers
+ * passes a cap deep enough to reach them.
  */
 export const POINTER_DEPTH = 6;
 
@@ -178,17 +188,18 @@ export function differingPointers(
   b: unknown,
   base = "",
   depth = 0,
+  cap = POINTER_DEPTH,
 ): Array<{ pointer: string; atCap: boolean }> {
   if (canonical(a) === canonical(b)) return [];
   const plain = (v: unknown) => v !== null && typeof v === "object" && !Array.isArray(v);
   if (!plain(a) || !plain(b)) return [{ pointer: base || "/", atCap: false }];
-  if (depth >= POINTER_DEPTH) return [{ pointer: base || "/", atCap: true }];
+  if (depth >= cap) return [{ pointer: base || "/", atCap: true }];
 
   const out: Array<{ pointer: string; atCap: boolean }> = [];
   const A = a as Record<string, unknown>;
   const B = b as Record<string, unknown>;
   for (const k of [...new Set([...Object.keys(A), ...Object.keys(B)])].sort()) {
-    out.push(...differingPointers(A[k], B[k], `${base}/${escapePointer(k)}`, depth + 1));
+    out.push(...differingPointers(A[k], B[k], `${base}/${escapePointer(k)}`, depth + 1, cap));
   }
   return out;
 }
