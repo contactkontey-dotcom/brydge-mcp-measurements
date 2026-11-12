@@ -71,4 +71,5 @@ export const CHECKED = [
   "watch/log.ts",
   "watch/words.ts",
   "watch/schemadiff.ts",
+  "watch/decisions.ts",
 ];
