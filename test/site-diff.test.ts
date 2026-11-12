@@ -11,6 +11,7 @@ import { strict as assert } from "node:assert";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
+import { CHARACTERISING, CHECKED, flatten } from "./banned.ts";
 import { canonical, carriesDetail, diffTools, firstDifference, noChangeBlock, parseToolList, readList, recordOf, summaryOf } from "../site/diff-client.js";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -314,30 +315,14 @@ test("the page's no-change is two named lists, and a finding is not", { skip: !b
   assert.ok(found && !found.includes(NO_CHANGE_CAVEAT));
 });
 
-/* ── Nothing characterises a change ───────────────────────────────────── */
+/* ── Nothing characterises a change ─────────────────────── */
 
 /*
- * One text, flattened so a phrase cannot hide in the gaps.
- *
- * The check this replaces read each file and asked whether it contained
- * "build artifact". site/diff-client.js said exactly that — and passed,
- * because the sentence wrapped: "one build" ended one comment line and
- * "artifact, which is what it is" began the next, so the contiguous string
- * was never in the file. A test that reports a file clean while the file
- * says the thing is worse than no test, because it is believed.
- *
- * Comment leaders are dropped and every run of whitespace becomes one
- * space, so a banned phrase cannot hide in a line break, an indent, or the
- * " * " column of a block comment.
+ * The flattening and the word lists live in test/banned.ts. They were
+ * written here first and watch-pointers.test.ts had a weaker copy of the
+ * same idea; one of the two is how the wrapped phrase got through, so there
+ * is now one.
  */
-export function flatten(s: string): string {
-  return s
-    .split("\n")
-    .map((l) => l.replace(/^\s*\*\s?/, " "))
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .toLowerCase();
-}
 
 test("the flattened search catches a phrase broken across lines", () => {
   const wrapped = ["/*", " *     and named it reads as one build", " *     artifact, which is what it is.", " */"].join("\n");
@@ -345,13 +330,9 @@ test("the flattened search catches a phrase broken across lines", () => {
   assert.ok(flatten(wrapped).includes("build artifact"), "flattening does not close the gap a line break opens");
 });
 
-test("no source file characterises a change as a build artifact or noise", () => {
-  for (const f of ["site/diff-client.js", "site/build.ts", "watch/tools.ts", "watch/alert.ts", "watch/log.ts"]) {
+test("no source file characterises a change instead of reporting it", () => {
+  for (const f of CHECKED) {
     const text = flatten(readFileSync(join(ROOT, f), "utf8"));
-    /* "cache-busting" went the same way: it named what somebody else's
-     * `_meta` string was for, which no run here measured. */
-    for (const w of ["build artifact", "build noise", "cache-busting", "cache-bust", "cosmetic", "harmless"]) {
-      assert.ok(!text.includes(w), `${f} says "${w}"`);
-    }
+    for (const w of CHARACTERISING) assert.ok(!text.includes(w), `${f} says "${w}"`);
   }
 });

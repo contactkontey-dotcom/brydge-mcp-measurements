@@ -11,6 +11,7 @@ import { strict as assert } from "node:assert";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
+import { flatten } from "./banned.ts";
 import { diffTools, differingPointers, escapePointer, POINTER_DEPTH, recordOf } from "../watch/tools.ts";
 import { renderAlert } from "../watch/alert.ts";
 import * as client from "../site/diff-client.js";
@@ -89,24 +90,21 @@ test("nothing calls a change a build artifact, noise, or incidental", () => {
   const text = alertFor(
     [{ name: "t", _meta: { ui: { resourceUri: "one" } } }],
     [{ name: "t", _meta: { ui: { resourceUri: "two" } } }],
-  ).toLowerCase();
+  );
   /* "just a" and "only a" are ordinary English and appear in the standing
    * limits paragraph; the ban is on characterising the CHANGE, not on the
    * word "only". */
+  const flat = flatten(text);
   for (const w of ["build artifact", "build noise", "noise", "incidental", "harmless", "cosmetic", "cache-bust", "merely", "nothing to"]) {
-    assert.ok(!text.includes(w), `the alert says "${w}"`);
+    assert.ok(!flat.includes(w), `the alert says "${w}"`);
   }
   assert.match(text, /does not say what the key is for/);
 });
 
-test("no source file calls such a change a build artifact or noise", () => {
-  for (const f of ["watch/alert.ts", "watch/tools.ts", "watch/log.ts", "site/diff-client.js", "site/build.ts"]) {
-    const text = readFileSync(join(ROOT, f), "utf8");
-    for (const w of ["build artifact", "build noise"]) {
-      assert.ok(!text.includes(w), `${f} says "${w}"`);
-    }
-  }
-});
+/* The source-file sweep is in site-diff.test.ts, over test/banned.ts's one
+ * list. The weaker copy that used to sit here read each file for the
+ * contiguous string, which is how the wrapped phrase in site/diff-client.js
+ * passed it. */
 
 /* ── The page's copy of the walk ───────────────────────────────────────── */
 
