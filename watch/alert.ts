@@ -270,9 +270,9 @@ export function renderAlert(a: AlertInput): string {
       /*
        * Tools that moved only in a field that is neither: ONE LINE, counted
        * and never listed. 47 of the kolbo pair's tools differ only in
-       * `_meta`, a build artifact; 47 names in a forwarded message reads as
-       * 47 changed tools, and the count with the field named reads as what
-       * it is.
+       * `_meta`; 47 names in a forwarded message reads as 47 changed tools,
+       * and the count with the field named says what the comparison saw and
+       * stops there. What the field is for is not something this measured.
        */
       if (otherOnly.length) {
         const byField = new Map<string, number>();

@@ -15,8 +15,10 @@
  *   - Description and input schema are compared separately, and a field that
  *     is neither is named rather than lumped into "something else". 47 of the
  *     kolbo pair's tools differ only in `_meta`; under a label like "other"
- *     that reads as 47 changed tools, and named it reads as one build
- *     artifact, which is what it is.
+ *     that reads as 47 changed tools, and named it reads as 47 tools
+ *     differing at one field, which is what the comparison saw. What that
+ *     field is for is not something this measured, and nothing here
+ *     characterises it.
  *   - A list of bare names is a valid list. It can only answer added and
  *     removed, and the page says so rather than reporting zero changes.
  *

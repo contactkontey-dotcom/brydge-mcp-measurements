@@ -144,10 +144,11 @@ export interface ToolChange {
   name: string;
   /* `description`, `input schema`, or the name of each other field that moved
    * — `_meta`, `annotations`, whatever the server sent. Naming it matters:
-   * 47 of @kolbo/mcp's tools differed between two versions only in
-   * `_meta.ui.resourceUri`, a cache-busting string in a UI asset URL. Under
-   * the label "other fields" that reads like 47 changed tools. Named, it
-   * reads like one build artifact, which is what it is. */
+   * 47 of @kolbo/mcp's tools differed between two versions only at
+   * `_meta.ui.resourceUri`. Under the label "other fields" that reads like 47
+   * changed tools; named, it reads like 47 tools differing at one field,
+   * which is what the comparison saw. What that field is for is not
+   * something this measured, and nothing here characterises it. */
   what: string[];
   before?: { description: string | null };
   after?: { description: string | null };
