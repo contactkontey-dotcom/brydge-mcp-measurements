@@ -37,7 +37,8 @@ import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { relay, type Line } from "./transport.ts";
 import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./router.ts";
-import { NotAPin, read as readPin, type Pin } from "./pin.ts";
+import { ADOPTED, NotAPin, read as readPin, type Pin } from "./pin.ts";
+import { Enforcer, enforcingLine, hidLine } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
 import type { ToolRecord } from "../tools.ts";
@@ -62,6 +63,19 @@ const flag = (name: string): string | null => {
 const journalPath = flag("--journal");
 const pinPath = flag("--pin");
 const pendingDir = flag("--pending");
+/*
+ * SHADOW IS THE DEFAULT AND STAYS THE DEFAULT. Enforcement happens only
+ * when somebody types it: a gate that started hiding things because of a
+ * config it inherited would be the opposite of the point.
+ */
+const mode = flag("--mode") ?? "shadow";
+if (mode !== "shadow" && mode !== "enforce") {
+  refuse(64, [`gate: --mode is shadow or enforce, not ${JSON.stringify(mode)}`]);
+}
+const onBadPin = (flags.find((f) => f.startsWith("--on-bad-pin=")) ?? "--on-bad-pin=refuse").slice(13);
+if (onBadPin !== "refuse" && onBadPin !== "empty") {
+  refuse(64, [`gate: --on-bad-pin is refuse or empty, not ${JSON.stringify(onBadPin)}`]);
+}
 const started = Date.now();
 const today = new Date().toISOString().slice(0, 10);
 
@@ -75,19 +89,60 @@ if (!build.ok) {
   ]);
 }
 
+const HOW_TO_APPROVE =
+  "To approve it: read the report this gate writes, then run " +
+  '"node watch/cli.ts gate approve --pending <report> --decisions-from <decisions>".';
+
 let pin: Pin | null = null;
+let emptyPin = false;
 if (pinPath !== null) {
   if (!pinPath) refuse(64, ["gate: --pin needs a file path"]);
   try {
     pin = readPin(pinPath);
   } catch (e) {
     const why = e instanceof NotAPin ? e.message : (e as Error).message;
-    refuse(78, [
-      `gate: the pin at ${pinPath} cannot be used: ${why}.`,
-      `gate: the server was not started, because a gate that cannot read its pin has nothing to compare a tool list against.`,
-      `gate: write one with "node watch/cli.ts gate pin <package@version>", or pass a different --pin.`,
-    ]);
+    if (onBadPin === "empty") {
+      /*
+       * The opt-in. The pin is treated as naming nothing, so in enforce
+       * mode every tool differs from it and none is passed on. It is the
+       * other way to fail closed, for somebody who would rather the client
+       * see a server with no tools than a server that did not start.
+       */
+      emptyPin = true;
+      pin = {
+        format: "brydge-gate-pin",
+        version: 1,
+        package: "unknown",
+        packageVersion: "unknown",
+        pinnedAt: today,
+        source: ADOPTED,
+        tools: {},
+      };
+      process.stderr.write(
+        `gate: the pin at ${pinPath} cannot be used: ${why}.\n` +
+          `gate: --on-bad-pin=empty was given, so it is treated as naming no tools. ` +
+          `In enforce mode that means nothing is passed to the client. Repair it with ` +
+          `"node watch/cli.ts gate pin <package@version>".\n`,
+      );
+    } else {
+      refuse(78, [
+        `gate: the pin at ${pinPath} cannot be used: ${why}.`,
+        `gate: the server was not started, because a gate that cannot read its pin has nothing to compare a tool list against.`,
+        `gate: write one with "node watch/cli.ts gate pin <package@version>", or pass a different --pin, or pass --on-bad-pin=empty to start with nothing pinned.`,
+      ]);
+    }
   }
+}
+
+/*
+ * Enforcing against nothing would hide everything the server has, which is
+ * not what anybody means by it.
+ */
+if (mode === "enforce" && !pin) {
+  refuse(64, [
+    "gate: --mode enforce needs --pin <file>: without one there is nothing to compare a tool list against,",
+    "gate: and every tool would differ from it. The server was not started.",
+  ]);
 }
 
 /* ── The journal and the report ─────────────────────────────────────────── */
@@ -122,19 +177,81 @@ function reportOn(records: ToolRecord[], hidden: WouldHide[]): void {
   }
 }
 
+const enforcer =
+  mode === "enforce" && pin
+    ? new Enforcer({
+        howToApprove: HOW_TO_APPROVE,
+        pinFile: pinPath ?? "(none)",
+        onHide: (hidden, shown) => process.stderr.write(`${hidLine(hidden, shown)}\n`),
+        onRefuse: (tool, why) =>
+          process.stderr.write(
+            `gate: did not forward a call to "${tool}" (${why.kind === "withdrawn" ? "no longer offered by the server" : why.because}).\n`,
+          ),
+        onFailClosed: (because) => process.stderr.write(`gate: failing closed: ${because}\n`),
+      })
+    : null;
+
 const router = new Router({
-  mode: "shadow",
+  mode,
   /* A pinned tool already carries exactly the four fields a baseline is. */
   baseline: pin ? Object.values(pin.tools).map((t) => ({ name: t.name, hash: t.hash, descriptionHash: t.descriptionHash, schemaHash: t.schemaHash })) : undefined,
-  onList: reportOn,
+  onList: (records, hidden) => {
+    enforcer?.noteList(records, hidden);
+    reportOn(records, hidden);
+  },
 });
+
+if (enforcer && pin) {
+  process.stderr.write(`${enforcingLine(pin, pinPath ?? "(none)")}\n`);
+  if (emptyPin) process.stderr.write(`gate: that pin names no tools, so no tool will be passed to the client.\n`);
+}
 
 /* ── The child ──────────────────────────────────────────────────────────── */
 
 const child = spawn(command!, args, { stdio: ["pipe", "pipe", "pipe"], detached: true });
 
+/**
+ * Ending because something failed closed, rather than because the server
+ * finished. The child's exit handler reads it: killing the child makes it
+ * exit on a signal, and without this the exit code would say "the server
+ * was signalled" instead of "the gate ended the session".
+ */
+let stopping = false;
+
+/** Nothing is spawned after this; the child is already running, so it goes. */
+function stop(because: string): void {
+  stopping = true;
+  process.stderr.write(`gate: ${because}\n`);
+  process.stderr.write(`gate: the session is ending. Nothing further was passed in either direction.\n`);
+  try {
+    if (child.pid) process.kill(-child.pid, "SIGTERM");
+  } catch {
+    /* already gone */
+  }
+  setTimeout(() => process.exit(78), 50);
+}
+
 const observe = (side: Side) => (line: Line) => {
+  /*
+   * The router sees every line in both modes: the journal and the report
+   * are the same in enforce as in shadow. Only the action differs.
+   */
   for (const n of router.see(line, side)) note(n);
+  if (!enforcer) return { pass: true } as const;
+
+  const action = side === "client-to-server" ? enforcer.fromClient(line) : enforcer.fromServer(line);
+  if (action.forward) return { pass: true } as const;
+  if (action.stop) {
+    stop(action.stop);
+    return { pass: false, drop: true } as const;
+  }
+  if (action.replaceWith) return { pass: false, replaceWith: action.replaceWith } as const;
+  if (action.replyToClient) {
+    /* Back to the client, not on to the server. The only bytes this gate
+     * ever writes to stdout that did not come from the server. */
+    process.stdout.write(Buffer.concat([action.replyToClient, Buffer.from("\n")]));
+    return { pass: false, drop: true } as const;
+  }
   return { pass: true } as const;
 };
 const readerFailed = (e: Error, line: Line) =>
@@ -169,9 +286,10 @@ child.on("exit", (code, signal) => {
     .sort()
     .join(" ");
   const against = pin ? `pin ${pin.package}@${pin.packageVersion} (${pin.source})` : "no pin: the first list seen";
+  const said = enforcer ? `enforce, ${enforcer.hiddenCount} hidden` : "shadow";
   process.stderr.write(
-    `gate: ${Date.now() - started}ms, ${router.baselineSize} tool(s) against ${against}, ${counts || "nothing to note"}` +
-      `${reports ? `, ${reports} report(s)` : ""}\n${SHADOW_MEANS}\n`,
+    `gate: ${Date.now() - started}ms, ${said}, ${router.baselineSize} tool(s) against ${against}, ${counts || "nothing to note"}` +
+      `${reports ? `, ${reports} report(s)` : ""}\n${enforcer ? "" : `${SHADOW_MEANS}\n`}`,
   );
-  setTimeout(() => process.exit(signal ? 128 : (code ?? 0)), 10);
+  setTimeout(() => process.exit(stopping ? 78 : signal ? 128 : (code ?? 0)), 10);
 });

@@ -149,17 +149,40 @@ test("a reader may replace or drop a line, and only that line", async () => {
 
 /* ── The rule that breaks every server if it is broken ──────────────────── */
 
-test("no gate module can write to stdout", () => {
-  for (const f of ["watch/gate/transport.ts", "watch/gate/router.ts", "watch/gate/run.ts"]) {
-    const src = readFileSync(join(ROOT, f), "utf8")
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/^\s*\/\/.*$/gm, "");
+const strip = (f: string) =>
+  readFileSync(join(ROOT, f), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+
+test("no gate module writes to stdout, and none of them logs", () => {
+  /*
+   * stdout is the client's end of the transport. A stray line on it is a
+   * message the client will try to parse.
+   */
+  for (const f of ["watch/gate/transport.ts", "watch/gate/router.ts", "watch/gate/enforce.ts", "watch/gate/pin.ts", "watch/gate/report.ts", "watch/gate/approve.ts"]) {
+    const src = strip(f);
     for (const call of ["console.log", "console.info", "console.debug", "console.warn", "console.error"]) {
       assert.ok(!src.includes(call), `${f} uses ${call}`);
     }
-    /* run.ts pipes the child's stdout to ours; that is the transport. The
-     * only other write it may make is to stderr. */
-    const writes = [...src.matchAll(/process\.stdout\.write/g)];
-    assert.equal(writes.length, 0, `${f} writes to stdout itself`);
+    assert.equal([...src.matchAll(/process\.stdout\.write/g)].length, 0, `${f} writes to stdout itself`);
   }
+});
+
+test("run.ts writes to stdout exactly once, and only a refusal it made", () => {
+  /*
+   * G1 and G2 had this at zero: everything on stdout came from the server,
+   * through the pipe. Enforcement changed that, because a refused call has
+   * to be answered by somebody and the server never saw it. One write, of
+   * one thing, is the whole of the change — so it is counted rather than
+   * permitted in general.
+   */
+  const src = strip("watch/gate/run.ts");
+  for (const call of ["console.log", "console.info", "console.debug", "console.warn", "console.error"]) {
+    assert.ok(!src.includes(call), `run.ts uses ${call}`);
+  }
+  const writes = [...src.matchAll(/process\.stdout\.write\(([^;]*)\);/g)];
+  assert.equal(writes.length, 1, "run.ts writes to stdout somewhere new");
+  const what = writes[0]![1]!.replace(/\s+/g, " ");
+  assert.match(what, /action\.replyToClient/, `the one stdout write is not the refusal: ${what}`);
+  assert.ok(!/child|server|read/.test(what), `the one stdout write carries something else too: ${what}`);
 });

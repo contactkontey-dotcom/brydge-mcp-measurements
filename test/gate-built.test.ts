@@ -44,6 +44,10 @@ function run(args: string[], lines: unknown[], settleMs = 1200): Promise<Ran> {
     let err = "";
     child.stdout.on("data", (c: Buffer) => out.push(c));
     child.stderr.on("data", (c: Buffer) => (err += c.toString("utf8")));
+    /* A gate that refuses to start is gone before the first line is
+     * written, and a write to a dead pipe throws on a stream nobody is
+     * listening to, which ends the test run rather than the test. */
+    child.stdin.on("error", () => {});
     let done = false;
     const finish = (code: number | null) => {
       if (done) return;
@@ -62,6 +66,12 @@ function run(args: string[], lines: unknown[], settleMs = 1200): Promise<Ran> {
       } catch {
         /* gone */
       }
+      /*
+       * A kill switch, not a measurement: whatever this waits, the result
+       * is read from the exit above when the gate exits at all. It used to
+       * be 300ms, which made a loaded machine look like a gate that would
+       * not stop.
+       */
       setTimeout(() => {
         try {
           child.kill("SIGKILL");
@@ -69,7 +79,7 @@ function run(args: string[], lines: unknown[], settleMs = 1200): Promise<Ran> {
           /* gone */
         }
         finish(null);
-      }, 300);
+      }, 10_000);
     })();
   });
 }

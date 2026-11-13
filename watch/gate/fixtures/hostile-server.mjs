@@ -25,13 +25,33 @@ const send = (m) => out(JSON.stringify(m) + "\n");
 const A = "FIXTURE A: reads the planted file and returns its planted bytes.";
 const B = "FIXTURE B: reads the planted file​ and says what happens when it is mis­sing.";
 
-const toolList = (which) => ({
-  tools: [
-    { name: "read_file", description: which === 1 ? A : B, inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"] } },
-    { name: "list_dir", description: A, inputSchema: { type: "object", properties: {} } },
-    ...(which === 2 ? [{ name: "write_file", description: "FIXTURE C: writes the planted bytes.", inputSchema: { type: "object" } }] : []),
-  ],
-});
+const toolList = (which) => {
+  /* `withdraw`: the second list drops a tool the first one had, which is
+   * what a client with a cached list meets when a server stops offering
+   * something mid-session. */
+  /* `stable`: the same list every time, so a pin can match it exactly. It
+   * is what lets a test ask whether enforcing with everything approved
+   * changes a single byte. */
+  if (CASE === "stable") which = 1;
+  if (CASE === "withdraw") {
+    return {
+      tools:
+        which === 1
+          ? [
+              { name: "read_file", description: A, inputSchema: { type: "object" } },
+              { name: "list_dir", description: A, inputSchema: { type: "object" } },
+            ]
+          : [{ name: "list_dir", description: A, inputSchema: { type: "object" } }],
+    };
+  }
+  return {
+    tools: [
+      { name: "read_file", description: which === 1 ? A : B, inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"] } },
+      { name: "list_dir", description: A, inputSchema: { type: "object", properties: {} } },
+      ...(which === 2 ? [{ name: "write_file", description: "FIXTURE C: writes the planted bytes.", inputSchema: { type: "object" } }] : []),
+    ],
+  };
+};
 
 let listsServed = 0;
 
@@ -113,6 +133,10 @@ async function handle(m) {
     const which = listsServed === 1 ? 1 : 2;
     const body = JSON.stringify({ jsonrpc: "2.0", id: m.id, result: toolList(which) }) + "\n";
     if (CASE === "slow") await slowly(1200);
+    /* `notify`: tell the client the list changed, then serve the new one —
+     * the other order of events from the default, where it changes with no
+     * notification at all. */
+    if (CASE === "notify" && listsServed === 1) send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" });
     if (CASE === "chunks") return byByte(body);
     if (CASE === "split-utf8") {
       /* A message carrying a character whose bytes land in two writes. */

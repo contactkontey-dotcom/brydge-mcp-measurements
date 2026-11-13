@@ -34,7 +34,8 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { lineOf } from "../watch/gate/transport.ts";
-import { Router, type Side } from "../watch/gate/router.ts";
+import { Router, type Pinned, type Side } from "../watch/gate/router.ts";
+import { Enforcer } from "../watch/gate/enforce.ts";
 
 const KEPT = join(import.meta.dirname, "..", "watch", "transcripts");
 const SANDBOXES = "/srv/brydge-measure";
@@ -190,4 +191,183 @@ test("real sessions, counted", { skip: !have }, () => {
   for (const line of failClosed.slice(0, 12)) process.stderr.write(`    fail-closed  ${line}\n`);
   assert.ok(servers > 0);
   assert.ok((totals["baseline"] ?? 0) > 0, "not one session produced a baseline");
+});
+
+/* ── Replayed under enforcement ─────────────────────────────────────────── */
+
+/*
+ * The same recorded sessions, with the enforcer wired to the router exactly
+ * as watch/gate/run.ts wires it. Two runs over each session:
+ *
+ *   approved — the pin is adopted from that session's own first tool list,
+ *              so nothing differs from the baseline. Nothing may be hidden
+ *              and no line may be replaced. This is the kill rule at the
+ *              scale of the whole corpus, against 70-odd real servers
+ *              rather than one planted one.
+ *
+ *   none     — the pin names no tool, so everything the server offers is
+ *              new. Every list is replaced and every call to a tool the
+ *              server listed is refused.
+ *
+ * Counts and tool names only. The transcripts hold every description these
+ * servers sent, and nothing here prints one.
+ */
+
+interface Replayed {
+  lines: number;
+  replaced: number;
+  refused: number;
+  hiddenAtEnd: number;
+  stopped: number;
+  listed: number;
+}
+
+function replayEnforcing(transcript: Entry[], baseline: Pinned[]): Replayed {
+  const enforcer = new Enforcer({ howToApprove: "run gate approve", pinFile: "/nowhere/pin.json" });
+  const out: Replayed = { lines: 0, replaced: 0, refused: 0, hiddenAtEnd: 0, stopped: 0, listed: 0 };
+  const router = new Router({
+    mode: "enforce",
+    baseline,
+    onList: (records, hidden) => {
+      out.listed = Math.max(out.listed, records.length);
+      enforcer.noteList(records, hidden);
+    },
+  });
+  for (const e of transcript) {
+    if (e.dir === "stderr") continue;
+    const side: Side = e.dir === "to-server" ? "client-to-server" : "server-to-client";
+    const raw = e.dir === "stdout-noise" ? Buffer.from(String(e.message), "utf8") : Buffer.from(JSON.stringify(e.message), "utf8");
+    const line = lineOf(raw);
+    router.see(line, side);
+    out.lines++;
+    const action = side === "client-to-server" ? enforcer.fromClient(line) : enforcer.fromServer(line);
+    if (action.stop) out.stopped++;
+    if (action.replaceWith) out.replaced++;
+    if (action.replyToClient) out.refused++;
+  }
+  out.hiddenAtEnd = enforcer.hiddenCount;
+  return out;
+}
+
+/**
+ * The pin a `gate pin --from-current` would write for this session: the
+ * first tool list the server answered, taken as it stands.
+ */
+function baselineFrom(transcript: Entry[]): Pinned[] | null {
+  let first: Pinned[] | null = null;
+  /*
+   * An empty baseline rather than none: with no baseline at all the router
+   * adopts the first list silently and never calls back, which is right for
+   * a gate with no pin and useless for reading the list out.
+   */
+  const router = new Router({
+    baseline: [],
+    onList: (records) => {
+      if (first) return;
+      first = records.map((r) => ({ name: r.name, hash: r.hash, descriptionHash: r.descriptionHash, schemaHash: r.schemaHash }));
+    },
+  });
+  for (const e of transcript) {
+    if (e.dir === "stderr") continue;
+    const side: Side = e.dir === "to-server" ? "client-to-server" : "server-to-client";
+    const raw = e.dir === "stdout-noise" ? Buffer.from(String(e.message), "utf8") : Buffer.from(JSON.stringify(e.message), "utf8");
+    router.see(lineOf(raw), side);
+  }
+  return first;
+}
+
+test("replayed under enforcement with everything approved, nothing is hidden", { skip: !have }, () => {
+  const hid: string[] = [];
+  let sessions_ = 0;
+  let lines = 0;
+  for (const f of sessions()) {
+    const t = transcriptOf(f);
+    if (!t) continue;
+    const base = baselineFrom(t);
+    if (!base) continue;
+    const r = replayEnforcing(t, base);
+    sessions_++;
+    lines += r.lines;
+    if (r.replaced || r.refused || r.hiddenAtEnd) {
+      hid.push(`${label(f)}: replaced ${r.replaced}, refused ${r.refused}, hidden ${r.hiddenAtEnd} of ${r.listed}`);
+    }
+  }
+  assert.ok(sessions_ >= 20, `only ${sessions_} sessions answered a tools/list`);
+  assert.deepEqual(hid, [], "a session with everything approved had something taken out of it");
+  process.stderr.write(`\n    enforced over ${sessions_} session(s), ${lines} line(s), with everything approved: nothing replaced, nothing refused\n`);
+});
+
+test("replayed under enforcement against an empty pin, every listed tool is hidden", { skip: !have }, () => {
+  const wrong: string[] = [];
+  let sessions_ = 0;
+  let replaced = 0;
+  let refused = 0;
+  let tools = 0;
+  for (const f of sessions()) {
+    const t = transcriptOf(f);
+    if (!t) continue;
+    const base = baselineFrom(t);
+    if (!base) continue;
+    const r = replayEnforcing(t, []);
+    sessions_++;
+    replaced += r.replaced;
+    refused += r.refused;
+    tools += r.listed;
+    /* Every tool the server listed is new against a pin that names none. */
+    if (r.hiddenAtEnd !== r.listed) wrong.push(`${label(f)}: ${r.hiddenAtEnd} hidden of ${r.listed} listed`);
+    if (r.replaced === 0) wrong.push(`${label(f)}: ${r.listed} tool(s) listed and no list was replaced`);
+  }
+  assert.ok(sessions_ >= 20, `only ${sessions_} sessions answered a tools/list`);
+  assert.deepEqual(wrong, [], "a tool the pin does not name was passed to the client");
+  process.stderr.write(
+    `    enforced over ${sessions_} session(s) against a pin naming nothing: ${replaced} list(s) replaced, ${refused} call(s) refused, ${tools} tool(s) hidden\n`,
+  );
+});
+
+test("nothing the enforcer sends a client carries a description", { skip: !have }, () => {
+  /*
+   * The refusals and the replaced lists are bytes a real client would read.
+   * A replaced list carries the tools that stayed, which is the server's own
+   * text going back the way it came — so what is checked here is that no
+   * HIDDEN tool's description leaves the gate, and that no refusal carries
+   * any description at all.
+   */
+  let checked = 0;
+  for (const f of sessions()) {
+    const t = transcriptOf(f);
+    if (!t) continue;
+    const base = baselineFrom(t);
+    if (!base) continue;
+
+    const enforcer = new Enforcer({ howToApprove: "run gate approve", pinFile: "/nowhere/pin.json" });
+    const router = new Router({ mode: "enforce", baseline: [], onList: (records, hidden) => enforcer.noteList(records, hidden) });
+    const sent: string[] = [];
+    for (const e of t) {
+      if (e.dir === "stderr") continue;
+      const side: Side = e.dir === "to-server" ? "client-to-server" : "server-to-client";
+      const raw = e.dir === "stdout-noise" ? Buffer.from(String(e.message), "utf8") : Buffer.from(JSON.stringify(e.message), "utf8");
+      const line = lineOf(raw);
+      router.see(line, side);
+      const a = side === "client-to-server" ? enforcer.fromClient(line) : enforcer.fromServer(line);
+      if (a.replaceWith) sent.push(a.replaceWith.toString("utf8"));
+      if (a.replyToClient) sent.push(a.replyToClient.toString("utf8"));
+    }
+    const text = sent.join("\n");
+
+    for (const e of t) {
+      const m = e.message as { result?: { tools?: Array<{ name?: string; description?: unknown }> } } | null;
+      const tools = m && typeof m === "object" ? m.result?.tools : undefined;
+      if (!Array.isArray(tools)) continue;
+      for (const tool of tools) {
+        const d = tool?.description;
+        if (typeof d !== "string" || d.length < 40) continue;
+        assert.ok(
+          !text.includes(d.slice(0, 40)),
+          `the gate sent the client the description of ${String(tool.name)} from ${label(f)} although nothing was approved`,
+        );
+        checked++;
+      }
+    }
+  }
+  assert.ok(checked > 100, `only ${checked} descriptions were checked for`);
 });

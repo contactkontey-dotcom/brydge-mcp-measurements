@@ -1,0 +1,287 @@
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ * HIDING, AND NOT FORWARDING. ONLY WHEN SOMEBODY ASKS FOR IT.
+ *
+ * Shadow is the default and stays the default. Everything here happens only
+ * under `--mode enforce`, which somebody has to type.
+ *
+ * ── THE ONE MESSAGE THAT IS REWRITTEN, AND ONLY WHEN IT MUST BE ──────────
+ *
+ * A tools/list result with something hidden in it is the only message this
+ * rewrites. Every other byte in both directions is forwarded as it arrived,
+ * and a tools/list result with NOTHING hidden is forwarded as it arrived
+ * too — re-serialising it would change key order and spacing for no reason,
+ * and a client that sees different bytes with the gate in front of an
+ * approved server would be reading the gate rather than the server. That is
+ * also what makes the test possible: with everything approved, enforce is
+ * byte-for-byte what the server said.
+ *
+ * ── A REFUSAL SAYS WHO REFUSED ───────────────────────────────────────────
+ *
+ * "the gate did not forward this call" — not an unknown-tool error, which
+ * would be the gate lying about what the server offers, and never a word
+ * that claims the action was stopped somewhere. The gate did not forward a
+ * message. The server is still running, still has whatever access it had,
+ * and anything else talking to it can still call that tool.
+ *
+ * A client that listed the tools before enforcement started may call one
+ * that is hidden now. Its refusal says the tool was hidden rather than
+ * pretending it never existed, because the client is not wrong — it did see
+ * it. A tool the SERVER has stopped offering says that instead.
+ *
+ * ── FAIL CLOSED, AND WHAT THAT COSTS ─────────────────────────────────────
+ *
+ * A tool list this cannot read means a list it cannot gate, so the client
+ * gets an error for that request instead of an ungated list; the session
+ * carries on. A batch can carry a tools/list or a tools/call inside an
+ * array where this cannot reach them, so in enforce mode it stops the
+ * session rather than wave it through. Both say the file and the command.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+import type { Line } from "./transport.ts";
+import { toolsOf, type WouldHide } from "./router.ts";
+import { ADOPTED, type Pin } from "./pin.ts";
+
+/** The sentence a refusal always opens with. */
+export const DID_NOT_FORWARD = "the gate did not forward this call";
+
+/**
+ * Not -32601 and not -32602.
+ *
+ * Those are "no such method" and "bad parameters", which is what a server
+ * says about a tool it does not have. This is a different fact — the server
+ * has it and the gate did not pass the message on — and borrowing the
+ * server's code for it would make the gate indistinguishable from the
+ * server being asked for something that is not there.
+ */
+export const REFUSAL_CODE = -32000;
+
+export type Why =
+  | { kind: "hidden"; because: WouldHide["because"] }
+  | { kind: "withdrawn" };
+
+export interface Action {
+  /** Forward the line as it arrived. */
+  forward: boolean;
+  /** Bytes to put on the wire instead, without a newline. */
+  replaceWith?: Buffer;
+  /** Bytes to send back to the CLIENT instead of forwarding to the server. */
+  replyToClient?: Buffer;
+  /** Stop: the reason, already said in full. */
+  stop?: string;
+}
+
+const pass: Action = { forward: true };
+const plain = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
+
+export interface EnforcerOptions {
+  /** Where a reviewer would go to approve what is hidden. */
+  howToApprove: string;
+  /** The pin file, named in anything that fails closed. */
+  pinFile: string;
+  /** Called when a list is rewritten, for the one stderr line. */
+  onHide?: (hidden: WouldHide[], shown: number) => void;
+  /** Called when a call is refused. */
+  onRefuse?: (tool: string, why: Why) => void;
+  /** Called when something fails closed. */
+  onFailClosed?: (because: string) => void;
+}
+
+/**
+ * Decides what to do with each line, in enforce mode.
+ *
+ * It is told what the router found rather than finding it again: one
+ * comparison, in one place.
+ */
+export class Enforcer {
+  /** Tool names currently hidden, by the reason they are hidden. */
+  private hidden = new Map<string, WouldHide["because"]>();
+  /** Every tool name the server has offered in this session. */
+  private everOffered = new Set<string>();
+  /** The names in the most recent list the server answered. */
+  private offeredNow = new Set<string>();
+  /** Client request ids that asked for a tools/list, to their method. */
+  private readonly inFlight = new Map<string, { method: string; tool: string | null }>();
+  private sawList = false;
+
+  private readonly opts: EnforcerOptions;
+
+  /*
+   * Written out rather than declared in the parameter list: a parameter
+   * property is TypeScript that has to be compiled away, and the tests run
+   * this file as source under a runtime that only strips types.
+   */
+  constructor(opts: EnforcerOptions) {
+    this.opts = opts;
+  }
+
+  get hiddenCount(): number {
+    return this.hidden.size;
+  }
+
+  /** What the router decided about one list, taken as the state to enforce. */
+  noteList(records: Array<{ name: string }>, hidden: WouldHide[]): void {
+    this.sawList = true;
+    this.offeredNow = new Set(records.map((r) => r.name));
+    for (const n of this.offeredNow) this.everOffered.add(n);
+    this.hidden = new Map(hidden.map((h) => [h.tool, h.because]));
+  }
+
+  /* ── Client to server ─────────────────────────────────────────────────── */
+
+  fromClient(line: Line): Action {
+    if (line.parsed === null) return pass;
+    if (Array.isArray(line.parsed)) return this.stopOnBatch(line.parsed.length, "from the client");
+    if (!plain(line.parsed)) return pass;
+
+    const message = line.parsed;
+    const method = typeof message.method === "string" ? message.method : null;
+    const id = message.id;
+    if (!method || id === undefined) return pass;
+
+    const tool = method === "tools/call" ? nameOf(message.params) : null;
+    this.inFlight.set(keyOf(id), { method, tool });
+    if (method !== "tools/call" || tool === null) return pass;
+
+    const why = this.whyRefused(tool);
+    if (!why) return pass;
+    this.opts.onRefuse?.(tool, why);
+    return { forward: false, replyToClient: this.refusal(id, tool, why) };
+  }
+
+  /**
+   * Whether a call would be forwarded, and why not.
+   *
+   * A tool nobody has listed yet is forwarded: until the server has answered
+   * a tools/list there is nothing to compare it against, and refusing on a
+   * guess would break a client that calls before it lists.
+   */
+  whyRefused(tool: string): Why | null {
+    if (!this.sawList) return null;
+    const because = this.hidden.get(tool);
+    if (because) return { kind: "hidden", because };
+    if (this.everOffered.has(tool) && !this.offeredNow.has(tool)) return { kind: "withdrawn" };
+    return null;
+  }
+
+  /** The refusal, as the client will read it. */
+  refusal(id: unknown, tool: string, why: Why): Buffer {
+    const said =
+      why.kind === "withdrawn"
+        ? `${DID_NOT_FORWARD}: the server is no longer offering "${tool}". It was in an earlier tool list in this session and is not in the current one.`
+        : `${DID_NOT_FORWARD}: "${tool}" is hidden, because ${why.because}. ` +
+          `If your client listed the tools before it was hidden, it may still be showing it. ${this.opts.howToApprove}`;
+    return Buffer.from(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id,
+        error: {
+          code: REFUSAL_CODE,
+          message: said,
+          data: {
+            gate: "brydge-gate",
+            tool,
+            reason: why.kind === "withdrawn" ? "no longer offered by the server" : why.because,
+            /* Said again as data, because a client that shows only a code
+             * and a field should still be able to show who refused. */
+            didNotForward: true,
+          },
+        },
+      }),
+      "utf8",
+    );
+  }
+
+  /* ── Server to client ─────────────────────────────────────────────────── */
+
+  fromServer(line: Line): Action {
+    if (line.parsed === null) return pass;
+    if (Array.isArray(line.parsed)) return this.stopOnBatch(line.parsed.length, "from the server");
+    if (!plain(line.parsed)) return pass;
+
+    const message = line.parsed;
+    const id = message.id;
+    if (id === undefined || typeof message.method === "string") return pass;
+    const asked = this.inFlight.get(keyOf(id));
+    if (!asked) return pass;
+    this.inFlight.delete(keyOf(id));
+    if (asked.method !== "tools/list") return pass;
+    if (message.error !== undefined) return pass;
+
+    const read = toolsOf(message.result);
+    if ("because" in read) {
+      /* A list this cannot read is a list it cannot gate. The client gets an
+       * error for that one request rather than an ungated list, and the
+       * session carries on. */
+      const because = `a tools/list this cannot read: ${read.because}`;
+      this.opts.onFailClosed?.(because);
+      return {
+        forward: false,
+        replyToClient: Buffer.from(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id,
+            error: {
+              code: REFUSAL_CODE,
+              message:
+                `the gate did not forward this tool list: ${read.because}. ` +
+                `It cannot hide what it cannot read, so it passed nothing on. Pin: ${this.opts.pinFile}. ${this.opts.howToApprove}`,
+              data: { gate: "brydge-gate", reason: because, didNotForward: true },
+            },
+          }),
+          "utf8",
+        ),
+      };
+    }
+
+    if (!this.hidden.size) return pass; /* nothing to take out: the server's own bytes go on */
+
+    const kept = read.tools.filter((t) => !this.hidden.has(String(t.name)));
+    if (kept.length === read.tools.length) return pass;
+
+    const result = { ...(message.result as Record<string, unknown>), tools: kept };
+    const out = Buffer.from(JSON.stringify({ ...message, result }), "utf8");
+    this.opts.onHide?.(
+      [...this.hidden.entries()].map(([tool, because]) => ({ tool, because })) as WouldHide[],
+      kept.length,
+    );
+    return { forward: false, replaceWith: out };
+  }
+
+  private stopOnBatch(n: number, where: string): Action {
+    const because =
+      `a batch of ${n} message(s) ${where}: a tools/list or a tools/call inside an array is somewhere ` +
+      `this cannot reach, so it cannot hide or refuse one. Pin: ${this.opts.pinFile}.`;
+    this.opts.onFailClosed?.(because);
+    return { forward: false, stop: because };
+  }
+}
+
+const keyOf = (id: unknown): string => (typeof id === "string" ? `s:${id}` : `n:${String(id)}`);
+
+/** The tool a tools/call names, or null. */
+export function nameOf(params: unknown): string | null {
+  if (!plain(params)) return null;
+  return typeof params.name === "string" && params.name ? params.name : null;
+}
+
+/** The line stderr gets once, when enforcement is on. */
+export function enforcingLine(pin: Pin, pinFile: string): string {
+  const adopted = pin.source === ADOPTED ? `, taken from what the server offered and ${ADOPTED}` : "";
+  return (
+    `gate: enforcing against ${Object.keys(pin.tools).length} pinned tool(s) for ${pin.package}@${pin.packageVersion}${adopted}. ` +
+    `Tools that differ from ${pinFile} are not passed to the client, and calls to them are not forwarded. ` +
+    `The server is running and this does not change what it can reach.`
+  );
+}
+
+/** The line stderr gets each time a list is rewritten. */
+export function hidLine(hidden: WouldHide[], shown: number): string {
+  const by: Record<string, number> = {};
+  for (const h of hidden) by[h.because] = (by[h.because] ?? 0) + 1;
+  const kinds = Object.entries(by)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([because, n]) => `${n} ${because}`)
+    .join("; ");
+  return `gate: did not pass ${hidden.length} tool(s) to the client (${kinds}); ${shown} passed on.`;
+}
