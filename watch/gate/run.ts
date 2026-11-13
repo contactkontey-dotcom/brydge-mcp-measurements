@@ -12,6 +12,7 @@
  *   --mode shadow|enforce     shadow unless somebody types enforce
  *   --refusal-style error|result   the shape of a refused call (enforce only)
  *   --on-bad-pin=refuse|empty what to do with a pin that cannot be read
+ *   --relist-on-change        ask for a tool list when the server says one changed
  *
  * The client launches this instead of the server; the server becomes its
  * child. Every byte goes through in both directions. With a pin, the live
@@ -49,6 +50,7 @@ import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, REFUSAL_STYLES
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
 import { detachedOn, killStyleOn, startupAdvice } from "./spawning.ts";
+import { ANNOUNCEMENT, clientUsesReservedId, collisionBecause, FLAG as RELIST_FLAG } from "./relist.ts";
 import type { ToolRecord } from "../tools.ts";
 
 /** Nothing is spawned after this is called. */
@@ -70,6 +72,7 @@ if (dashdash === -1 || dashdash === argv.length - 1) {
     "  --mode shadow|enforce          shadow unless this says otherwise",
     "  --refusal-style error|result   the shape of a refused call (enforce only)",
     "  --on-bad-pin=refuse|empty      what to do with a pin that cannot be read",
+    "  --relist-on-change             ask for a tool list of its own when the server says one changed",
   ]);
 }
 const flags = argv.slice(0, dashdash);
@@ -147,6 +150,12 @@ if (writePinPath !== null) {
     ]);
   }
 }
+
+/*
+ * THE ONE THING THE GATE SENDS BY ITSELF, and it is off unless somebody
+ * types it. watch/gate/relist.ts has why.
+ */
+const relistOnChange = flags.includes(RELIST_FLAG);
 
 const started = Date.now();
 const today = new Date().toISOString().slice(0, 10);
@@ -307,6 +316,10 @@ if (enforcer && pin) {
   process.stderr.write(`${enforcingLine(pin, pinPath ?? "(none)")}\n`);
   if (emptyPin) process.stderr.write(`gate: that pin names no tools, so no tool will be passed to the client.\n`);
 }
+/* Said once, because it is the gate sending something rather than passing
+ * something on, and a log should not leave somebody guessing where an extra
+ * request came from. */
+if (relistOnChange) process.stderr.write(`${ANNOUNCEMENT}\n`);
 
 /* ── The child ──────────────────────────────────────────────────────────── */
 
@@ -349,6 +362,22 @@ function stop(because: string): void {
 }
 
 const observe = (side: Side) => (line: Line) => {
+  /*
+   * An id the gate reserves, used by the client.
+   *
+   * Checked before anything else, and only while the gate is actually
+   * using that namespace: with the flag off it reserves nothing and the
+   * same id is just a string, so ending a working session over it would be
+   * the gate breaking a server for its own convenience.
+   */
+  if (relistOnChange && side === "client-to-server") {
+    const clash = clientUsesReservedId(line.parsed);
+    if (clash) {
+      stop(collisionBecause(clash.id, pinPath ?? "(none)"));
+      return { pass: false, drop: true } as const;
+    }
+  }
+
   /*
    * The router sees every line in both modes: the journal and the report
    * are the same in enforce as in shadow. Only the action differs.
