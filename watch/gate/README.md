@@ -273,6 +273,75 @@ re-list when it is told, and what does it do when it is not told?
 
 ---
 
+## Keeping the model away from the gate's own files
+
+The gate's value depends on one thing: that the person decides what is
+approved, not the model. Two files decide that, and they sit in a directory
+the client can see.
+
+**The pin** is what the gate compares against. A model that can edit it can
+approve anything.
+
+**The report** in `--pending` carries the live definitions of what differs,
+which is the server's prose, and `gate approve` turns a report plus a
+decisions file into a new pin.
+
+Nothing the gate sends a client names any of this. A refusal used to end
+with "To approve it: run `node watch/cli.ts gate approve --pending <report>
+…`", which is the command for undoing the gate handed to the model that just
+met it, path and flag and all. That sentence is gone: no command, no path
+and no flag appears in any message a client receives, and a test builds
+every one of those messages and refuses any that does. The instructions go
+to stderr and into the report, which a person reads.
+
+That is the gate's side of it. Your side is to put the files out of reach.
+In Claude Code, add `deny` rules to `.claude/settings.json` in the project,
+or to `~/.claude/settings.json` for every project:
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(//home/you/gate/**)",
+      "Edit(//home/you/gate/**)",
+      "Bash(node watch/cli.ts gate approve:*)",
+      "Bash(node watch/cli.ts gate pin:*)",
+      "Bash(node watch/cli.ts gate rollback:*)"
+    ]
+  }
+}
+```
+
+Keep the pins, the reports and the journal in one directory outside the
+repository — `~/gate` above — so one pair of rules covers all of them. The
+path patterns are gitignore syntax, and a leading `//` means an absolute
+path from the filesystem root: a single leading `/` anchors at the settings
+file instead, which is not what you want here. On Windows the same rules
+work with `//C:/Users/you/gate/**`.
+
+A `Read` deny rule also stops the Edit and Write tools on the same path, so
+the `Edit` line above is belt and braces — except for `NotebookEdit`, which
+a `Read` rule does not cover, which is why it is there.
+
+**What those rules do not do, said plainly.** They apply to Claude's own
+file tools, to the file commands Claude Code recognises in a shell — `cat`,
+`head`, `tail`, `sed`, `tee` — and to shell redirections like `> file`. They
+do not apply to a command that reads files without naming them, such as
+`grep -r something .` run from the directory above, and they do not apply to
+a script that opens files itself: a Node or Python program the model writes
+and runs can read anything your user can. For enforcement that covers every
+process rather than the tools Claude Code knows about, that is what an
+operating-system sandbox is for, and it is not something the gate provides.
+
+So: the deny rules raise the effort and make an attempt visible in the
+transcript. They are not a wall. If the model can run arbitrary code as your
+user, it can reach these files, and the honest answer is that the gate is
+for watching a server you are unsure about — not for restraining the model
+you are running it with.
+
+Whether a model tries is worth knowing, and there is a question for it on
+the observation sheet.
+
 ## The limits
 
 Plainly, because the value of this depends on them.
@@ -309,6 +378,13 @@ Plainly, because the value of this depends on them.
 * **It hides and refuses. Nothing more.** It does not stop the server from
   doing anything, inspect what a tool does when it runs, or examine the
   arguments of a call it forwards.
+
+* **It does not restrain the model it is running under.** The pin and the
+  reports are ordinary files belonging to your user. Nothing the gate sends
+  a client names them or says how to change them, and the deny rules above
+  raise the effort — but a model that can run code as you can reach them.
+  See [keeping the model away from the gate's own
+  files](#keeping-the-model-away-from-the-gates-own-files).
 
 * **A pin written with `--write-pin` or `gate pin --from-current` is
   adopted, not reviewed.** It records what a server was saying at one
@@ -360,6 +436,9 @@ Send:
 4. The `--journal` file, if you used one. It is counts and tool names.
 5. What the client did: the wording of any error it showed, and whether the
    session continued.
+
+The `gate:` lines carry paths and the approval command, because they are
+for you. Nothing the client was sent does.
 
 **Do not send** a pin, a report, a `tools/list` response, or any tool
 description. A pin and a report both carry the definitions they are about,

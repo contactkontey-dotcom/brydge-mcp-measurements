@@ -12,7 +12,7 @@
  */
 import { strict as assert } from "node:assert";
 import { spawn } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -41,12 +41,11 @@ build({ out: BUILD_DIR });
 const BUILT = join(BUILD_DIR, "gate", "run.js");
 
 const A = "FIXTURE A: reads the planted file and returns its planted bytes.";
-const HOW = 'To approve it: run "gate approve".';
 
 /* ── The enforcer, on its own ───────────────────────────────────────────── */
 
 const enforcer = (over: Partial<ConstructorParameters<typeof Enforcer>[0]> = {}) =>
-  new Enforcer({ howToApprove: HOW, pinFile: "/tmp/pin.json", ...over });
+  new Enforcer({ pinFile: "/tmp/pin.json", ...over });
 
 const line = (m: unknown) => lineOf(Buffer.from(JSON.stringify(m), "utf8"));
 const reply = (a: { replyToClient?: Buffer }) => JSON.parse(a.replyToClient!.toString("utf8")) as Record<string, any>;
@@ -87,7 +86,10 @@ test("a tool the client cached before it was hidden is refused as hidden, and sa
   const r = reply(e.fromClient(line({ jsonrpc: "2.0", id: 11, method: "tools/call", params: { name: "read_file" } })));
   assert.match(r.error.message, /is hidden/);
   assert.match(r.error.message, /If your client listed the tools before it was hidden, it may still be showing it/);
-  assert.match(r.error.message, /gate approve/);
+  /* No command, no path, no flag: a model reads this. */
+  assert.ok(!/gate approve|watch\/cli|--pending|node /.test(r.error.message), r.error.message);
+  assert.match(r.error.message, /Retrying will not change it/);
+  assert.match(r.error.message, /the person running this client decides/);
   assert.equal(r.error.data.reason, "its description differs from the baseline");
 });
 
@@ -204,8 +206,9 @@ test("a tool list this cannot read is not forwarded, and the client is told why"
   assert.equal(r.error.code, REFUSAL_CODE);
   assert.match(r.error.message, /the gate did not forward this tool list: the result carries no tools array/);
   assert.match(r.error.message, /It cannot hide what it cannot read/);
-  assert.match(r.error.message, /Pin: \/tmp\/pin\.json/);
-  assert.match(r.error.message, /gate approve/);
+  /* The pin's path used to be here. A model reads this. */
+  assert.ok(!/\/tmp\/pin\.json|gate approve/.test(r.error.message), r.error.message);
+  assert.match(r.error.message, /can see what happened in the gate's own output/);
 });
 
 test("a batch stops the session, naming the file and what to do", () => {
@@ -511,4 +514,113 @@ test("shadow is what you get when nobody asks for anything", { timeout: 120_000 
   );
   assert.ok(!/enforcing against/.test(r.stderr), "the default mode said it was enforcing");
   assert.match(r.stderr, /Nothing was hidden from the client and no call was stopped/);
+});
+
+/* ── Nothing a model reads carries a command, a path or a flag ──────────── */
+
+/*
+ * The refusal used to end with "To approve it: run node watch/cli.ts gate
+ * approve --pending <report> …". That sentence goes to a MODEL, and it is
+ * the command for undoing the gate, with the flag and the file path. A
+ * model trying to be helpful has every reason to run it.
+ *
+ * So this builds every message the enforcer can send to a client and
+ * refuses any that carries operator detail. The instructions for approving
+ * belong on stderr and in the report, which a person reads.
+ */
+
+/** Patterns that mean somebody's command line got into the text. */
+const OPERATOR_DETAIL: Array<[string, RegExp]> = [
+  ["a flag", /(^|[\s"'(])--?[a-z][a-z-]+/],
+  ["a command", /\b(node|npx|npm|bash|sh|cmd\.exe|powershell)\s/],
+  ["a subcommand of the tool", /\bgate (approve|pin|build|rollback)\b/],
+  ["a source file", /\b[\w.-]+\.(ts|js|mjs|json|ndjson|md)\b/],
+  ["an absolute path", /(^|[\s"'(])[/~]/],
+  ["a relative path", /(^|[\s"'(])\.{1,2}\//],
+  ["a Windows path", /[A-Za-z]:\\|\\\\/],
+  ["a shell prompt", /\$\s/],
+];
+
+function noOperatorDetail(what: string, text: string): void {
+  for (const [kind, re] of OPERATOR_DETAIL) {
+    const hit = re.exec(text);
+    assert.equal(hit, null, `${what} carries ${kind}: ${JSON.stringify(hit?.[0])} in ${JSON.stringify(text)}`);
+  }
+}
+
+/** Every message the enforcer can put on the wire toward a client. */
+function everyClientMessage(): Array<{ what: string; text: string }> {
+  const out: Array<{ what: string; text: string }> = [];
+  const becauses: Array<WouldHide["because"]> = [
+    "not in the baseline",
+    "its description differs from the baseline",
+    "its input schema differs from the baseline",
+    "it differs from the baseline in some other field",
+  ];
+
+  for (const style of ["error", "result"] as const) {
+    /* Hidden, every reason. */
+    for (const because of becauses) {
+      const e = enforcer({ refusalStyle: style });
+      e.noteList([{ name: "read_file" }], [{ tool: "read_file", because }]);
+      const a = e.fromClient(line({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "read_file" } }));
+      out.push({ what: `a ${style} refusal (${because})`, text: a.replyToClient!.toString("utf8") });
+    }
+    /* Withdrawn. */
+    const w = enforcer({ refusalStyle: style });
+    w.noteList([{ name: "read_file" }], []);
+    w.noteList([], []);
+    out.push({
+      what: `a ${style} refusal (withdrawn)`,
+      text: w.fromClient(line({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "read_file" } })).replyToClient!.toString("utf8"),
+    });
+
+    /* A tool list it cannot read, every shape. */
+    for (const result of [{ tools: "nope" }, {}, { tools: [{}] }, { tools: [{ name: 1 }] }, { tools: [{ name: "a" }, { name: "a" }] }]) {
+      const f = enforcer({ refusalStyle: style });
+      f.fromClient(line({ jsonrpc: "2.0", id: 3, method: "tools/list" }));
+      const a = f.fromServer(line({ jsonrpc: "2.0", id: 3, result }));
+      if (a.replyToClient) out.push({ what: `a ${style} tool-list refusal (${JSON.stringify(result)})`, text: a.replyToClient.toString("utf8") });
+    }
+  }
+  return out;
+}
+
+test("no message the gate sends a client carries a command, a path or a flag", () => {
+  const all = everyClientMessage();
+  assert.ok(all.length >= 12, `only ${all.length} client messages were built`);
+  for (const { what, text } of all) noOperatorDetail(what, text);
+});
+
+test("the sentence still says what happened, why, and who decides", () => {
+  /* Stripping the command must not leave a refusal that explains nothing. */
+  for (const { what, text } of everyClientMessage()) {
+    assert.match(text, /the gate did not forward/, `${what} does not say who did not forward it`);
+  }
+  const e = enforcer();
+  e.noteList([{ name: "read_file" }], [{ tool: "read_file", because: "not in the baseline" }]);
+  const said = reply(e.fromClient(line({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "read_file" } }))).error.message;
+  assert.match(said, /because not in the baseline/);
+  assert.match(said, /Retrying will not change it/);
+  assert.match(said, /nothing here for you to fix/);
+  assert.match(said, /the person running this client decides what is approved/);
+  assert.match(said, /the gate has written down what differs/);
+});
+
+test("the instructions for approving are on stderr, where a person reads them", () => {
+  /*
+   * The command did not disappear: it moved. run.ts writes it once, next to
+   * the line that says enforcement is on, and says so.
+   */
+  const src = readFileSync(join(ROOT, "watch", "gate", "run.ts"), "utf8");
+  const how = /const HOW_TO_APPROVE =\s*\n?([\s\S]*?);\n/.exec(src)![1]!;
+  assert.match(how, /gate approve/, "the approval command is not in run.ts any more");
+  assert.match(how, /--pending/);
+  assert.match(how, /not in anything the client is sent/);
+  /* It is written to stderr and passed to nothing. */
+  assert.match(src, /process\.stderr\.write\(`\$\{HOW_TO_APPROVE\}\\n`\)/);
+  assert.equal([...src.matchAll(/HOW_TO_APPROVE/g)].length, 2, "HOW_TO_APPROVE is used somewhere else now");
+  /* And the enforcer is not given it. */
+  assert.ok(!/howToApprove/.test(src), "run.ts still hands the enforcer something to tell the client");
+  assert.ok(!/howToApprove/.test(readFileSync(join(ROOT, "watch", "gate", "enforce.ts"), "utf8")), "enforce.ts still has a howToApprove");
 });

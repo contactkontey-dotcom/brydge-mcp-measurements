@@ -170,9 +170,17 @@ if (!build.ok) {
   ]);
 }
 
+/*
+ * FOR STDERR AND NOTHING ELSE.
+ *
+ * This is a command, a path and a flag. It used to be the last sentence of
+ * every refusal a client received — which handed a model the command for
+ * undoing the gate. It goes to the person reading the logs, once, and
+ * never to a client. watch/gate/enforce.ts says why at length.
+ */
 const HOW_TO_APPROVE =
-  "To approve it: read the report this gate writes, then run " +
-  '"node watch/cli.ts gate approve --pending <report> --decisions-from <decisions>".';
+  'gate: to approve a change, read the report this gate writes and run "node watch/cli.ts gate approve ' +
+  '--pending <report> --decisions-from <decisions>". That command is not in anything the client is sent.';
 
 let pin: Pin | null = null;
 let emptyPin = false;
@@ -261,7 +269,6 @@ function reportOn(records: ToolRecord[], hidden: WouldHide[]): void {
 const enforcer =
   mode === "enforce" && pin
     ? new Enforcer({
-        howToApprove: HOW_TO_APPROVE,
         pinFile: pinPath ?? "(none)",
         refusalStyle,
         onHide: (hidden, shown) => process.stderr.write(`${hidLine(hidden, shown)}\n`),
@@ -314,6 +321,7 @@ const router = new Router({
 
 if (enforcer && pin) {
   process.stderr.write(`${enforcingLine(pin, pinPath ?? "(none)")}\n`);
+  process.stderr.write(`${HOW_TO_APPROVE}\n`);
   if (emptyPin) process.stderr.write(`gate: that pin names no tools, so no tool will be passed to the client.\n`);
 }
 /* Said once, because it is the gate sending something rather than passing

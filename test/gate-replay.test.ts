@@ -223,7 +223,7 @@ interface Replayed {
 }
 
 function replayEnforcing(transcript: Entry[], baseline: Pinned[]): Replayed {
-  const enforcer = new Enforcer({ howToApprove: "run gate approve", pinFile: "/nowhere/pin.json" });
+  const enforcer = new Enforcer({ pinFile: "/nowhere/pin.json" });
   const out: Replayed = { lines: 0, replaced: 0, refused: 0, hiddenAtEnd: 0, stopped: 0, listed: 0 };
   const router = new Router({
     mode: "enforce",
@@ -339,7 +339,7 @@ test("nothing the enforcer sends a client carries a description", { skip: !have 
     const base = baselineFrom(t);
     if (!base) continue;
 
-    const enforcer = new Enforcer({ howToApprove: "run gate approve", pinFile: "/nowhere/pin.json" });
+    const enforcer = new Enforcer({ pinFile: "/nowhere/pin.json" });
     const router = new Router({ mode: "enforce", baseline: [], onList: (records, hidden) => enforcer.noteList(records, hidden) });
     const sent: string[] = [];
     for (const e of t) {

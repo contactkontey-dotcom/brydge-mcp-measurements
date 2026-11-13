@@ -16,6 +16,23 @@
  * also what makes the test possible: with everything approved, enforce is
  * byte-for-byte what the server said.
  *
+ * ── WHAT A REFUSAL MAY NOT CONTAIN ───────────────────────────────────────
+ *
+ * A refusal is read by a MODEL. It used to end with "To approve it: run
+ * node watch/cli.ts gate approve --pending <report> …", which is the gate
+ * handing the model the command for undoing the gate — a file path, a flag
+ * and all. A model trying to be helpful has every reason to run it.
+ *
+ * So nothing a client can read carries a command, a file path or a flag.
+ * Not the refusal, not the data beside it, not the message for a tool list
+ * this cannot read. What it says instead is what happened, why, and that
+ * the person running the client is the one who decides. The instructions
+ * for approving go to stderr and to the report, which a person reads and a
+ * model is not given.
+ *
+ * A test builds every message this module can send to a client and refuses
+ * any of them that carries a path, a flag, a file name or a command.
+ *
  * ── A REFUSAL SAYS WHO REFUSED ───────────────────────────────────────────
  *
  * "the gate did not forward this call" — not an unknown-tool error, which
@@ -104,9 +121,11 @@ const pass: Action = { forward: true };
 const plain = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 
 export interface EnforcerOptions {
-  /** Where a reviewer would go to approve what is hidden. */
-  howToApprove: string;
-  /** The pin file, named in anything that fails closed. */
+  /**
+   * The pin file. Named only in what goes to stderr — a reason the session
+   * is ending, which a person reads — and never in anything sent to a
+   * client.
+   */
   pinFile: string;
   /** The shape of a refused tools/call. Defaults to an error. */
   refusalStyle?: RefusalStyle;
@@ -196,12 +215,21 @@ export class Enforcer {
   }
 
   /** The refusal, as the client will read it. */
-  /** The sentence, which is the same whichever shape carries it. */
+  /**
+   * The sentence, which is the same whichever shape carries it.
+   *
+   * No command, no path, no flag: a model reads this. It says what
+   * happened, why, and who decides — and that retrying is not the way,
+   * because a model that reads a refusal as a temporary failure will try
+   * again, which is the loop this is meant not to cause.
+   */
   sentence(tool: string, why: Why): string {
     return why.kind === "withdrawn"
       ? `${DID_NOT_FORWARD}: the server is no longer offering "${tool}". It was in an earlier tool list in this session and is not in the current one.`
       : `${DID_NOT_FORWARD}: "${tool}" is hidden, because ${why.because}. ` +
-        `If your client listed the tools before it was hidden, it may still be showing it. ${this.opts.howToApprove}`;
+        `If your client listed the tools before it was hidden, it may still be showing it. ` +
+        `Retrying will not change it, and there is nothing here for you to fix: ` +
+        `the person running this client decides what is approved, and the gate has written down what differs for them.`;
   }
 
   refusal(id: unknown, tool: string, why: Why): Buffer {
@@ -274,7 +302,8 @@ export class Enforcer {
               code: REFUSAL_CODE,
               message:
                 `the gate did not forward this tool list: ${read.because}. ` +
-                `It cannot hide what it cannot read, so it passed nothing on. Pin: ${this.opts.pinFile}. ${this.opts.howToApprove}`,
+                `It cannot hide what it cannot read, so it passed nothing on. ` +
+                `The person running this client can see what happened in the gate's own output.`,
               data: { gate: GATE, reason: because, didNotForward: true },
             },
           }),
