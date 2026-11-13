@@ -14,11 +14,37 @@
  *   • a batch array
  *   • exiting in the middle of a request
  *
- * Driven by argv: `--case <name>`.
+ * And, for the tool list the gate asks for itself, every way a server can
+ * answer one badly: not at all, with an error, with one page of a list,
+ * with an answer to an id nobody sent, and with a message carrying that id
+ * but a method on it as well.
+ *
+ * Driven by argv: `--case <name>`. `--log-in <file>` writes every line the
+ * server receives, which is how a test compares what reaches the SERVER
+ * with and without the gate asking for things of its own.
  */
+import { appendFileSync } from "node:fs";
+
 const CASE = (process.argv.find((a) => a.startsWith("--case=")) ?? "--case=plain").slice(7);
+const LOG_IN = (process.argv.find((a) => a.startsWith("--log-in=")) ?? "").slice(9) || null;
+const GATE_ID = /^brydge-gate\//;
 
 const out = (s) => process.stdout.write(s);
+/*
+ * Every line the server received, in order, exactly as it arrived.
+ *
+ * Appended synchronously: a test that compares two recordings cannot have
+ * one of them still buffered when the process goes.
+ */
+const logIn = LOG_IN
+  ? (line) => {
+      try {
+        appendFileSync(LOG_IN, line + "\n");
+      } catch {
+        /* a log that cannot be written is not a reason to stop answering */
+      }
+    }
+  : () => {};
 const send = (m) => out(JSON.stringify(m) + "\n");
 
 /* Planted. The soft hyphen and the zero-width space are deliberate. */
@@ -100,6 +126,7 @@ process.stdin.on("data", (chunk) => {
     const line = buffer.slice(0, at).trim();
     buffer = buffer.slice(at + 1);
     if (!line) continue;
+    logIn(line);
     let m;
     try {
       m = JSON.parse(line);
@@ -124,11 +151,43 @@ async function handle(m) {
     });
     if (CASE === "noise") out("this is not JSON and never was\n");
     if (CASE === "storm") for (let i = 0; i < 25; i++) send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" });
+    if (CASE === "relist-loop") send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" });
+    if (CASE === "relist-many") for (let i = 0; i < 60; i++) send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" });
     return;
   }
   if (m.method === "notifications/initialized") return;
 
   if (m.method === "tools/list") {
+    /*
+     * THE WAYS OF ANSWERING THE GATE'S OWN REQUEST BADLY.
+     *
+     * Each applies only to a list asked for under one of the gate's ids,
+     * so the client's own lists in the same session are answered normally
+     * and a test can tell the two apart.
+     */
+    const asGate = typeof m.id === "string" && GATE_ID.test(m.id);
+    if (asGate) {
+      if (CASE === "relist-ignore") return; /* no answer at all, ever */
+      if (CASE === "relist-error") {
+        return send({ jsonrpc: "2.0", id: m.id, error: { code: -32603, message: "FIXTURE: this server will not answer that." } });
+      }
+      if (CASE === "relist-page") {
+        /* One page of a list. A tool that changed may be on another. */
+        return send({
+          jsonrpc: "2.0",
+          id: m.id,
+          result: { tools: [{ name: "read_file", description: A, inputSchema: { type: "object" } }], nextCursor: "FIXTURE-PAGE-2" },
+        });
+      }
+      if (CASE === "relist-stranger") {
+        /* An answer to an id nobody sent, and then a message carrying the
+         * gate's id with a method on it, which is a request and not an
+         * answer however much the id looks like one. */
+        send({ jsonrpc: "2.0", id: "brydge-gate/99", result: toolList(1) });
+        send({ jsonrpc: "2.0", id: m.id, method: "notifications/fixture/not-an-answer" });
+        return;
+      }
+    }
     listsServed++;
     const which = listsServed === 1 ? 1 : 2;
     const body = JSON.stringify({ jsonrpc: "2.0", id: m.id, result: toolList(which) }) + "\n";
@@ -136,7 +195,19 @@ async function handle(m) {
     /* `notify`: tell the client the list changed, then serve the new one —
      * the other order of events from the default, where it changes with no
      * notification at all. */
-    if (CASE === "notify" && listsServed === 1) send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" });
+    /*
+     * The cases that exist to be asked a question need to prompt one: the
+     * gate asks on notifications/tools/list_changed and nothing else, so a
+     * case that never sends the notification is never asked anything.
+     */
+    const NOTIFIES_ONCE = ["notify", "relist-ignore", "relist-error", "relist-page", "relist-stranger"];
+    if (NOTIFIES_ONCE.includes(CASE) && listsServed === 1) send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" });
+    /*
+     * `relist-loop`: a notification in answer to every tools/list, which is
+     * the ping-pong a gate that asked on every notification would be stuck
+     * in. The minimum interval and the cap are what stop it.
+     */
+    if (CASE === "relist-loop") send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" });
     if (CASE === "chunks") return byByte(body);
     if (CASE === "split-utf8") {
       /* A message carrying a character whose bytes land in two writes. */

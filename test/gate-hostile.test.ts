@@ -44,6 +44,14 @@ function run(command: string, args: string[], lines: unknown[], _quietMs = 0, ca
       lastAt = Date.now();
     });
     child.stderr.on("data", (c: Buffer) => (err += c.toString("utf8")));
+    /*
+     * The `die` case exits in the middle of a request, so a write lands on
+     * a dead pipe. Without a listener that EPIPE ends the whole test RUN
+     * rather than a test, and it only lands when the machine is loaded
+     * enough for the exit to get ahead of the writes — which is why this
+     * test failed in the full suite and passed three times on its own.
+     */
+    child.stdin.on("error", () => {});
     let settled = false;
     const finish = (code: number | null) => {
       if (settled) return;

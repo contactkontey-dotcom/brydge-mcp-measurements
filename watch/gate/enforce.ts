@@ -92,7 +92,9 @@ export const REFUSAL_CODE = -32000;
 
 export type Why =
   | { kind: "hidden"; because: WouldHide["because"] }
-  | { kind: "withdrawn" };
+  | { kind: "withdrawn" }
+  /** The surface is not known: a list the gate asked for came back partial. */
+  | { kind: "unread"; because: string };
 
 /**
  * The shape a refused tools/call comes back in.
@@ -153,6 +155,8 @@ export class Enforcer {
   /** Client request ids that asked for a tools/list, to their method. */
   private readonly inFlight = new Map<string, { method: string; tool: string | null }>();
   private sawList = false;
+  /** Why the surface is not known, while it is not. */
+  private unread: string | null = null;
 
   private readonly opts: EnforcerOptions;
 
@@ -169,8 +173,26 @@ export class Enforcer {
     return this.hidden.size;
   }
 
+  /**
+   * The gate asked for a tool list and got back one page of it.
+   *
+   * A tool that changed may be on a page the gate did not get, so the
+   * picture it has is one it knows to be incomplete. Under enforcement
+   * that is not something to carry on with: until a whole list arrives,
+   * calls are not passed on. `noteList` clears it, because a complete list
+   * is what it was waiting for.
+   */
+  cannotReadSurface(because: string): void {
+    this.unread = because;
+  }
+
+  get surfaceUnread(): string | null {
+    return this.unread;
+  }
+
   /** What the router decided about one list, taken as the state to enforce. */
   noteList(records: Array<{ name: string }>, hidden: WouldHide[]): void {
+    this.unread = null;
     this.sawList = true;
     this.offeredNow = new Set(records.map((r) => r.name));
     for (const n of this.offeredNow) this.everOffered.add(n);
@@ -207,6 +229,12 @@ export class Enforcer {
    * guess would break a client that calls before it lists.
    */
   whyRefused(tool: string): Why | null {
+    /*
+     * Before anything about one tool: if the gate has not read the whole
+     * surface, it does not know whether THIS tool is one of the ones that
+     * changed. Failing closed here is the only answer that is not a guess.
+     */
+    if (this.unread) return { kind: "unread", because: this.unread };
     if (!this.sawList) return null;
     const because = this.hidden.get(tool);
     if (because) return { kind: "hidden", because };
@@ -224,6 +252,13 @@ export class Enforcer {
    * again, which is the loop this is meant not to cause.
    */
   sentence(tool: string, why: Why): string {
+    if (why.kind === "unread") {
+      return (
+        `${DID_NOT_FORWARD}: ${why.because}, so the gate has not read what the server is offering now ` +
+        `and cannot tell whether "${tool}" is one of the tools that changed. It is not passing calls on until it has. ` +
+        `The person running this client can see what happened in the gate's own output.`
+      );
+    }
     return why.kind === "withdrawn"
       ? `${DID_NOT_FORWARD}: the server is no longer offering "${tool}". It was in an earlier tool list in this session and is not in the current one.`
       : `${DID_NOT_FORWARD}: "${tool}" is hidden, because ${why.because}. ` +
@@ -234,7 +269,8 @@ export class Enforcer {
 
   refusal(id: unknown, tool: string, why: Why): Buffer {
     const said = this.sentence(tool, why);
-    const reason = why.kind === "withdrawn" ? "no longer offered by the server" : why.because;
+    const reason =
+      why.kind === "withdrawn" ? "no longer offered by the server" : why.kind === "unread" ? "the tool list has not been read in full" : why.because;
     /* Said as data as well as in words, because a client that shows only a
      * code and a field should still be able to show who refused. */
     const data = { gate: GATE, tool, reason, didNotForward: true };

@@ -81,7 +81,19 @@ export type Note =
   | { kind: "server-request"; at: number; method: string }
   | { kind: "list-changed"; at: number }
   | { kind: "id-collision"; at: number; id: string }
-  | { kind: "pagination"; at: number; listId: string };
+  | { kind: "pagination"; at: number; listId: string }
+  /** A tool list the gate asked for itself, rather than one the client did. */
+  | { kind: "own-list"; at: number; id: string; tools: number; partial: boolean }
+  /** The gate could have asked for a list of its own and did not. */
+  | { kind: "own-list-declined"; at: number; why: string }
+  /** No answer came to a list the gate asked for. */
+  | { kind: "own-list-timed-out"; at: number; id: string }
+  /**
+   * The server sent a message under one of the gate's ids that this
+   * session never asked under. It is not an answer to anything, and it
+   * does not reach the client.
+   */
+  | { kind: "own-id-stranger"; at: number; id: string; what: string };
 
 const idKey = (id: unknown): string => (typeof id === "string" ? `s:${id}` : `n:${String(id)}`);
 
@@ -161,6 +173,28 @@ export class Router {
 
   get baselineSize(): number {
     return this.baseline?.size ?? 0;
+  }
+
+  /**
+   * Expect an answer to a tools/list the GATE sent, not the client.
+   *
+   * The gate's own request is injected into the relay's output and so never
+   * reaches this reader — by design, since the gate does not decide about
+   * its own messages. Without this the answer would arrive with no request
+   * to match it to and be ignored, so the comparison would not happen.
+   *
+   * Registering it here means the answer goes through exactly the same
+   * comparison a client's list does: the same notes, the same onList, the
+   * same report. One comparison, in one place.
+   */
+  expectOwnList(id: string): void {
+    this.inFlight.set(idKey(id), "tools/list");
+    this.ours.add(idKey(id));
+  }
+
+  /** Whether this id is one the gate asked under. */
+  isOwn(id: unknown): boolean {
+    return this.ours.has(idKey(id));
   }
 
   /**
@@ -247,10 +281,23 @@ export class Router {
       note({ kind: "fail-closed", at, side, because: `a tools/list this cannot read: ${read.because}` });
       return made;
     }
-    if (plain(message.result) && typeof message.result.nextCursor === "string") {
+    const partial = plain(message.result) && typeof message.result.nextCursor === "string";
+    if (partial) {
       /* A page, not the surface. Named so a reader is not told a partial
        * list is the whole one. */
       note({ kind: "pagination", at, listId });
+    }
+    if (this.ours.has(key)) {
+      /*
+       * The gate's own. Noted separately so a journal says which lists the
+       * client asked for and which the gate did — and so a partial one can
+       * be told apart, because a page of a list the gate asked for is a
+       * surface it has not read.
+       */
+      const read2 = toolsOf(message.result);
+      note({ kind: "own-list", at, id: key, tools: "tools" in read2 ? read2.tools.length : 0, partial });
+      this.ours.delete(key);
+      if (partial) return made; /* not compared: it is not the whole list */
     }
 
     /* Normalised, because the pin stores the normalised form: comparing a

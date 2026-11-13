@@ -379,11 +379,27 @@ test("the same id is left alone with the flag off", { timeout: 60_000 }, async (
 });
 
 test("a client response carrying such an id is not a collision", { timeout: 60_000 }, async () => {
-  /* An id in a RESPONSE was chosen by whoever asked, not by the client. */
+  /*
+   * An id in a RESPONSE was chosen by whoever asked, not by the client, so
+   * it is not the collision that ends a session.
+   *
+   * The stray response goes last on purpose. The server answers it with an
+   * error — it is not a request — and that answer carries the reserved id,
+   * so G4b drops it before the client: the namespace is the gate's in both
+   * directions. A driver that waited for it would wait for ever, which is
+   * how this test found that behaviour rather than asserting it.
+   */
   const r = await run(
     [GATE, FLAG, "--", process.execPath, DEMO, "--mode=baseline"],
-    [INIT, { jsonrpc: "2.0", id: reservedId(1), result: { roots: [] } }, list(2)],
+    [INIT, list(2), { jsonrpc: "2.0", id: reservedId(1), result: { roots: [] } }],
   );
   assert.ok(!/the session is ending/.test(r.stderr), r.stderr);
   assert.ok(r.answers.find((m) => m.id === 2)?.result?.tools, "the session did not carry on");
+  /* And nothing came back to the client under that id. */
+  assert.equal(
+    r.answers.filter((m) => m.id === reservedId(1)).length,
+    0,
+    "a message under the gate's namespace reached the client",
+  );
+  assert.match(r.stderr, /which is in this gate's namespace and is not an answer/);
 });

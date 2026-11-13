@@ -43,14 +43,27 @@
 import { spawn } from "node:child_process";
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { relay, type Line } from "./transport.ts";
+import { relay, type Line, type Relay } from "./transport.ts";
 import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./router.ts";
 import { ADOPTED, NotAPin, adopt, read as readPin, write as writePin, type Pin } from "./pin.ts";
 import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, REFUSAL_STYLES, type RefusalStyle } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
 import { detachedOn, killStyleOn, startupAdvice } from "./spawning.ts";
-import { ANNOUNCEMENT, clientUsesReservedId, collisionBecause, FLAG as RELIST_FLAG } from "./relist.ts";
+import {
+  ANNOUNCEMENT,
+  askedLine,
+  clientUsesReservedId,
+  collisionBecause,
+  declinedLine,
+  FLAG as RELIST_FLAG,
+  isReservedId,
+  Lister,
+  partialLine,
+  strangerLine,
+  timedOutLine,
+  TIMEOUT_MS,
+} from "./relist.ts";
 import type { ToolRecord } from "../tools.ts";
 
 /** Nothing is spawned after this is called. */
@@ -308,6 +321,17 @@ function takePin(records: ToolRecord[]): void {
   }
 }
 
+/*
+ * G4b: the gate's own tools/list.
+ *
+ * The Lister decides and the lines below do it. It holds no timers and
+ * sends nothing itself, which is what makes the policy testable without a
+ * server. watch/gate/relist.ts has the policy and why each part of it.
+ */
+const lister = relistOnChange ? new Lister() : null;
+/* Assigned once the relay exists; the reader below closes over it. */
+let toServer: Relay | null = null;
+
 const router = new Router({
   mode,
   /* A pinned tool already carries exactly the four fields a baseline is. */
@@ -386,11 +410,80 @@ const observe = (side: Side) => (line: Line) => {
     }
   }
 
+  /* The client's own messages tell the lister when startup is over. */
+  if (lister && side === "client-to-server") lister.sawClient(line.parsed);
+
   /*
    * The router sees every line in both modes: the journal and the report
    * are the same in enforce as in shadow. Only the action differs.
    */
-  for (const n of router.see(line, side)) note(n);
+  const made = router.see(line, side);
+  for (const n of made) note(n);
+
+  if (lister && side === "server-to-client") {
+    /* The notification that prompts a request of the gate's own. */
+    if (lister.isChangeNotice(line.parsed)) {
+      const decided = lister.consider();
+      if (decided.ask) {
+        router.expectOwnList(decided.id);
+        const how = toServer?.inject(decided.payload) ?? "ended";
+        if (how === "ended") {
+          lister.settle(decided.id);
+          note({ kind: "own-list-declined", at: Date.now(), why: "the connection to the server has closed" });
+        } else {
+          process.stderr.write(`${askedLine(decided.id, "the server said its tool list changed")}\n`);
+          /*
+           * A timer, not a wait. Nothing the client sends is held up by
+           * any of this; if no answer comes the request is forgotten and
+           * the next notification may ask again.
+           */
+          const forgetAt = setTimeout(() => {
+            const gone = lister.forget();
+            if (gone) {
+              process.stderr.write(`${timedOutLine(gone)}\n`);
+              note({ kind: "own-list-timed-out", at: Date.now(), id: gone });
+            }
+          }, TIMEOUT_MS + 10);
+          forgetAt.unref?.();
+        }
+      } else {
+        note({ kind: "own-list-declined", at: Date.now(), why: decided.why });
+      }
+      const capped = lister.capLine();
+      if (capped) process.stderr.write(`${capped}\n`);
+    }
+
+    /*
+     * Anything the server sends under one of the gate's ids.
+     *
+     * The namespace is the gate's in both directions, so none of it
+     * reaches the client — not only the answers the gate is waiting for. A
+     * server answering an id this session never sent is not an answer to
+     * anything, and passing it on would make the gate's own announcement
+     * false and let a server reach the client wearing the gate's name.
+     */
+    const message = plainOf(line.parsed);
+    const id = message?.id;
+    if (id !== undefined && isReservedId(id)) {
+      if (lister.isMine(id)) {
+        /* The router has already compared it — expectOwnList registered
+         * the id. A page of a list is a surface the gate has not read, and
+         * under enforcement it says so. */
+        lister.settle(id);
+        const own = made.find((n) => n.kind === "own-list");
+        if (own && own.kind === "own-list" && own.partial) {
+          process.stderr.write(`${partialLine(own.id)}\n`);
+          enforcer?.cannotReadSurface("the tool list the gate asked for came back as one page of itself");
+        }
+      } else {
+        const what = typeof message?.method === "string" ? `a ${message.method}` : "a response";
+        note({ kind: "own-id-stranger", at: Date.now(), id: String(id), what });
+        process.stderr.write(`${strangerLine(String(id), what)}\n`);
+      }
+      return { pass: false, drop: true } as const;
+    }
+  }
+
   if (!enforcer) return { pass: true } as const;
 
   const action = side === "client-to-server" ? enforcer.fromClient(line) : enforcer.fromServer(line);
@@ -408,10 +501,15 @@ const observe = (side: Side) => (line: Line) => {
   }
   return { pass: true } as const;
 };
+/** The parsed message, when it is one. */
+const plainOf = (v: unknown): Record<string, unknown> | null =>
+  v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+
 const readerFailed = (e: Error, line: Line) =>
   note({ kind: "unparsed-line", at: Date.now(), side: "server-to-client", bytes: line.raw.length, because: `the reader threw: ${e.message}` });
 
-process.stdin.pipe(relay(observe("client-to-server"), readerFailed)).pipe(child.stdin!);
+toServer = relay(observe("client-to-server"), readerFailed);
+process.stdin.pipe(toServer).pipe(child.stdin!);
 child.stdout!.pipe(relay(observe("server-to-client"), readerFailed)).pipe(process.stdout);
 child.stderr!.pipe(process.stderr);
 
