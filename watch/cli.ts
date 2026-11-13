@@ -48,6 +48,7 @@ import { apply, parseExport, queueFor, renderApplied, renderQueue, TOOLS_ONLY } 
 import { prepare, reviewPage } from "./page.ts";
 import { adopt, fromDecisions, NotAPin, pathFor as pinPathFor, read as readPin, write as writePin, ADOPTED } from "./gate/pin.ts";
 import { carry, renderCarried } from "./gate/approve.ts";
+import { archive, list as listHistory, NoSuchArchive, renderHistory, rollback } from "./gate/history.ts";
 import type { Pending } from "./gate/report.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -655,10 +656,72 @@ function gateApprove(pendingFile: string, decisionsExport: string, decisionsFile
    * only when something was approved. */
   mkdirSync(dirname(decisionsFile), { recursive: true });
   writeFileSync(decisionsFile, writeDecisions(applied.decisions));
-  if (applied.pinChanged) writePin(pinFile, applied.pin);
+  let archived: { file: string; sha256: string } | null = null;
+  if (applied.pinChanged) {
+    /*
+     * The copy is made BEFORE the pin is replaced, and a failure to make it
+     * stops the replacement: the pin being overwritten is the only record
+     * of what was approved before, and an approval somebody wants back is
+     * exactly the case this exists for.
+     */
+    try {
+      archived = archive(pinFile);
+    } catch (e) {
+      console.error(`Refusing to replace ${pinFile}: the version in place could not be archived first (${(e as Error).message}).`);
+      console.error(`The decisions were written to ${decisionsFile}. The pin is unchanged.`);
+      process.exit(1);
+    }
+    writePin(pinFile, applied.pin);
+  }
   console.log(renderCarried(applied, pinFile));
   console.error("");
   console.error(`decisions -> ${decisionsFile}`);
+  if (archived) {
+    console.error(`the pin that was in place -> ${archived.file}`);
+    console.error(`to put it back: node watch/cli.ts gate rollback ${pending.package}@${pending.packageVersion} --to 1`);
+  }
+}
+
+/**
+ * What the pin used to be, and putting one back.
+ *
+ * With no --to it lists and changes nothing, because the common use of this
+ * command is to find out what there is. --to takes a number from that
+ * listing, 1 being the most recently archived, or an archived file's name.
+ */
+function gateRollback(ref: string, to: string | null, dir: string): void {
+  const { name, version } = split(ref);
+  const pinFile = pinPathFor(dir, name, version);
+  const rows = listHistory(pinFile);
+
+  if (to === null) {
+    console.log(renderHistory(pinFile, rows));
+    return;
+  }
+  const which = /^\d+$/.test(to) ? Number(to) : to;
+  if (typeof which === "number" && which < 1) {
+    console.error(`--to counts from 1, the most recently archived. There are ${rows.length}.`);
+    process.exit(1);
+  }
+  let r;
+  try {
+    r = rollback(pinFile, which);
+  } catch (e) {
+    console.error(`Nothing was changed: ${e instanceof NoSuchArchive ? e.message : (e as Error).message}`);
+    if (rows.length) {
+      console.error("");
+      console.error(renderHistory(pinFile, rows));
+    }
+    process.exit(1);
+  }
+  console.log(`The pin at ${pinFile} is now the version archived at ${r.installed.archivedAt}.`);
+  console.log(`It names ${Object.keys(r.pin.tools).length} tool(s) for ${r.pin.package}@${r.pin.packageVersion}, pinned ${r.pin.pinnedAt}, ${r.pin.source}.`);
+  if (r.archivedCurrent) {
+    console.log(`The version that was in place is archived at ${r.archivedCurrent.file}, so this can be rolled back too.`);
+  }
+  console.log("");
+  console.log("Nothing else changed. watch/decisions.json still records every decision that was made,");
+  console.log("including the ones whose tools this pin no longer names.");
 }
 
 /* ── The review queue ───────────────────────────────────────────────────── */
@@ -854,9 +917,28 @@ async function main(): Promise<void> {
       }
       return gatePin(positional[0]!, fromCurrent, path, decisions, pinsDir(argv));
     }
+    if (sub === "rollback") {
+      const i = gateRest.indexOf("--to");
+      const to = i === -1 ? null : (gateRest[i + 1] ?? "");
+      /* The value after --to is not a positional. i is -1 when there is no
+       * --to at all, and i + 1 would then be 0 — the package itself. */
+      const skip = i === -1 ? -1 : i + 1;
+      const positional = gateRest.filter((r, n) => !r.startsWith("--") && n !== skip);
+      if (positional.length !== 1) {
+        console.error("usage: node watch/cli.ts gate rollback <package@version> [--to <number|name>]");
+        console.error("       with no --to it lists what has been archived and changes nothing.");
+        process.exit(1);
+      }
+      if (to === "") {
+        console.error("--to needs a number from the listing, or an archived file's name.");
+        process.exit(1);
+      }
+      return gateRollback(positional[0]!, to, pinsDir(argv));
+    }
     console.error("usage: node watch/cli.ts gate build");
     console.error("       node watch/cli.ts gate pin <package@version> [--from-current]");
     console.error("       node watch/cli.ts gate approve --pending <report.json> --decisions-from <decisions.json>");
+    console.error("       node watch/cli.ts gate rollback <package@version> [--to <number|name>]");
     process.exit(1);
   }
   if (cmd === "review") {
@@ -920,6 +1002,7 @@ async function main(): Promise<void> {
       "  node watch/cli.ts gate build",
       "  node watch/cli.ts gate pin <package@version> [--from-current]",
       "  node watch/cli.ts gate approve --pending <report> --decisions-from <file>",
+      "  node watch/cli.ts gate rollback <package@version> [--to <number|name>]",
       "  node watch/cli.ts review   <package> <versionA> <versionB>",
       "  node watch/cli.ts review   --page <package> <versionA> <versionB>",
       "  node watch/cli.ts review   --apply <file> [--alias <name>]",

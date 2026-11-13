@@ -119,6 +119,13 @@ export interface RouterOptions {
    * because a note goes in a journal.
    */
   onList?: (records: ToolRecord[], hidden: WouldHide[]) => void;
+  /**
+   * Called once, with the list this adopts as its baseline when it was
+   * given none. `onList` is not called for that list: there was nothing to
+   * compare it against, so there is no result to report. This exists so a
+   * caller can write down what the server was offering.
+   */
+  onBaseline?: (records: ToolRecord[]) => void;
 }
 
 export class Router {
@@ -127,6 +134,7 @@ export class Router {
   private baseline: Map<string, Pinned> | null = null;
   private readonly now: () => number;
   private readonly onList: ((records: ToolRecord[], hidden: WouldHide[]) => void) | null;
+  private readonly onBaseline: ((records: ToolRecord[]) => void) | null;
   /** Client request ids in flight, to the method they asked for. */
   private readonly inFlight = new Map<string, string>();
   /** Ids this gate has reserved for its own use. G1 reserves none. */
@@ -137,6 +145,7 @@ export class Router {
     this.mode = opts.mode ?? "shadow";
     this.now = opts.now ?? Date.now;
     this.onList = opts.onList ?? null;
+    this.onBaseline = opts.onBaseline ?? null;
     if (opts.baseline) {
       this.baseline = new Map(opts.baseline.map((p) => [p.name, p]));
       this.notes.push({ kind: "baseline", at: this.now(), tools: opts.baseline.length, source: "given" });
@@ -251,6 +260,9 @@ export class Router {
     if (!this.baseline) {
       this.baseline = new Map(records.map((t) => [t.name, pinnedOf(t)]));
       note({ kind: "baseline", at, tools: records.length, source: "first list seen" });
+      /* After the note, for the reason onList is: a caller that throws
+       * cannot cost the journal its entry. */
+      this.onBaseline?.(records);
       return made;
     }
 

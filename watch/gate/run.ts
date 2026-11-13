@@ -1,12 +1,17 @@
 /*
  * ═══════════════════════════════════════════════════════════════════════════
- * THE GATE, RUNNING. SHADOW MODE: IT CHANGES NOTHING.
+ * THE GATE, RUNNING. SHADOW IS THE DEFAULT AND CHANGES NOTHING.
  *
  *   node watch/gate/built/gate/run.js [options] -- <command> [args...]
  *
- *   --pin <file>       the surface somebody signed off
- *   --pending <dir>    where a report goes when the live list differs
- *   --journal <file>   one line per note
+ *   --pin <file>              the surface somebody signed off
+ *   --pending <dir>           where a report goes when the live list differs
+ *   --journal <file>          one line per note
+ *   --write-pin <file>        take a pin from the first live list (shadow only)
+ *   --package <name@version>  what that pin is a pin of
+ *   --mode shadow|enforce     shadow unless somebody types enforce
+ *   --refusal-style error|result   the shape of a refused call (enforce only)
+ *   --on-bad-pin=refuse|empty what to do with a pin that cannot be read
  *
  * The client launches this instead of the server; the server becomes its
  * child. Every byte goes through in both directions. With a pin, the live
@@ -14,8 +19,10 @@
  * report is written; without one, the first list seen is the baseline and
  * later lists are compared against that.
  *
- * NOTHING IS HIDDEN AND NO CALL IS STOPPED. That is G1's promise and G2
- * keeps it: this records what a gate would hide. Enforcement is not built.
+ * IN SHADOW MODE NOTHING IS HIDDEN AND NO CALL IS STOPPED: it records what
+ * a gate would hide. Under --mode enforce, which somebody has to type, a
+ * tool that differs from the pin is taken out of the tool list and a call to
+ * it is answered by the gate instead of being forwarded. See enforce.ts.
  *
  * ── THE TWO THINGS IT REFUSES TO START FOR ───────────────────────────────
  *
@@ -37,8 +44,8 @@ import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { relay, type Line } from "./transport.ts";
 import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./router.ts";
-import { ADOPTED, NotAPin, read as readPin, type Pin } from "./pin.ts";
-import { Enforcer, enforcingLine, hidLine } from "./enforce.ts";
+import { ADOPTED, NotAPin, adopt, read as readPin, write as writePin, type Pin } from "./pin.ts";
+import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, REFUSAL_STYLES, type RefusalStyle } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
 import type { ToolRecord } from "../tools.ts";
@@ -52,7 +59,17 @@ function refuse(code: number, lines: string[]): never {
 const argv = process.argv.slice(2);
 const dashdash = argv.indexOf("--");
 if (dashdash === -1 || dashdash === argv.length - 1) {
-  refuse(64, ["usage: run.js [--pin <file>] [--pending <dir>] [--journal <file>] -- <command> [args...]"]);
+  refuse(64, [
+    "usage: run.js [options] -- <command> [args...]",
+    "  --pin <file>                   the surface somebody signed off",
+    "  --pending <dir>                where a report goes when the live list differs",
+    "  --journal <file>               one line per note",
+    "  --write-pin <file>             take a pin from the first live list (shadow only)",
+    "  --package <name@version>       what that pin is a pin of",
+    "  --mode shadow|enforce          shadow unless this says otherwise",
+    "  --refusal-style error|result   the shape of a refused call (enforce only)",
+    "  --on-bad-pin=refuse|empty      what to do with a pin that cannot be read",
+  ]);
 }
 const flags = argv.slice(0, dashdash);
 const [command, ...args] = argv.slice(dashdash + 1);
@@ -63,6 +80,18 @@ const flag = (name: string): string | null => {
 const journalPath = flag("--journal");
 const pinPath = flag("--pin");
 const pendingDir = flag("--pending");
+/*
+ * --write-pin exists because "pin from current" was unreachable for any
+ * server this project has not measured: `gate pin --from-current` adopts a
+ * STORED capture, and a tester in front of their own server has none. This
+ * adopts the first list the live server answers, labelled the same way and
+ * no more of an approval than the other one.
+ *
+ * Shadow only, and with no --pin: writing a pin from the list you are
+ * enforcing against would be a gate approving its own findings.
+ */
+const writePinPath = flag("--write-pin");
+const packageRef = flag("--package");
 /*
  * SHADOW IS THE DEFAULT AND STAYS THE DEFAULT. Enforcement happens only
  * when somebody types it: a gate that started hiding things because of a
@@ -76,6 +105,48 @@ const onBadPin = (flags.find((f) => f.startsWith("--on-bad-pin=")) ?? "--on-bad-
 if (onBadPin !== "refuse" && onBadPin !== "empty") {
   refuse(64, [`gate: --on-bad-pin is refuse or empty, not ${JSON.stringify(onBadPin)}`]);
 }
+/*
+ * The shape of a refused call, not whether one happens. The default is a
+ * protocol error, which is the honest shape: the request was not carried
+ * out. A client that turns an error into a retry loop, and never shows the
+ * model the sentence, is the reason the other shape exists — and which
+ * clients do that is something to find out on a real one.
+ */
+const refusalStyleFlag = flag("--refusal-style") ?? (flags.find((f) => f.startsWith("--refusal-style=")) ?? "=").split("=")[1] ?? "";
+const refusalStyle = (refusalStyleFlag || DEFAULT_REFUSAL_STYLE) as RefusalStyle;
+if (!REFUSAL_STYLES.includes(refusalStyle)) {
+  refuse(64, [`gate: --refusal-style is ${REFUSAL_STYLES.join(" or ")}, not ${JSON.stringify(refusalStyle)}`]);
+}
+if (refusalStyleFlag && mode !== "enforce") {
+  /* Nothing is refused in shadow mode, so a style for it would be a
+   * setting that does nothing — said rather than ignored. */
+  refuse(64, [
+    `gate: --refusal-style only applies under --mode enforce, and this is ${mode} mode.`,
+    "gate: nothing is refused in shadow mode, so there is no refusal to shape. The server was not started.",
+  ]);
+}
+if (writePinPath !== null) {
+  if (!writePinPath) refuse(64, ["gate: --write-pin needs a file path"]);
+  if (mode !== "shadow") {
+    refuse(64, [
+      "gate: --write-pin is for shadow mode: a pin written from the list being enforced against would be a gate approving its own findings.",
+      "gate: the server was not started.",
+    ]);
+  }
+  if (pinPath !== null) {
+    refuse(64, [
+      "gate: --write-pin and --pin together would compare a list against a pin and then overwrite that pin with the same list.",
+      "gate: run with --write-pin once to take a pin, then with --pin to use it. The server was not started.",
+    ]);
+  }
+  if (!packageRef || !/^.+@.+$/.test(packageRef)) {
+    refuse(64, [
+      'gate: --write-pin needs --package <name@version>: a pin names what it pins, and a command line is not a name.',
+      "gate: the server was not started.",
+    ]);
+  }
+}
+
 const started = Date.now();
 const today = new Date().toISOString().slice(0, 10);
 
@@ -182,6 +253,7 @@ const enforcer =
     ? new Enforcer({
         howToApprove: HOW_TO_APPROVE,
         pinFile: pinPath ?? "(none)",
+        refusalStyle,
         onHide: (hidden, shown) => process.stderr.write(`${hidLine(hidden, shown)}\n`),
         onRefuse: (tool, why) =>
           process.stderr.write(
@@ -191,6 +263,34 @@ const enforcer =
       })
     : null;
 
+/**
+ * Write a pin from what the server is offering now, once.
+ *
+ * Labelled "adopted, not reviewed" on every record, like the other way of
+ * taking one: nobody approved these, and a later difference is a difference
+ * from what this server happened to be saying at this moment.
+ */
+let pinTaken = false;
+function takePin(records: ToolRecord[]): void {
+  if (pinTaken || !writePinPath || !packageRef) return;
+  pinTaken = true;
+  const at = packageRef.lastIndexOf("@");
+  const name = packageRef.slice(0, at);
+  const version = packageRef.slice(at + 1);
+  try {
+    writePin(writePinPath, adopt(name, version, records, today));
+    process.stderr.write(
+      `gate: wrote a pin for ${name}@${version} naming ${records.length} tool(s) -> ${writePinPath}\n` +
+        `gate: ${ADOPTED}. It is what this server offered just now, not something somebody signed off.\n` +
+        `gate: to use it: --pin ${writePinPath}\n`,
+    );
+  } catch (e) {
+    /* Not a reason to drop a message: the session carries on without a pin
+     * having been written, and says so. */
+    process.stderr.write(`gate: the pin could not be written to ${writePinPath}: ${(e as Error).message}\n`);
+  }
+}
+
 const router = new Router({
   mode,
   /* A pinned tool already carries exactly the four fields a baseline is. */
@@ -199,6 +299,7 @@ const router = new Router({
     enforcer?.noteList(records, hidden);
     reportOn(records, hidden);
   },
+  onBaseline: writePinPath ? (records) => takePin(records) : undefined,
 });
 
 if (enforcer && pin) {

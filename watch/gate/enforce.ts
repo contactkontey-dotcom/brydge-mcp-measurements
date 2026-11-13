@@ -29,6 +29,20 @@
  * pretending it never existed, because the client is not wrong — it did see
  * it. A tool the SERVER has stopped offering says that instead.
  *
+ * ── TWO SHAPES FOR THE SAME SENTENCE ─────────────────────────────────────
+ *
+ * `error` is a JSON-RPC error and is the default: it is the honest shape,
+ * because the request was not carried out. Some clients turn a protocol
+ * error into a transport failure or a retry loop and the model never reads
+ * the sentence, so `result` puts the same words in a tool result with
+ * `isError` true — the shape a server uses to tell a model that a call went
+ * wrong. Which one a client handles better is a question for a test on a
+ * real client, not one to guess at, so both exist and neither is assumed.
+ *
+ * Only a tools/call refusal has the two shapes. A tool list that cannot be
+ * read is a failure of tools/list, which has no result shape that can carry
+ * an error, so that one is always a protocol error.
+ *
  * ── FAIL CLOSED, AND WHAT THAT COSTS ─────────────────────────────────────
  *
  * A tool list this cannot read means a list it cannot gate, so the client
@@ -45,6 +59,9 @@ import { ADOPTED, type Pin } from "./pin.ts";
 /** The sentence a refusal always opens with. */
 export const DID_NOT_FORWARD = "the gate did not forward this call";
 
+/** What the gate calls itself in anything a client can read. */
+export const GATE = "brydge-gate";
+
 /**
  * Not -32601 and not -32602.
  *
@@ -59,6 +76,18 @@ export const REFUSAL_CODE = -32000;
 export type Why =
   | { kind: "hidden"; because: WouldHide["because"] }
   | { kind: "withdrawn" };
+
+/**
+ * The shape a refused tools/call comes back in.
+ *
+ * "error" is a JSON-RPC error: the request was not carried out, and that is
+ * what an error means. "result" is a tool result with isError true, which
+ * is how a server tells a model a call went wrong — the same words, in the
+ * shape a model is more likely to be shown.
+ */
+export type RefusalStyle = "error" | "result";
+export const REFUSAL_STYLES: RefusalStyle[] = ["error", "result"];
+export const DEFAULT_REFUSAL_STYLE: RefusalStyle = "error";
 
 export interface Action {
   /** Forward the line as it arrived. */
@@ -79,6 +108,8 @@ export interface EnforcerOptions {
   howToApprove: string;
   /** The pin file, named in anything that fails closed. */
   pinFile: string;
+  /** The shape of a refused tools/call. Defaults to an error. */
+  refusalStyle?: RefusalStyle;
   /** Called when a list is rewritten, for the one stderr line. */
   onHide?: (hidden: WouldHide[], shown: number) => void;
   /** Called when a call is refused. */
@@ -165,29 +196,47 @@ export class Enforcer {
   }
 
   /** The refusal, as the client will read it. */
+  /** The sentence, which is the same whichever shape carries it. */
+  sentence(tool: string, why: Why): string {
+    return why.kind === "withdrawn"
+      ? `${DID_NOT_FORWARD}: the server is no longer offering "${tool}". It was in an earlier tool list in this session and is not in the current one.`
+      : `${DID_NOT_FORWARD}: "${tool}" is hidden, because ${why.because}. ` +
+        `If your client listed the tools before it was hidden, it may still be showing it. ${this.opts.howToApprove}`;
+  }
+
   refusal(id: unknown, tool: string, why: Why): Buffer {
-    const said =
-      why.kind === "withdrawn"
-        ? `${DID_NOT_FORWARD}: the server is no longer offering "${tool}". It was in an earlier tool list in this session and is not in the current one.`
-        : `${DID_NOT_FORWARD}: "${tool}" is hidden, because ${why.because}. ` +
-          `If your client listed the tools before it was hidden, it may still be showing it. ${this.opts.howToApprove}`;
-    return Buffer.from(
-      JSON.stringify({
-        jsonrpc: "2.0",
-        id,
-        error: {
-          code: REFUSAL_CODE,
-          message: said,
-          data: {
-            gate: "brydge-gate",
-            tool,
-            reason: why.kind === "withdrawn" ? "no longer offered by the server" : why.because,
-            /* Said again as data, because a client that shows only a code
-             * and a field should still be able to show who refused. */
-            didNotForward: true,
+    const said = this.sentence(tool, why);
+    const reason = why.kind === "withdrawn" ? "no longer offered by the server" : why.because;
+    /* Said as data as well as in words, because a client that shows only a
+     * code and a field should still be able to show who refused. */
+    const data = { gate: GATE, tool, reason, didNotForward: true };
+
+    if ((this.opts.refusalStyle ?? DEFAULT_REFUSAL_STYLE) === "result") {
+      /*
+       * A tool result, not an error. `content` first and `isError` after it,
+       * because that is the order a server writes them in and a client
+       * reading the stream positionally should find nothing unusual.
+       *
+       * `_meta` rather than a top-level field: a result may carry _meta and
+       * a client that does not know this gate ignores it, where an invented
+       * sibling of `content` is a result shape nothing else produces.
+       */
+      return Buffer.from(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id,
+          result: {
+            content: [{ type: "text", text: said }],
+            isError: true,
+            _meta: { [`${GATE}/didNotForward`]: data },
           },
-        },
-      }),
+        }),
+        "utf8",
+      );
+    }
+
+    return Buffer.from(
+      JSON.stringify({ jsonrpc: "2.0", id, error: { code: REFUSAL_CODE, message: said, data } }),
       "utf8",
     );
   }
@@ -226,7 +275,7 @@ export class Enforcer {
               message:
                 `the gate did not forward this tool list: ${read.because}. ` +
                 `It cannot hide what it cannot read, so it passed nothing on. Pin: ${this.opts.pinFile}. ${this.opts.howToApprove}`,
-              data: { gate: "brydge-gate", reason: because, didNotForward: true },
+              data: { gate: GATE, reason: because, didNotForward: true },
             },
           }),
           "utf8",
