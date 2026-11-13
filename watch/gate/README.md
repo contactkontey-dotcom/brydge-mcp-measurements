@@ -175,6 +175,41 @@ server as before.
 
 Drop `--mode enforce` to watch first. That is the suggested order.
 
+### On Windows
+
+Two things differ, and both are about the command after `--`.
+
+**A command that is a `.cmd` file cannot be started directly.** `npx`,
+`npm` and `yarn` on Windows are `.cmd` files, so the entry that works
+everywhere else — `-- npx -y my-server` — fails there, and the gate exits
+127 saying the command did not start. Run that command through `cmd.exe`
+yourself:
+
+```json
+"args": [
+  "C:/path/to/watch/gate/built/gate/run.js",
+  "--pin", "C:/Users/you/gate/my-server.json",
+  "--mode", "enforce",
+  "--",
+  "cmd.exe", "/c", "npx", "-y", "my-server"
+]
+```
+
+The gate does not do this for you. It prints the `cmd.exe` form of the
+command it was given and leaves the editing to you: the command is the one
+you wrote, and a gate that quietly ran something else would be worth less
+than no gate. A command that is a real program — `node`, or a path to an
+`.exe` — needs none of this, which is why the planted demo server does not.
+
+**Forward slashes in paths.** Windows Node accepts them and they need no
+escaping in JSON. `C:\\Users\\you\\...` works too if you double every
+backslash; `C:/Users/you/...` is less to get wrong.
+
+The gate does not spawn the server detached on Windows, where that flag
+would give it its own console window and let it outlive the gate. One
+consequence: ending the session on a batch reaches the server and not
+anything the server itself started. On POSIX it reaches the whole group.
+
 ### Undoing it
 
 Put the original `command` and `args` back. That is all. The gate is not

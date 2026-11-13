@@ -48,6 +48,7 @@ import { ADOPTED, NotAPin, adopt, read as readPin, write as writePin, type Pin }
 import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, REFUSAL_STYLES, type RefusalStyle } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
+import { detachedOn, killStyleOn, startupAdvice } from "./spawning.ts";
 import type { ToolRecord } from "../tools.ts";
 
 /** Nothing is spawned after this is called. */
@@ -309,7 +310,26 @@ if (enforcer && pin) {
 
 /* ── The child ──────────────────────────────────────────────────────────── */
 
-const child = spawn(command!, args, { stdio: ["pipe", "pipe", "pipe"], detached: true });
+/*
+ * Detached on POSIX so the child leads its own process group and a signal
+ * can reach it and whatever it started. NOT on Windows, where the flag
+ * means the child gets its own console window and outlives the gate.
+ * watch/gate/spawning.ts has the whole of why.
+ */
+const detached = detachedOn(process.platform);
+const killStyle = killStyleOn(process.platform);
+const child = spawn(command!, args, { stdio: ["pipe", "pipe", "pipe"], detached });
+
+/** End the child, by its group where there is one. */
+function endChild(signal: NodeJS.Signals): void {
+  try {
+    if (!child.pid) return;
+    if (killStyle === "group") process.kill(-child.pid, signal);
+    else child.kill(signal);
+  } catch {
+    /* already gone */
+  }
+}
 
 /**
  * Ending because something failed closed, rather than because the server
@@ -324,11 +344,7 @@ function stop(because: string): void {
   stopping = true;
   process.stderr.write(`gate: ${because}\n`);
   process.stderr.write(`gate: the session is ending. Nothing further was passed in either direction.\n`);
-  try {
-    if (child.pid) process.kill(-child.pid, "SIGTERM");
-  } catch {
-    /* already gone */
-  }
+  endChild("SIGTERM");
   setTimeout(() => process.exit(78), 50);
 }
 
@@ -367,17 +383,20 @@ child.stdin!.on("error", () => {
 });
 
 for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"] as const) {
-  process.on(signal, () => {
-    try {
-      if (child.pid) process.kill(-child.pid, signal);
-    } catch {
-      /* already gone */
-    }
-  });
+  process.on(signal, () => endChild(signal));
 }
 
 child.on("error", (e) => {
   process.stderr.write(`gate: the command did not start: ${e.message}\n`);
+  /*
+   * On Windows the usual config — "-- npx -y my-server" — fails here,
+   * because npx is a .cmd and a .cmd cannot be spawned directly. The gate
+   * says what the cmd.exe form of the SAME command would be and changes
+   * nothing: the command is the one somebody wrote in their config.
+   */
+  for (const line of startupAdvice(e as { code?: string }, process.platform, command!, args)) {
+    process.stderr.write(`${line}\n`);
+  }
   process.exit(127);
 });
 

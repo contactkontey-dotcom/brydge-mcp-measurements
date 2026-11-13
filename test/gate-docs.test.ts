@@ -106,6 +106,17 @@ test("the README's demo table matches the modes the demo server has", () => {
   }
 });
 
+test("the README's Windows section says what the gate will not do for you", () => {
+  assert.match(README, /### On Windows/);
+  assert.match(README, /cannot be started directly/);
+  assert.match(README, /"cmd\.exe", "\/c", "npx", "-y", "my-server"/);
+  assert.match(README, /The gate does not do this for you/);
+  assert.match(README, /does not spawn the server detached on Windows/);
+  /* And the two claims it makes about the consequence. */
+  assert.match(README, /its own console window/);
+  assert.match(README, /reaches the server and not\s+anything the server itself started/);
+});
+
 test("the README says the demo server is planted and harmless", () => {
   assert.match(README, /Everything in it was written in this repository/);
   assert.match(README, /no file access,\s+no network, no package behind it/);
