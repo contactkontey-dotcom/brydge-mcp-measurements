@@ -62,6 +62,16 @@ export const CHARACTERISING = [
  */
 export const GATEKEEPING = ["denied", "prevented", "blocks", "blocked", "forbidden", "not allowed", "refuses to run"];
 
+/**
+ * Words that would say the gate contains the server.
+ *
+ * It does not. The server it sits in front of is a child process with the
+ * user's own privileges: its filesystem, its network, its environment. A
+ * proxy filters a view of a tool list; it is not a sandbox, and a word that
+ * suggests otherwise is the one claim this cannot support.
+ */
+export const CONTAINMENT = ["safe", "verified", "protected", "secure", "contained", "sandboxed", "trusted"];
+
 /** Every file whose prose is checked. */
 export const CHECKED = [
   "site/diff-client.js",
@@ -75,4 +85,7 @@ export const CHECKED = [
   "watch/review.ts",
   "watch/page.ts",
   "watch/review-client.js",
+  "watch/gate/transport.ts",
+  "watch/gate/router.ts",
+  "watch/gate/run.ts",
 ];
