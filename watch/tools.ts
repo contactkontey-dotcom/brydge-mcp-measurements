@@ -256,6 +256,35 @@ export function diffTools(a: ToolRecord[], b: ToolRecord[]): ToolDiff {
   return { added, removed, changed, unchanged };
 }
 
+/**
+ * A tool as the server declared it, without the fields we derived.
+ *
+ * Lived in two places before — watch/review.ts and watch/gate/pin.ts — which
+ * is one place too many for something hashes are computed over.
+ */
+export function definitionOf(t: ToolRecord): Record<string, unknown> {
+  return { name: t.name, description: t.description, inputSchema: t.inputSchema ?? null, ...t.extra };
+}
+
+/**
+ * A record put through `definitionOf` and read back.
+ *
+ * THE ROUND TRIP HAS TO BE EXACT, and it is not for free. A server that
+ * sends no `inputSchema` key at all produces a record whose `inputSchema` is
+ * null, and `definitionOf` then writes that null out explicitly — so the
+ * definition a pin stores hashes differently from the tool it came from, and
+ * a gate comparing the two would flag that tool on every run for ever,
+ * whatever anybody approved.
+ *
+ * The fix is not to make `definitionOf` guess which it was: it is to compare
+ * like with like. Both sides of every comparison go through here, so the
+ * normalisation is the same normalisation and `normalise(normalise(x))` is
+ * `normalise(x)`.
+ */
+export function normalise(t: ToolRecord): ToolRecord {
+  return recordOf(definitionOf(t));
+}
+
 /** First line that differs, for showing a reworded description without dumping it. */
 export function firstDifference(a: string | null, b: string | null): { at: number; before: string; after: string } | null {
   if (a === b) return null;

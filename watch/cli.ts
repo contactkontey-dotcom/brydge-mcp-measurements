@@ -46,7 +46,9 @@ import { edgesOf, packagesWithRuns, read as readLog, recordFor, renderTimeline, 
 import { deserialize as readDecisions, serialize as writeDecisions, Refused, type DecisionsFile } from "./decisions.ts";
 import { apply, parseExport, queueFor, renderApplied, renderQueue, TOOLS_ONLY } from "./review.ts";
 import { prepare, reviewPage } from "./page.ts";
-import { adopt, fromDecisions, pathFor as pinPathFor, write as writePin, ADOPTED } from "./gate/pin.ts";
+import { adopt, fromDecisions, NotAPin, pathFor as pinPathFor, read as readPin, write as writePin, ADOPTED } from "./gate/pin.ts";
+import { carry, renderCarried } from "./gate/approve.ts";
+import type { Pending } from "./gate/report.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -598,6 +600,67 @@ function gatePin(ref: string, fromCurrent: boolean, listFile: string, decisionsF
   }
 }
 
+/**
+ * Carry a reviewer's decisions into the pin.
+ *
+ * An approved change is pinned, so the next run does not flag it. A held one
+ * is recorded and NOT pinned, so the next run flags it again — holding is
+ * the absence of an approval rather than a state to store, which is why it
+ * survives a restart with nothing to carry.
+ */
+function gateApprove(pendingFile: string, decisionsExport: string, decisionsFile: string, dir: string): void {
+  for (const [what, file] of [["report", pendingFile], ["decisions", decisionsExport]] as const) {
+    if (!existsSync(file)) {
+      console.error(`No such ${what} file: ${file}`);
+      process.exit(1);
+    }
+  }
+  let pending: Pending;
+  try {
+    pending = JSON.parse(readFileSync(pendingFile, "utf8")) as Pending;
+    if (pending.format !== "brydge-gate-pending") throw new Error(`its format is ${JSON.stringify(pending.format)}`);
+  } catch (e) {
+    console.error(`Refusing to read ${pendingFile}: it is not a gate report (${(e as Error).message}).`);
+    process.exit(1);
+  }
+  let incoming;
+  try {
+    incoming = parseExport(readFileSync(decisionsExport, "utf8"));
+  } catch (e) {
+    console.error(`Refusing to apply ${decisionsExport}: ${(e as Error).message}`);
+    process.exit(1);
+  }
+
+  const pinFile = pinPathFor(dir, pending.package, pending.packageVersion);
+  let pin;
+  try {
+    pin = readPin(pinFile);
+  } catch (e) {
+    const why = e instanceof NotAPin ? e.message : (e as Error).message;
+    console.error(`The pin at ${pinFile} cannot be used: ${why}.`);
+    console.error(`Nothing is written. Write one first: node watch/cli.ts gate pin ${pending.package}@${pending.packageVersion} --from-current`);
+    process.exit(1);
+  }
+
+  let applied;
+  try {
+    applied = carry({ pin, pending, incoming, decisions: loadDecisions(decisionsFile) });
+  } catch (e) {
+    console.error(`Refusing to apply ${decisionsExport}: ${(e as Error).message}`);
+    process.exit(1);
+  }
+
+  /* The decisions are written whatever happened — a hold is a decision
+   * somebody made and the record of it is the point. The pin is written
+   * only when something was approved. */
+  mkdirSync(dirname(decisionsFile), { recursive: true });
+  writeFileSync(decisionsFile, writeDecisions(applied.decisions));
+  if (applied.pinChanged) writePin(pinFile, applied.pin);
+  console.log(renderCarried(applied, pinFile));
+  console.error("");
+  console.error(`decisions -> ${decisionsFile}`);
+}
+
 /* ── The review queue ───────────────────────────────────────────────────── */
 
 /**
@@ -769,6 +832,19 @@ async function main(): Promise<void> {
   if (cmd === "gate") {
     const [sub, ...gateRest] = rest;
     if (sub === "build" && gateRest.length === 0) return gateBuild();
+    if (sub === "approve") {
+      const flag = (f: string) => {
+        const i = gateRest.indexOf(f);
+        return i === -1 ? null : (gateRest[i + 1] ?? "");
+      };
+      const pendingFile = flag("--pending");
+      const exportFile = flag("--decisions-from");
+      if (!pendingFile || !exportFile) {
+        console.error("usage: node watch/cli.ts gate approve --pending <report.json> --decisions-from <decisions.json>");
+        process.exit(1);
+      }
+      return gateApprove(pendingFile, exportFile, decisions, pinsDir(argv));
+    }
     if (sub === "pin") {
       const fromCurrent = gateRest.includes("--from-current");
       const positional = gateRest.filter((r) => !r.startsWith("--"));
@@ -780,6 +856,7 @@ async function main(): Promise<void> {
     }
     console.error("usage: node watch/cli.ts gate build");
     console.error("       node watch/cli.ts gate pin <package@version> [--from-current]");
+    console.error("       node watch/cli.ts gate approve --pending <report.json> --decisions-from <decisions.json>");
     process.exit(1);
   }
   if (cmd === "review") {
@@ -842,6 +919,7 @@ async function main(): Promise<void> {
       "  node watch/cli.ts check    <package@version>",
       "  node watch/cli.ts gate build",
       "  node watch/cli.ts gate pin <package@version> [--from-current]",
+      "  node watch/cli.ts gate approve --pending <report> --decisions-from <file>",
       "  node watch/cli.ts review   <package> <versionA> <versionB>",
       "  node watch/cli.ts review   --page <package> <versionA> <versionB>",
       "  node watch/cli.ts review   --apply <file> [--alias <name>]",

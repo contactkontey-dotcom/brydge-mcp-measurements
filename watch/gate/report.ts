@@ -24,7 +24,7 @@
  */
 import { prepare, type Prepared } from "../page.ts";
 import { otherFieldLines, queueFor } from "../review.ts";
-import type { ToolRecord } from "../tools.ts";
+import { definitionOf, normalise, type ToolRecord } from "../tools.ts";
 import { ADOPTED, recordsOf, type Pin } from "./pin.ts";
 import type { WouldHide } from "./router.ts";
 
@@ -44,6 +44,17 @@ export interface Pending {
   shadow: string;
   /** What the gate would have hidden, by name and by what moved. */
   wouldHide: WouldHide[];
+  /*
+   * The live definition of each flagged tool, so that approving one has
+   * something to pin.
+   *
+   * Without it the report could show a reviewer what moved and then leave
+   * nothing to carry their decision into: a pin records a definition, and
+   * re-reading the server to find it again would be reading a surface
+   * nobody reviewed. Keyed by tool name. Private, like the rest of this
+   * file, because a definition carries its description.
+   */
+  offered: Record<string, Record<string, unknown>>;
   notes: string[];
   /** The queue, prepared: word diffs, schema diffs, visible markers. */
   prepared: Prepared;
@@ -71,9 +82,15 @@ export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], 
   const queue = queueFor(pin.package, `pinned ${pin.pinnedAt}`, `offered ${seenAt}`, recordsOf(pin), live);
   const notes = otherFieldLines(queue);
   if (pin.source === ADOPTED) notes.unshift(ADOPTED_LINE);
+  const offered: Record<string, Record<string, unknown>> = {};
+  for (const h of wouldHide) {
+    const t = live.find((x) => x.name === h.tool);
+    if (t) offered[h.tool] = definitionOf(t);
+  }
   return {
     format: PENDING_FORMAT,
     version: PENDING_VERSION,
+    offered,
     package: pin.package,
     packageVersion: pin.packageVersion,
     seenAt,

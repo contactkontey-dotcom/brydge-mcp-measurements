@@ -7,13 +7,13 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { Frames, lineOf, relay } from "../watch/gate/transport.ts";
+import { Frames, lineOf, relay, type Reader } from "../watch/gate/transport.ts";
 
 const ROOT = join(import.meta.dirname, "..");
 const B = (s: string) => Buffer.from(s, "utf8");
 
 /** Push a whole input through a relay and collect what comes out. */
-async function through(input: Buffer, chunkSize: number, read = () => ({ pass: true }) as const): Promise<Buffer> {
+async function through(input: Buffer, chunkSize: number, read: Reader = () => ({ pass: true })): Promise<Buffer> {
   const r = relay(read);
   const out: Buffer[] = [];
   r.on("data", (c: Buffer) => out.push(c));

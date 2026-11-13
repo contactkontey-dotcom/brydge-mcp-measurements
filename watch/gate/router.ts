@@ -44,7 +44,7 @@
  * artefact from a journal of what moved.
  * ═══════════════════════════════════════════════════════════════════════════
  */
-import { canonical, recordOf, type ToolRecord } from "../tools.ts";
+import { canonical, normalise, recordOf, type ToolRecord } from "../tools.ts";
 import type { Line } from "./transport.ts";
 
 export type Side = "client-to-server" | "server-to-client";
@@ -244,7 +244,10 @@ export class Router {
       note({ kind: "pagination", at, listId });
     }
 
-    const records = read.tools.map(recordOf);
+    /* Normalised, because the pin stores the normalised form: comparing a
+     * raw record against a pinned one makes a tool with no inputSchema key
+     * differ from itself for ever. */
+    const records = read.tools.map((t) => normalise(recordOf(t)));
     if (!this.baseline) {
       this.baseline = new Map(records.map((t) => [t.name, pinnedOf(t)]));
       note({ kind: "baseline", at, tools: records.length, source: "first list seen" });

@@ -91,4 +91,5 @@ export const CHECKED = [
   "watch/gate/pin.ts",
   "watch/gate/report.ts",
   "watch/gate/stale.ts",
+  "watch/gate/approve.ts",
 ];

@@ -11,8 +11,8 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { test } from "node:test";
 import { flatten, GATEKEEPING, CONTAINMENT } from "./banned.ts";
-import { ADOPTED, NotAPin, adopt, definitionOf, fromDecisions, parse, pathFor, read, recordsOf, serialize, write } from "../watch/gate/pin.ts";
-import { recordOf, type ToolRecord } from "../watch/tools.ts";
+import { ADOPTED, NotAPin, adopt, fromDecisions, parse, pathFor, read, recordsOf, serialize, write } from "../watch/gate/pin.ts";
+import { definitionOf, recordOf, type ToolRecord } from "../watch/tools.ts";
 
 const A = "FIXTURE A: reads the planted file and returns its planted bytes.";
 const B = "FIXTURE B: reads the planted file and says what happens when it is missing.";

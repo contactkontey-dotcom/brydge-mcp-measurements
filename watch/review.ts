@@ -54,14 +54,13 @@ import {
   type ReviewItem,
   type Tally,
 } from "./decisions.ts";
-import { canonical, diffTools, type ToolRecord } from "./tools.ts";
+import { canonical, definitionOf, diffTools, type ToolRecord } from "./tools.ts";
 
 /* ── Building the queue ─────────────────────────────────────────────────── */
 
-/** A tool as the server declared it, without the hashes we derived. */
-export function definitionOf(t: ToolRecord): Record<string, unknown> {
-  return { name: t.name, description: t.description, inputSchema: t.inputSchema ?? null, ...t.extra };
-}
+/* `definitionOf` lives in watch/tools.ts: hashes are computed over it, so
+ * one copy. Re-exported because callers here have always imported it here. */
+export { definitionOf };
 
 export interface Queue {
   package: string;

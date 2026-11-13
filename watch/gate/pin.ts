@@ -44,7 +44,7 @@
  */
 import { closeSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync, writeSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { canonical, recordOf, type ToolRecord } from "../tools.ts";
+import { canonical, definitionOf, normalise, recordOf, type ToolRecord } from "../tools.ts";
 
 export const FORMAT = "brydge-gate-pin";
 export const FORMAT_VERSION = 1;
@@ -96,18 +96,17 @@ export function pathFor(dir: string, pkg: string, version: string): string {
   return join(dir, `${segment}.json`);
 }
 
-/** A tool's definition as the server sent it, without our derived hashes. */
-export function definitionOf(t: ToolRecord): Record<string, unknown> {
-  return { name: t.name, description: t.description, inputSchema: t.inputSchema ?? null, ...t.extra };
-}
-
 export function pinnedToolOf(t: ToolRecord, how: How, who: { by: string | null; at: string | null; itemHash: string | null }): PinnedTool {
+  /* Normalised, so the hashes stored here are the hashes of the definition
+   * stored beside them — which `parse` checks, and which a gate comparing a
+   * live list against this pin depends on. */
+  const n = normalise(t);
   return {
-    name: t.name,
-    hash: t.hash,
-    descriptionHash: t.descriptionHash,
-    schemaHash: t.schemaHash,
-    definition: definitionOf(t),
+    name: n.name,
+    hash: n.hash,
+    descriptionHash: n.descriptionHash,
+    schemaHash: n.schemaHash,
+    definition: definitionOf(n),
     how,
     by: who.by,
     at: who.at,
