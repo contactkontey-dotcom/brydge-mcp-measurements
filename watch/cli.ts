@@ -46,6 +46,7 @@ import { edgesOf, packagesWithRuns, read as readLog, recordFor, renderTimeline, 
 import { deserialize as readDecisions, serialize as writeDecisions, Refused, type DecisionsFile } from "./decisions.ts";
 import { apply, parseExport, queueFor, renderApplied, renderQueue, TOOLS_ONLY } from "./review.ts";
 import { prepare, reviewPage } from "./page.ts";
+import { adopt, fromDecisions, pathFor as pinPathFor, write as writePin, ADOPTED } from "./gate/pin.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -518,6 +519,85 @@ async function definitions(limit: number): Promise<void> {
   }
 }
 
+/* ── The gate ───────────────────────────────────────────────────────────── */
+
+/** Where pins live. Gitignored: a pin carries the definitions it pinned. */
+function pinsDir(argv: string[]): string {
+  const i = argv.indexOf("--pins");
+  return i === -1 ? join(HERE, "gate", "pins") : (argv[i + 1] ?? join(HERE, "gate", "pins"));
+}
+
+/**
+ * Build the gate, so a client does not pay to compile it on every launch.
+ *
+ * Measured: from TypeScript source the gate adds 96 ms to a server's first
+ * answer, precompiled it adds 46 ms, and 34 ms of that is simply being a
+ * second process. The build is gitignored and the gate refuses to run from
+ * one older than its sources.
+ */
+async function gateBuild(): Promise<void> {
+  const { build } = await import("./gate/build.mjs");
+  const r = build();
+  console.error(`gate: built ${r.files.length} file(s) -> ${r.out}`);
+  console.error(`gate: the client launches ${r.entry}`);
+}
+
+/**
+ * Write the pin for a version: what somebody signed off, by content.
+ *
+ * From the approved list and the decisions behind it, or — with
+ * --from-current — from whatever the stored capture shows the server was
+ * offering, which is labelled "adopted, not reviewed" on every record and
+ * is not an approval. Without that option a first pin is an empty one, and
+ * a gate with an empty pin would report every tool a server has.
+ */
+function gatePin(ref: string, fromCurrent: boolean, listFile: string, decisionsFile: string, dir: string): void {
+  const { name, version } = split(ref);
+  const capture = steadyCapture(name, version);
+  const at = new Date().toISOString().slice(0, 10);
+  const file = pinPathFor(dir, name, version);
+
+  if (fromCurrent) {
+    const pin = adopt(name, version, capture.tools, at);
+    writePin(file, pin);
+    console.error(`gate: pinned ${Object.keys(pin.tools).length} tool(s) for ${name}@${version}, ${ADOPTED} -> ${file}`);
+    console.error(`gate: nobody approved these. A difference from this pin is a difference from what the server`);
+    console.error(`gate: was offering when it was taken, and the report says so every time.`);
+    return;
+  }
+
+  const entry = loadApproved(listFile)[keyOf(name, version)];
+  if (!entry) {
+    console.error(`Nothing approved for ${name}@${version} in ${listFile}.`);
+    console.error(`Review it first: node watch/cli.ts review --page ${name} <previous> ${version}`);
+    console.error(`Or adopt what it offers, unreviewed: node watch/cli.ts gate pin ${ref} --from-current`);
+    process.exit(1);
+  }
+  const decisions = loadDecisions(decisionsFile)[keyOf(name, version)] ?? {};
+  const r = fromDecisions({
+    package: name,
+    version,
+    approved: entry.tools,
+    tools: capture.tools,
+    decisions: Object.fromEntries(Object.entries(decisions).map(([k, d]) => [k, { by: d.by, at: d.at, itemHash: d.itemHash, decision: d.decision }])),
+    at,
+  });
+  if (r.missing.length) {
+    console.error(`The list for ${name}@${version} names ${r.missing.length} tool(s) the capture does not have:`);
+    for (const m of r.missing) console.error(`  ${m}`);
+    console.error(`Nothing is written. The list and the measurement disagree about what this version offered.`);
+    process.exit(1);
+  }
+  writePin(file, r.pin);
+  const decided = Object.values(r.pin.tools).filter((t) => t.itemHash).length;
+  console.error(`gate: pinned ${Object.keys(r.pin.tools).length} tool(s) for ${name}@${version} -> ${file}`);
+  console.error(`gate: ${decided} carry the decision that approved them; ${Object.keys(r.pin.tools).length - decided} were carried from an earlier list.`);
+  if (r.notPinned.length) {
+    console.error(`gate: ${r.notPinned.length} tool(s) this version offers are not on the list and are not pinned:`);
+    for (const n of r.notPinned) console.error(`  ${n}`);
+  }
+}
+
 /* ── The review queue ───────────────────────────────────────────────────── */
 
 /**
@@ -662,7 +742,7 @@ async function main(): Promise<void> {
     const i = xs.indexOf(flag);
     return i === -1 ? xs : [...xs.slice(0, i), ...xs.slice(i + 2)];
   };
-  const [cmd, ...rest] = without(without(argv, "--list"), "--decisions");
+  const [cmd, ...rest] = without(without(without(argv, "--list"), "--decisions"), "--pins");
   if (cmd === "measure" && rest.length === 1) return measure(rest[0]!);
   if (cmd === "diff" && rest.length === 3) return diff(rest[0]!, rest[1]!, rest[2]!);
   if (cmd === "approve") {
@@ -685,6 +765,22 @@ async function main(): Promise<void> {
       return exportList(positional[0]!, format, alias, path);
     }
     if (positional.length === 1 || positional.length === 2) return approve(positional[0]!, positional[1], path);
+  }
+  if (cmd === "gate") {
+    const [sub, ...gateRest] = rest;
+    if (sub === "build" && gateRest.length === 0) return gateBuild();
+    if (sub === "pin") {
+      const fromCurrent = gateRest.includes("--from-current");
+      const positional = gateRest.filter((r) => !r.startsWith("--"));
+      if (positional.length !== 1) {
+        console.error("usage: node watch/cli.ts gate pin <package@version> [--from-current]");
+        process.exit(1);
+      }
+      return gatePin(positional[0]!, fromCurrent, path, decisions, pinsDir(argv));
+    }
+    console.error("usage: node watch/cli.ts gate build");
+    console.error("       node watch/cli.ts gate pin <package@version> [--from-current]");
+    process.exit(1);
   }
   if (cmd === "review") {
     const flag = (f: string) => {
@@ -744,6 +840,8 @@ async function main(): Promise<void> {
       "  node watch/cli.ts approve  <package@version> [who]",
       "  node watch/cli.ts approve  <package@version> --export claude-code --alias <name>",
       "  node watch/cli.ts check    <package@version>",
+      "  node watch/cli.ts gate build",
+      "  node watch/cli.ts gate pin <package@version> [--from-current]",
       "  node watch/cli.ts review   <package> <versionA> <versionB>",
       "  node watch/cli.ts review   --page <package> <versionA> <versionB>",
       "  node watch/cli.ts review   --apply <file> [--alias <name>]",

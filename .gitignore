@@ -56,3 +56,15 @@ watch/gate/journal/
 # Every message a server sent is in them, descriptions included, which is the
 # same reason watch/runs is ignored.
 watch/transcripts/
+# The gate build. Derived from the source beside it and never committed: a
+# built artefact in the repository drifts from its source and nothing
+# notices. Rebuilt by "node watch/gate/build.mjs"; the gate refuses to run
+# from a build older than its sources.
+watch/gate/built/
+# A pin carries the tool definitions it pinned, so that a later difference
+# can be shown against them. That makes it a file of somebody else's prose,
+# which is the argument watch/tools.ts makes about watch/runs.
+watch/gate/pins/
+# Reports the gate writes when a live tool list differs from its pin. Same
+# reason: the diff is of descriptions.
+watch/gate/pending/

@@ -49,8 +49,31 @@ async function byByte(s) {
 }
 
 let buffer = "";
+let chain = Promise.resolve();
 process.stdin.setEncoding("utf8");
-process.stdin.on("data", async (chunk) => {
+/*
+ * When the client closes its input, this is done — AFTER whatever is still
+ * queued. Exiting the moment the input ended was a bug with a sharp edge:
+ * the slow case sleeps 1.2 seconds before answering, the input closed at
+ * about 0.36, and the server went without ever answering. Both runs then
+ * agreed, which is the worst way for a comparison to pass. Queued behind
+ * the chain, the exit happens when there is nothing left to answer.
+ */
+process.stdin.on("end", () => {
+  chain = chain.then(() => process.exit(0));
+});
+/*
+ * ONE AT A TIME, IN ARRIVAL ORDER.
+ *
+ * Each `data` event used to start its own async handler, so five lines
+ * arriving 60 ms apart ran five handlers at once — and the sentinel, which
+ * replies and exits, could go while the slow case was still sleeping on an
+ * earlier list. That truncated the capture, and the race resolved
+ * differently in the direct run and the gated one, which is a test
+ * reporting on a race rather than on the gate. Chaining them is also what a
+ * server answering in order actually does.
+ */
+process.stdin.on("data", (chunk) => {
   buffer += chunk;
   let at;
   while ((at = buffer.indexOf("\n")) >= 0) {
@@ -63,7 +86,8 @@ process.stdin.on("data", async (chunk) => {
     } catch {
       continue;
     }
-    await handle(m);
+    const message = m;
+    chain = chain.then(() => handle(message));
   }
 });
 
@@ -103,6 +127,17 @@ async function handle(m) {
     if (CASE === "batch") return out(JSON.stringify([{ jsonrpc: "2.0", id: m.id, result: toolList(1) }]) + "\n");
     if (CASE === "die") return process.exit(3);
     return out(body);
+  }
+
+  /*
+   * THE SENTINEL. A test that compares two runs byte for byte cannot end
+   * them on a timer: a quiet window is a guess about load, and under a
+   * loaded machine it truncated whichever run was unlucky. This replies and
+   * then goes, flushing first, so both runs end on an EVENT and the
+   * comparison is deterministic however busy the machine is.
+   */
+  if (m.method === "fixture/done") {
+    return process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: m.id, result: { done: true } }) + "\n", () => process.exit(0));
   }
 
   if (m.method === "tools/call") {

@@ -13,8 +13,9 @@
  * with their relative paths preserved: watch/gate/*.ts needs ../tools.ts.
  * A module left under /home vanishes from view the moment the room is built.
  */
-import { chmodSync, copyFileSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { chmodSync, copyFileSync, cpSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
+import { build } from "./build.mjs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -28,7 +29,7 @@ const runDir = join(RUN_BASE, `gate-room-${Date.now()}`);
 const probeDir = join(runDir, "probes");
 const copyDir = join(runDir, "gate");
 const journalDir = join(runDir, "journal");
-for (const d of [runDir, probeDir, join(copyDir, "watch", "gate"), journalDir]) mkdirSync(d, { recursive: true });
+for (const d of [runDir, probeDir, journalDir]) mkdirSync(d, { recursive: true });
 chmodSync(runDir, 0o755);
 
 for (const name of ["node-probe.cjs", "sitecustomize.py", "lo-up.py"]) {
@@ -36,15 +37,16 @@ for (const name of ["node-probe.cjs", "sitecustomize.py", "lo-up.py"]) {
   chmodSync(join(probeDir, name), 0o644);
 }
 
-/* The gate and exactly what it imports, out of /home. */
-for (const rel of [
-  ["watch", "tools.ts"],
-  ["watch", "gate", "transport.ts"],
-  ["watch", "gate", "router.ts"],
-  ["watch", "gate", "run.ts"],
-]) {
-  copyFileSync(join(ROOT, ...rel), join(copyDir, ...rel));
-}
+/*
+ * The BUILT gate, out of /home, which the room replaces with a tmpfs.
+ *
+ * One self-contained tree, which is what a client launches anyway. Copying
+ * a hand-picked list of sources was how this broke once: run.ts gained
+ * three imports, the list did not grow with it, and the gate died on its
+ * first line — which the room reported, correctly, as the server process
+ * exiting.
+ */
+build({ out: copyDir });
 copyFileSync(join(ROOT, "watch", "gate", "fixtures", "hostile-server.mjs"), join(copyDir, "server.mjs"));
 execFileSync("chmod", ["-R", "a+rX", copyDir]);
 execFileSync("chown", ["-R", `${UID}:${GID}`, journalDir]);
@@ -55,9 +57,9 @@ const spec = {
   name: "gate-room",
   registry: "local",
   version: "0.0.0",
-  readmeCommand: "node watch/gate/run.ts -- <server>",
+  readmeCommand: "node watch/gate/built/gate/run.js -- <server>",
   bin: process.execPath,
-  args: [join(copyDir, "watch", "gate", "run.ts"), "--journal", journal, "--", process.execPath, join(copyDir, "server.mjs"), `--case=${CASE}`],
+  args: [join(copyDir, "gate", "run.js"), "--journal", journal, "--", process.execPath, join(copyDir, "server.mjs"), `--case=${CASE}`],
   declared: { credentials: [], tools: null, destinations: [] },
   fixtures: {},
   probes: [],

@@ -23,13 +23,26 @@ interface Ran {
   code: number | null;
 }
 
-/** Run a command, write the lines, wait for it to settle, collect the bytes. */
-function run(command: string, args: string[], lines: unknown[], settleMs = 2500): Promise<Ran> {
+/**
+ * Run a command, write the lines, wait until it has gone quiet, collect the
+ * bytes.
+ *
+ * QUIET, NOT A FIXED DELAY. The first version waited a set 2.5 seconds, which
+ * is plenty on an idle machine and not always enough when the whole suite is
+ * running in parallel — the byte-at-a-time case failed there and nowhere
+ * else, which is a test that reports on the load rather than on the gate.
+ * This waits for a gap in the output instead, with a cap.
+ */
+function run(command: string, args: string[], lines: unknown[], _quietMs = 0, capMs = 30_000): Promise<Ran> {
   return new Promise((resolve) => {
     const child = spawn(command, args, { stdio: ["pipe", "pipe", "pipe"] });
     const out: Buffer[] = [];
     let err = "";
-    child.stdout.on("data", (c: Buffer) => out.push(c));
+    let lastAt = Date.now();
+    child.stdout.on("data", (c: Buffer) => {
+      out.push(c);
+      lastAt = Date.now();
+    });
     child.stderr.on("data", (c: Buffer) => (err += c.toString("utf8")));
     let settled = false;
     const finish = (code: number | null) => {
@@ -44,23 +57,35 @@ function run(command: string, args: string[], lines: unknown[], settleMs = 2500)
         child.stdin.write(JSON.stringify(line) + "\n");
         await new Promise((r) => setTimeout(r, 60));
       }
-      await new Promise((r) => setTimeout(r, settleMs));
+      /*
+       * Nothing here waits on a clock. The last line is a sentinel the
+       * planted server answers and then exits on, so both runs end on an
+       * EVENT and the capture is the same however loaded the machine is.
+       * Two earlier versions of this ended on a timer — first a fixed delay,
+       * then a quiet window — and both reported on the machine rather than
+       * on the gate. The kill below is for a process that will not leave.
+       */
+      void lastAt;
       try {
         child.stdin.end();
       } catch {
         /* gone */
       }
       setTimeout(() => {
+        if (settled) return;
         try {
           child.kill("SIGKILL");
         } catch {
           /* gone */
         }
         finish(null);
-      }, 400);
+      }, capMs);
     })();
   });
 }
+
+/** The sentinel goes last: the planted server answers it and exits. */
+const DONE = { jsonrpc: "2.0", id: 99, method: "fixture/done" };
 
 const CONVERSATION = [
   { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "planted", version: "1" } } },
@@ -68,8 +93,16 @@ const CONVERSATION = [
   { jsonrpc: "2.0", id: 2, method: "tools/list" },
   { jsonrpc: "2.0", id: 3, method: "tools/list" },
   { jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "read_file", arguments: { path: "/planted" } } },
+  DONE,
 ];
 
+/*
+ * The quiet window has to be wider than the longest pause the server under
+ * test takes, or closing its input is indistinguishable from it having
+ * finished. The slow case sleeps 1.2 seconds on purpose, and with the
+ * default window this closed its input mid-sleep and it never answered —
+ * which the test correctly reported as the client losing the reply.
+ */
 const direct = (kase: string, lines = CONVERSATION) => run(process.execPath, [SERVER, `--case=${kase}`], lines);
 const gated = (kase: string, journal: string | null, lines = CONVERSATION) =>
   run(process.execPath, [GATE, ...(journal ? ["--journal", journal] : []), "--", process.execPath, SERVER, `--case=${kase}`], lines);
@@ -173,7 +206,8 @@ test("a storm of notifications is counted, and every one of them arrives", { tim
 test("the gate's own output goes to stderr, and says what it did not do", { timeout: 60_000 }, async () => {
   const b = await gated("plain", null);
   assert.match(b.stderr, /Nothing was hidden from the client and no call was stopped/);
-  assert.match(b.stderr, /baseline 2 tool\(s\)/);
+  /* Without --pin the baseline is the first list the server answered. */
+  assert.match(b.stderr, /2 tool\(s\) against no pin: the first list seen/);
   /* And none of it is on stdout, where it would corrupt the transport. */
   for (const line of b.stdout.toString("utf8").split("\n").filter(Boolean)) {
     assert.doesNotThrow(() => JSON.parse(line), `stdout carried something that is not a message: ${line.slice(0, 60)}`);

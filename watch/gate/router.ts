@@ -111,6 +111,14 @@ export interface RouterOptions {
   /** The surface to compare against. Without one, the first list seen becomes it. */
   baseline?: Pinned[];
   now?: () => number;
+  /**
+   * Called with every tool list the server answers, and what would be hidden.
+   *
+   * The records, not the notes: a caller that writes a report needs the
+   * definitions to diff against, and a note carries names and hashes only
+   * because a note goes in a journal.
+   */
+  onList?: (records: ToolRecord[], hidden: WouldHide[]) => void;
 }
 
 export class Router {
@@ -118,6 +126,7 @@ export class Router {
   readonly mode: Mode;
   private baseline: Map<string, Pinned> | null = null;
   private readonly now: () => number;
+  private readonly onList: ((records: ToolRecord[], hidden: WouldHide[]) => void) | null;
   /** Client request ids in flight, to the method they asked for. */
   private readonly inFlight = new Map<string, string>();
   /** Ids this gate has reserved for its own use. G1 reserves none. */
@@ -127,6 +136,7 @@ export class Router {
   constructor(opts: RouterOptions = {}) {
     this.mode = opts.mode ?? "shadow";
     this.now = opts.now ?? Date.now;
+    this.onList = opts.onList ?? null;
     if (opts.baseline) {
       this.baseline = new Map(opts.baseline.map((p) => [p.name, p]));
       this.notes.push({ kind: "baseline", at: this.now(), tools: opts.baseline.length, source: "given" });
@@ -265,6 +275,9 @@ export class Router {
     } else {
       note({ kind: "list-unchanged", at, listId, tools: records.length });
     }
+    /* After the note, so a caller that throws cannot cost the journal its
+     * entry. Its own failure is the caller's to handle. */
+    this.onList?.(records, hidden);
     return made;
   }
 }

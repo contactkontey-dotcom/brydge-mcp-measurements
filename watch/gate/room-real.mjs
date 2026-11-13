@@ -14,8 +14,9 @@
  * The outermost process in all three is the same byte recorder, so it is not
  * a variable either.
  */
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
+import { build } from "./build.mjs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -48,16 +49,22 @@ function session(label, gated) {
   const probeDir = join(runDir, "probes");
   const copyDir = join(runDir, "gate");
   const capture = join(runDir, "capture");
-  for (const d of [runDir, probeDir, join(copyDir, "watch", "gate"), capture]) mkdirSync(d, { recursive: true });
+  for (const d of [runDir, probeDir, capture]) mkdirSync(d, { recursive: true });
   chmodSync(runDir, 0o755);
   for (const name of ["node-probe.cjs", "sitecustomize.py", "lo-up.py"]) {
     copyFileSync(join(ROOT, "harness", "probes", name), join(probeDir, name));
     chmodSync(join(probeDir, name), 0o644);
   }
-  /* Out of /home, which the room replaces with a tmpfs. */
-  for (const rel of [["watch", "tools.ts"], ["watch", "gate", "transport.ts"], ["watch", "gate", "router.ts"], ["watch", "gate", "run.ts"]]) {
-    copyFileSync(join(ROOT, ...rel), join(copyDir, ...rel));
-  }
+  /*
+   * The BUILT gate, out of /home, which the room replaces with a tmpfs.
+   *
+   * The build is one self-contained tree, which is what a client would
+   * launch anyway. Copying a hand-picked list of sources was how this
+   * broke: G2 gave run.ts three more imports, the list did not grow with
+   * it, and the gate died on its first line — which the room reported,
+   * correctly, as the server process exiting.
+   */
+  build({ out: copyDir });
   copyFileSync(join(ROOT, "watch", "gate", "fixtures", "tee.mjs"), join(copyDir, "tee.mjs"));
   execFileSync("chmod", ["-R", "a+rX", copyDir]);
   execFileSync("chown", ["-R", `${UID}:${GID}`, capture]);
@@ -65,7 +72,7 @@ function session(label, gated) {
   const bytes = join(capture, "stdout.bin");
   const journal = join(capture, "journal.ndjson");
   const inner = gated
-    ? [process.execPath, join(copyDir, "watch", "gate", "run.ts"), "--journal", journal, "--", found.bin]
+    ? [process.execPath, join(copyDir, "gate", "run.js"), "--journal", journal, "--", found.bin]
     : [found.bin];
   const args = [join(copyDir, "tee.mjs"), "--out", bytes, "--", ...inner];
 
