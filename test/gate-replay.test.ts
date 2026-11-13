@@ -1,16 +1,20 @@
 /*
  * The router, replayed over recorded sessions from real servers.
  *
- * ── WHERE THE CORPUS IS, AND THAT IT IS NOT DURABLE ──────────────────────
+ * ── WHERE THE CORPUS IS ──────────────────────────────────────────────────
  *
  * Not watch/runs: those hold the Level 1 evidence and the tool captures, and
- * no transcript. The full message stream of a session lives in the sandbox
- * the harness built for it, /srv/brydge-measure/<slug>-<ms>/session-result.
- * json, under `session.transcript`. The disk policy deletes a sandbox once
- * its evidence is stored, so this corpus is whatever happens to be on the
- * machine — it is a found corpus, not a kept one. These tests SKIP when it is
- * gone rather than quietly passing, and a durable version of this would copy
- * the transcripts into a gitignored folder of its own.
+ * no transcript. The message stream of a session lives in the sandbox the
+ * harness built for it, under `session.transcript` — and the disk policy
+ * deletes a sandbox once its evidence is stored, so that corpus is whatever
+ * happens to still be on the machine.
+ *
+ * watch/transcripts holds the kept copy, made by watch/gate/keep.mjs, and it
+ * is what these tests read. It is gitignored for the reason watch/runs is:
+ * every message a server sent is in it, descriptions included. The sandboxes
+ * are read only as a fallback, so a machine that still has them can run these
+ * before anybody has made the copy. Where neither is there, these SKIP rather
+ * than quietly passing on nothing.
  *
  * ── WHAT IT COVERS, AND WHAT IT CANNOT ───────────────────────────────────
  *
@@ -32,8 +36,14 @@ import { test } from "node:test";
 import { lineOf } from "../watch/gate/transport.ts";
 import { Router, type Side } from "../watch/gate/router.ts";
 
+const KEPT = join(import.meta.dirname, "..", "watch", "transcripts");
 const SANDBOXES = "/srv/brydge-measure";
-const have = existsSync(SANDBOXES);
+const source: "kept" | "sandboxes" | null = existsSync(join(KEPT, "index.json"))
+  ? "kept"
+  : existsSync(SANDBOXES)
+    ? "sandboxes"
+    : null;
+const have = source !== null;
 
 interface Entry {
   dir: "to-server" | "from-server" | "stderr" | "stdout-noise";
@@ -41,17 +51,27 @@ interface Entry {
 }
 
 function sessions(): string[] {
-  if (!have) return [];
-  return readdirSync(SANDBOXES)
-    .map((d) => join(SANDBOXES, d, "session-result.json"))
-    .filter((f) => existsSync(f))
-    .sort();
+  if (source === "kept") {
+    return readdirSync(KEPT)
+      .filter((f) => f.endsWith(".json") && f !== "index.json")
+      .map((f) => join(KEPT, f))
+      .sort();
+  }
+  if (source === "sandboxes") {
+    return readdirSync(SANDBOXES)
+      .filter((d) => !d.startsWith("gate-room-"))
+      .map((d) => join(SANDBOXES, d, "session-result.json"))
+      .filter((f) => existsSync(f))
+      .sort();
+  }
+  return [];
 }
 
+/** A kept copy carries the transcript at the top; a sandbox nests it. */
 function transcriptOf(file: string): Entry[] | null {
   try {
-    const d = JSON.parse(readFileSync(file, "utf8")) as { session?: { transcript?: Entry[] } };
-    const t = d.session?.transcript;
+    const d = JSON.parse(readFileSync(file, "utf8")) as { transcript?: Entry[]; session?: { transcript?: Entry[] } };
+    const t = d.transcript ?? d.session?.transcript;
     return t && t.length ? t : null;
   } catch {
     return null;
@@ -79,7 +99,8 @@ function naiveToolCount(transcript: Entry[]): number | null {
   return null;
 }
 
-const label = (file: string) => file.split("/").slice(-2, -1)[0] ?? file;
+const label = (file: string) =>
+  source === "kept" ? (file.split("/").pop() ?? file).replace(/\.json$/, "") : (file.split("/").slice(-2, -1)[0] ?? file);
 
 test("the recorded sessions are there to replay", { skip: !have }, () => {
   assert.ok(sessions().length > 0, `${SANDBOXES} exists and holds no session-result.json`);
@@ -164,7 +185,7 @@ test("real sessions, counted", { skip: !have }, () => {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([k, n]) => `${k}=${n}`)
       .join(" ");
-  process.stderr.write(`\n    replayed ${servers} session(s); ${withList} answered a tools/list\n    ${say(totals)}\n`);
+  process.stderr.write(`\n    replayed ${servers} session(s) from the ${source} corpus; ${withList} answered a tools/list\n    ${say(totals)}\n`);
   if (Object.keys(serverMethods).length) process.stderr.write(`    the server asked the client: ${say(serverMethods)}\n`);
   for (const line of failClosed.slice(0, 12)) process.stderr.write(`    fail-closed  ${line}\n`);
   assert.ok(servers > 0);

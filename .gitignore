@@ -50,3 +50,9 @@ watch/review/
 # record of somebody's running setup, and the same argument as
 # watch/decisions.json applies.
 watch/gate/journal/
+# A durable copy of the recorded session transcripts, for replaying the gate
+# against real servers. The sandboxes they came from are deleted once their
+# evidence is stored, so the corpus they are taken from is not kept; this is.
+# Every message a server sent is in them, descriptions included, which is the
+# same reason watch/runs is ignored.
+watch/transcripts/
