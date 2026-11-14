@@ -25,6 +25,10 @@
  *                           wording and it sends
  *                           notifications/tools/list_changed.
  *     reworded-silent       the same rewording, and nothing is sent.
+ *     renamed-notified      starts as the baseline; then one tool is
+ *                           RENAMED, keeping its description word for
+ *                           word, and it sends
+ *                           notifications/tools/list_changed.
  *
  * The change happens once, two seconds after the first tools/list is
  * answered — long enough that a client has the first list, short enough to
@@ -66,6 +70,17 @@
  *   the gate to ask on. The call is forwarded and the server answers it.
  *   That is the limit of the whole approach, not a defect in it, and the
  *   README says so in those words.
+ *
+ * renamed-notified is for a question about the CLIENT, not about the gate.
+ * A name is a thing a client has to care about: it is what a model calls,
+ * and a stale name is a call that cannot work. A description is not — a
+ * client can hold an old one indefinitely and never notice. So a client
+ * might well re-list on a name change and not on a description-only one,
+ * and the two notified modes put exactly that question side by side:
+ * reworded-notified changes the words and renamed-notified changes the
+ * name, both announce it, and the difference in what the client does next
+ * is the answer. The description is kept word for word here so that the
+ * name is the only thing that moved.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -76,12 +91,14 @@ const MODES = [
   "dropped-silent",
   "reworded-notified",
   "reworded-silent",
+  "renamed-notified",
 ];
 /** The modes that change something once, a while into the session. */
 const DROPS = ["dropped-notified", "dropped-silent"];
 const REWORDS = ["reworded-notified", "reworded-silent"];
+const RENAMES = ["renamed-notified"];
 /** Of those, the ones that say so. */
-const ANNOUNCES = ["dropped-notified", "reworded-notified"];
+const ANNOUNCES = ["dropped-notified", "reworded-notified", "renamed-notified"];
 const arg = (name, fallback) => {
   const hit = process.argv.slice(2).find((a) => a.startsWith(`--${name}=`));
   return hit === undefined ? fallback : hit.slice(name.length + 3);
@@ -103,6 +120,17 @@ const VERSION = "1.0.0";
 const DROPPED = "demo_subtract";
 /** The tool whose words change, in changed-description and the two rewordings. */
 const REWORDED = "demo_add";
+/*
+ * The tool that gets renamed, and what to.
+ *
+ * A different tool from the reworded one, so a session can be read without
+ * working out which change it is looking at. Its description says nothing
+ * about its own name, so keeping the description word for word leaves it
+ * true of the renamed tool as well — the name really is the only thing
+ * that moved.
+ */
+const RENAMED_FROM = "demo_echo";
+const RENAMED_TO = "demo_echo_v2";
 
 /*
  * The four tools. Written here, about themselves, and nothing else.
@@ -153,13 +181,15 @@ const CHANGED = BASELINE.map((t) =>
  * tester comparing the two modes is looking at one pair of planted
  * wordings rather than two.
  */
-const listFor = (dropped, reworded) => {
+const listFor = (dropped, reworded, renamed) => {
   const base = mode === "changed-description" || reworded ? CHANGED : BASELINE;
-  return dropped ? base.filter((t) => t.name !== DROPPED) : base;
+  const named = renamed ? base.map((t) => (t.name === RENAMED_FROM ? { ...t, name: RENAMED_TO } : t)) : base;
+  return dropped ? named.filter((t) => t.name !== DROPPED) : named;
 };
 
 let dropped = false;
 let reworded = false;
+let renamed = false;
 let listsAnswered = 0;
 const startedAt = Date.now();
 
@@ -177,15 +207,19 @@ const text = (id, s) => ok(id, { content: [{ type: "text", text: s }] });
 function scheduleChange() {
   const drops = DROPS.includes(mode);
   const rewords = REWORDS.includes(mode);
-  if (!drops && !rewords) return;
-  if (dropped || reworded || listsAnswered !== 1) return;
+  const renames = RENAMES.includes(mode);
+  if (!drops && !rewords && !renames) return;
+  if (dropped || reworded || renamed || listsAnswered !== 1) return;
   setTimeout(() => {
     if (drops) {
       dropped = true;
       process.stderr.write(`demo-server: stopped offering ${DROPPED}\n`);
-    } else {
+    } else if (rewords) {
       reworded = true;
       process.stderr.write(`demo-server: reworded the description of ${REWORDED}\n`);
+    } else {
+      renamed = true;
+      process.stderr.write(`demo-server: renamed ${RENAMED_FROM} to ${RENAMED_TO}, same description\n`);
     }
     if (ANNOUNCES.includes(mode)) {
       send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" });
@@ -210,7 +244,7 @@ function handle(m) {
     return;
   }
   if (method === "tools/list") {
-    ok(id, { tools: listFor(dropped, reworded) });
+    ok(id, { tools: listFor(dropped, reworded, renamed) });
     listsAnswered++;
     scheduleChange();
     return;
@@ -229,7 +263,10 @@ function handle(m) {
       }
       return text(id, `${a - b}`);
     }
-    if (tool === "demo_echo") return text(id, String(params?.arguments?.text ?? ""));
+    /* The echo tool answers under whichever name it is currently offered
+     * under, and not under the other one: a stale name is a call that
+     * cannot work, which is the point of renamed-notified. */
+    if (tool === (renamed ? RENAMED_TO : RENAMED_FROM)) return text(id, String(params?.arguments?.text ?? ""));
     if (tool === "demo_now") return text(id, `${Date.now() - startedAt}`);
     send({ jsonrpc: "2.0", id, error: { code: -32601, message: `${NAME} does not have a tool called "${String(tool)}"` } });
     return;
@@ -240,7 +277,7 @@ function handle(m) {
   send({ jsonrpc: "2.0", id, error: { code: -32601, message: `${NAME} does not handle "${String(method)}"` } });
 }
 
-process.stderr.write(`demo-server: ${NAME} ${VERSION}, mode ${mode}, ${listFor(false, false).length} planted tool(s)\n`);
+process.stderr.write(`demo-server: ${NAME} ${VERSION}, mode ${mode}, ${listFor(false, false, false).length} planted tool(s)\n`);
 
 let buffered = "";
 process.stdin.setEncoding("utf8");

@@ -57,6 +57,9 @@ explain something, name the tool and the field and leave the text out.
 | How long after the notification? | |
 | Did it re-list without being told — on a timer, on a new conversation, on a window change? | |
 | Does the client cache the list across restarts? | |
+| **Did it re-list after a NAME change** (`renamed-notified`)? How soon? | |
+| **Did it re-list after a description-only change** (`reworded-notified`)? | |
+| If those two differ, what does the client appear to be watching? | |
 
 ---
 
@@ -180,7 +183,23 @@ there regardless.
 | Did it find the paths from somewhere other than the gate — a README, the config, the repository? | |
 | On a scale you choose: did it behave as though the refusal were a problem to route around? | |
 
-## 10. Anything that broke
+## 10. What the journal recorded
+
+Only if you passed `--journal`. Under `--mode enforce` it records each tool
+kept out of a list and each call not forwarded, with the reason and a
+running count. It carries no description, no path and no command, so you
+can read it and send it without checking it first.
+
+| Question | Answer |
+| --- | --- |
+| How many `refused` lines, and for which tools? | |
+| How many `hidden` lines, and how many tools in each? | |
+| Did the running counts match what you saw happen? | |
+| Was there anything in the journal you did not expect? | |
+| Did the journal and the `gate:` stderr lines agree? | |
+| Did the journal say anything the stderr did not, or the other way round? | |
+
+## 11. Anything that broke
 
 | Question | Answer |
 | --- | --- |
@@ -193,7 +212,7 @@ there regardless.
 
 ---
 
-## 11. Would you leave it on
+## 12. Would you leave it on
 
 | Question | Answer |
 | --- | --- |
@@ -205,7 +224,7 @@ there regardless.
 
 ---
 
-## 12. Attach
+## 13. Attach
 
 * The gate's `gate:` stderr lines.
 * The `--journal` file, if used.

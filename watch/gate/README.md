@@ -322,13 +322,14 @@ node watch/gate/fixtures/demo-server.mjs --mode=<mode>
 | `dropped-silent` | the same drop, and sends nothing. |
 | `reworded-notified` | starts as the baseline, then changes `demo_add`'s description to a second planted wording and sends `notifications/tools/list_changed`. |
 | `reworded-silent` | the same rewording, and sends nothing. |
+| `renamed-notified` | starts as the baseline, then renames `demo_echo` to `demo_echo_v2`, keeping its description word for word, and sends `notifications/tools/list_changed`. |
 
 The change happens two seconds after the first tool list, in all four modes
 that change something mid-session; `--drop-after=<ms>` moves it, whatever
 the change is.
 
 Take a pin from `baseline`, then point your client at the gate in front of
-one of the other five. The two dropping modes are there because the
+one of the other six. The two dropping modes are there because the
 interesting difference is in the **client** — does it re-list when it is
 told, and what does it do when it is not told?
 
@@ -357,6 +358,26 @@ A report lands in `--pending` about a change the client never saw. Note what
 does *not* happen: there is no "did not pass N tool(s)" line, because no
 tool list went to the client after the change — nothing was filtered on the
 way out. The hiding shows up in the refusal instead.
+
+### A name change against a description change
+
+`renamed-notified` exists for a question about the **client**, not about
+the gate. A name is something a client has to care about: it is what a
+model calls, and a stale name is a call that cannot work. A description is
+not — a client can hold an old one indefinitely and never find out.
+
+So a client may well re-list on a name change and not on a
+description-only one, and the two notified modes put that question side by
+side. `reworded-notified` changes the words; `renamed-notified` changes
+the name and keeps the description word for word. Run both, with and
+without `--relist-on-change`, and the difference in what the client does
+next is the answer. Section 2 of the observation sheet is where it goes.
+
+What the gate makes of a rename is worth knowing before you read the
+stderr: on the wire a rename is one name gone and one arrived, so you get
+**two** different refusals for the one change — a call to the old name is
+refused because the server no longer offers it, and the new name is hidden
+because it is not in the pin.
 
 ### Why `reworded-silent` forwards the call
 
@@ -611,10 +632,17 @@ Send:
 2. The exit code.
 3. Which mode, and the exact command line (with your own paths redacted if
    you like).
-4. The `--journal` file, if you used one. It is counts and tool names. With
-   `--relist-on-change` it also records each list the gate asked for, each
-   time it decided not to ask and why, and any message the server sent
-   under the gate's ids.
+4. The `--journal` file, if you used one. It is counts and tool names. Under
+   `--mode enforce` it records each tool kept out of a list and each call
+   not forwarded, with the reason and a running count — so the journal is
+   where the refusals are, not only in a stderr your client may swallow.
+   With `--relist-on-change` it also records each list the gate asked for,
+   each time it decided not to ask and why, and any message the server
+   sent under the gate's ids.
+
+   It carries no description text, no file path, no command and no flag,
+   which is what makes it the one file you can send without reading it
+   first. A test asserts each of those.
 5. What the client did: the wording of any error it showed, and whether the
    session continued.
 

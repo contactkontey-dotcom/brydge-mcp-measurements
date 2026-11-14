@@ -105,6 +105,7 @@ test("the README's demo table matches the modes the demo server has", () => {
     "dropped-silent",
     "reworded-notified",
     "reworded-silent",
+    "renamed-notified",
   ]);
   for (const m of declared) assert.ok(README.includes(`\`${m}\``), `the README does not describe the ${m} mode`);
   /* And nothing in the table is a mode the server does not have. */
@@ -178,7 +179,7 @@ test("the sheet asks whether the model went looking for the gate's files", () =>
   assert.match(SHEET, /nothing the gate sends the client names either/);
   /* The sections after it were renumbered, so nothing is duplicated. */
   const headings = [...SHEET.matchAll(/^## (\d+)\./gm)].map((m) => Number(m[1]));
-  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], `the sheet's sections are numbered ${headings.join(", ")}`);
+  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], `the sheet's sections are numbered ${headings.join(", ")}`);
 });
 
 test("the README explains --relist-on-change, including what it does not do", () => {
@@ -231,7 +232,7 @@ test("the sheet asks what the flag did, when it was on", () => {
     assert.match(SHEET, q, `the sheet does not ask: ${q}`);
   }
   const headings = [...SHEET.matchAll(/^## (\d+)\./gm)].map((m) => Number(m[1]));
-  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], `the sheet's sections are numbered ${headings.join(", ")}`);
+  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], `the sheet's sections are numbered ${headings.join(", ")}`);
 });
 
 test("the README's Windows section says what the gate will not do for you", () => {
@@ -283,6 +284,36 @@ test("the sheet asks about a description that changed mid-session", () => {
   assert.match(SHEET, /Did it notice that the description it was shown was out of date\?/);
   assert.match(SHEET, /The silent column is expected to show the call going through/);
   assert.match(SHEET, /\| `--drop-after` \(ms\), if you changed it \| \|/);
+});
+
+test("the README explains renamed-notified and what the gate makes of a rename", () => {
+  assert.match(README, /\| `renamed-notified` \| starts as the baseline, then renames `demo_echo` to `demo_echo_v2`/);
+  assert.match(README, /keeping its description word for word/);
+  assert.match(README, /### A name change against a description change/);
+  /* The reason it exists: a question about the client. */
+  assert.match(README, /exists for a question about the \*\*client\*\*, not about\s+the gate/);
+  assert.match(README, /a stale name is a call that cannot work/);
+  assert.match(README, /A description is\s+not — a client can hold an old one indefinitely/);
+  /* And what a tester will actually see from the gate. */
+  assert.match(README, /you get\s+\*\*two\*\* different refusals for the one change/);
+  assert.match(README, /the new name is hidden\s+because it is not in the pin/);
+});
+
+test("the README says the journal records refusals, and carries nothing private", () => {
+  assert.match(README, /it records each tool kept out of a list and each call\s+not forwarded, with the reason and a running count/);
+  assert.match(README, /not only in a stderr your client may swallow/);
+  assert.match(README, /It carries no description text, no file path, no command and no flag/);
+  assert.match(README, /the one file you can send without reading it\s+first/);
+});
+
+test("the sheet asks about a name change against a description change, and about the journal", () => {
+  assert.match(SHEET, /\*\*Did it re-list after a NAME change\*\* \(`renamed-notified`\)\? How soon\?/);
+  assert.match(SHEET, /\*\*Did it re-list after a description-only change\*\* \(`reworded-notified`\)\?/);
+  assert.match(SHEET, /If those two differ, what does the client appear to be watching\?/);
+  assert.match(SHEET, /## 10\. What the journal recorded/);
+  assert.match(SHEET, /How many `refused` lines, and for which tools\?/);
+  assert.match(SHEET, /How many `hidden` lines, and how many tools in each\?/);
+  assert.match(SHEET, /Did the running counts match what you saw happen\?/);
 });
 
 test("the README says the demo server is planted and harmless", () => {

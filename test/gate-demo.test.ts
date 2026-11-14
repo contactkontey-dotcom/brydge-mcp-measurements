@@ -218,7 +218,7 @@ test("an unknown mode does not start it", async () => {
   const r = await drive([DEMO, "--mode=whatever"], [INIT], 0, 5_000);
   assert.match(
     r.stderr,
-    /--mode is one of baseline, changed-description, dropped-notified, dropped-silent, reworded-notified, reworded-silent/,
+    /--mode is one of baseline, changed-description, dropped-notified, dropped-silent, reworded-notified, reworded-silent, renamed-notified/,
   );
   assert.equal(r.code, 64);
   assert.equal(r.answers.length, 0);
@@ -585,4 +585,82 @@ test("the rewording changes the words and nothing else", { timeout: 120_000 }, a
   );
   /* Still planted, and still says so. */
   assert.match(String((after.find((t) => t.name === "demo_add") as { description: string }).description), /^Planted demo tool/);
+});
+
+/* ── Renamed mid-session: a question about the client ───────────────────── */
+
+test("renamed-notified renames one tool and leaves its description word for word", { timeout: 120_000 }, async () => {
+  const script = [INIT, { jsonrpc: "2.0", method: "notifications/initialized" }, listMsg(2), { wait: 1_200 }, listMsg(3)];
+  const r = await driveWaiting([process.execPath, DEMO, "--mode=renamed-notified", "--drop-after=400"], script);
+
+  const before = r.answers.find((m) => m.id === 2)!.result!.tools as Array<Record<string, unknown>>;
+  const after = r.answers.find((m) => m.id === 3)!.result!.tools as Array<Record<string, unknown>>;
+  assert.ok(r.notifications.includes("notifications/tools/list_changed"), "the rename was not announced");
+
+  /* One name moved, and it is the only thing that did. */
+  assert.deepEqual(before.map((t) => t.name), ["demo_add", "demo_subtract", "demo_echo", "demo_now"]);
+  assert.deepEqual(after.map((t) => t.name), ["demo_add", "demo_subtract", "demo_echo_v2", "demo_now"]);
+  const gone = before.find((t) => t.name === "demo_echo")!;
+  const arrived = after.find((t) => t.name === "demo_echo_v2")!;
+  assert.equal(arrived.description, gone.description, "the description changed as well as the name");
+  assert.deepEqual(arrived.inputSchema, gone.inputSchema, "the schema changed as well as the name");
+  /* Every other tool is byte-identical across the two lists. */
+  for (const name of ["demo_add", "demo_subtract", "demo_now"]) {
+    assert.equal(
+      JSON.stringify(after.find((t) => t.name === name)),
+      JSON.stringify(before.find((t) => t.name === name)),
+      `${name} changed too`,
+    );
+  }
+});
+
+test("renamed-notified: the old name stops working and the new one works", { timeout: 120_000 }, async () => {
+  /*
+   * Which is why a name is a thing a client has to care about and a
+   * description is not: a stale name is a call that cannot work, and a
+   * stale description is a call that works and may do something else.
+   */
+  const r = await driveWaiting(
+    [process.execPath, DEMO, "--mode=renamed-notified", "--drop-after=400"],
+    [INIT, { jsonrpc: "2.0", method: "notifications/initialized" }, listMsg(2), { wait: 1_200 }, callMsg(3, "demo_echo", { text: "hi" }), callMsg(4, "demo_echo_v2", { text: "hi" })],
+  );
+  const old_ = r.answers.find((m) => m.id === 3)!;
+  assert.equal(old_.error?.code, -32601, "the old name still answered");
+  assert.match(old_.error!.message, /does not have a tool called "demo_echo"/);
+  assert.equal(r.answers.find((m) => m.id === 4)!.result!.content[0].text, "hi");
+});
+
+test("renamed-notified under enforcement: the new name is hidden, the old one withdrawn", { timeout: 120_000 }, async () => {
+  /*
+   * The gate sees a rename as what it is on the wire: one name gone and
+   * one arrived. The arrival is not in the pin, so it is hidden; the
+   * departure is no longer offered, so a call to it is refused as
+   * withdrawn. Two different refusals for one change, which is worth a
+   * tester knowing before they read the stderr.
+   */
+  const pin = await pinned();
+  const r = await driveWaiting(
+    [GATE, "--pin", pin, "--mode", "enforce", "--relist-on-change", "--", process.execPath, DEMO, "--mode=renamed-notified", "--drop-after=400"],
+    [
+      INIT,
+      { jsonrpc: "2.0", method: "notifications/initialized" },
+      listMsg(2),
+      { wait: 1_400 },
+      listMsg(3),
+      callMsg(4, "demo_echo", { text: "hi" }),
+      callMsg(5, "demo_echo_v2", { text: "hi" }),
+    ],
+  );
+  /* The client's second list has the new name taken out of it. */
+  assert.deepEqual(namesIn(r, 3), ["demo_add", "demo_subtract", "demo_now"], "the new name was passed to the client");
+  assert.match(r.stderr, /did not pass 1 tool\(s\) to the client \(1 not in the baseline\)/);
+
+  /* The old name: the server has stopped offering it. */
+  const stale = r.answers.find((m) => m.id === 4)!;
+  assert.equal(stale.error?.code, -32000, `the gate let a call to a withdrawn name through: ${JSON.stringify(stale)}`);
+  assert.match(stale.error!.message, /the server is no longer offering "demo_echo"/);
+  /* The new name: not in the baseline, so hidden. */
+  const fresh = r.answers.find((m) => m.id === 5)!;
+  assert.equal(fresh.error?.code, -32000);
+  assert.match(fresh.error!.message, /"demo_echo_v2" is hidden, because not in the baseline/);
 });

@@ -93,7 +93,27 @@ export type Note =
    * session never asked under. It is not an answer to anything, and it
    * does not reach the client.
    */
-  | { kind: "own-id-stranger"; at: number; id: string; what: string };
+  | { kind: "own-id-stranger"; at: number; id: string; what: string }
+  /*
+   * ── WHAT ENFORCEMENT ACTUALLY DID ───────────────────────────────────
+   *
+   * `would-hide` is written in both modes and means what it says: this is
+   * what a gate would take out of a list. These two are written only under
+   * --mode enforce, and mean it happened — a tool really was kept out of a
+   * list the client received, a call really was not forwarded.
+   *
+   * A reader of a journal could not tell those apart before: a shadow run
+   * and an enforcing run left the same lines, and the only record of a
+   * refusal was a line on stderr, which a client's log usually swallows.
+   *
+   * Each carries a running count, so the journal answers "how many by
+   * now" without the reader adding up. Tool names and the fixed reasons
+   * only: no description text, no file path, no command.
+   */
+  /** A tools/call the gate answered itself instead of forwarding. */
+  | { kind: "refused"; at: number; tool: string; because: string; n: number }
+  /** Tools kept out of a tools/list result the client then received. */
+  | { kind: "hidden"; at: number; tools: Array<{ tool: string; because: string }>; shown: number; n: number };
 
 const idKey = (id: unknown): string => (typeof id === "string" ? `s:${id}` : `n:${String(id)}`);
 

@@ -12,7 +12,7 @@
  */
 import { strict as assert } from "node:assert";
 import { spawn } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -25,6 +25,7 @@ import type { WouldHide } from "../watch/gate/router.ts";
 
 const ROOT = join(import.meta.dirname, "..");
 const SERVER = join(ROOT, "watch", "gate", "fixtures", "hostile-server.mjs");
+const DEMO = join(ROOT, "watch", "gate", "fixtures", "demo-server.mjs");
 /*
  * This file's own build, not the shared watch/gate/built.
  *
@@ -623,4 +624,151 @@ test("the instructions for approving are on stderr, where a person reads them", 
   /* And the enforcer is not given it. */
   assert.ok(!/howToApprove/.test(src), "run.ts still hands the enforcer something to tell the client");
   assert.ok(!/howToApprove/.test(readFileSync(join(ROOT, "watch", "gate", "enforce.ts"), "utf8")), "enforce.ts still has a howToApprove");
+});
+
+/* ── What the journal records when enforcement acts ─────────────────────── */
+
+/*
+ * `would-hide` is written in both modes and means what it says. These two
+ * are written only under enforcement and mean it happened: a tool was kept
+ * out of a list the client received, a call was not forwarded.
+ *
+ * Before this a reader could not tell a shadow run from an enforcing one
+ * by the journal, and the only record of a refusal was a line on stderr,
+ * which a client's log usually swallows.
+ */
+
+interface Line_ {
+  kind: string;
+  [k: string]: unknown;
+}
+
+const journalOf = (file: string): Line_[] =>
+  existsSync(file)
+    ? readFileSync(file, "utf8")
+        .split("\n")
+        .filter(Boolean)
+        .map((l) => JSON.parse(l) as Line_)
+    : [];
+
+/** A pin of the baseline, and a journal path, for the planted demo server. */
+async function pinnedDemo(): Promise<{ pin: string; journal: string }> {
+  const dir = mkdtempSync(join(tmpdir(), "gate-journal-"));
+  const pin = join(dir, "pin.json");
+  const first = await run([BUILT, "--write-pin", pin, "--package", "brydge-demo-server@1.0.0", "--", process.execPath, DEMO, "--mode=baseline"], [
+    INIT,
+    { jsonrpc: "2.0", method: "notifications/initialized" },
+    listMsg(2),
+  ]);
+  assert.ok(existsSync(pin), `no pin was written:\n${first.stderr}`);
+  return { pin, journal: join(dir, "j.ndjson") };
+}
+
+test("a refused call writes exactly one line, with the tool, the reason and a count", { timeout: 120_000 }, async () => {
+  const { pin, journal } = await pinnedDemo();
+  const r = await run(
+    [BUILT, "--pin", pin, "--journal", journal, "--mode", "enforce", "--", process.execPath, DEMO, "--mode=changed-description"],
+    [INIT, { jsonrpc: "2.0", method: "notifications/initialized" }, listMsg(2), { msg: callMsg(3, "demo_add"), afterId: 2 }],
+  );
+  /* The call was refused, so there is something to have recorded. */
+  assert.equal(messages(r.stdout).find((m) => m.id === 3)?.error?.code, REFUSAL_CODE, "the call was not refused");
+
+  const refused = journalOf(journal).filter((n) => n.kind === "refused");
+  assert.equal(refused.length, 1, `${refused.length} refusal lines for one refused call`);
+  assert.deepEqual(refused[0], {
+    kind: "refused",
+    at: refused[0]!.at,
+    tool: "demo_add",
+    because: "its description differs from the baseline",
+    n: 1,
+  });
+  assert.equal(typeof refused[0]!.at, "number");
+});
+
+test("a hidden tool is recorded as hidden, not only as would-hide", { timeout: 120_000 }, async () => {
+  const { pin, journal } = await pinnedDemo();
+  await run(
+    [BUILT, "--pin", pin, "--journal", journal, "--mode", "enforce", "--", process.execPath, DEMO, "--mode=changed-description"],
+    [INIT, { jsonrpc: "2.0", method: "notifications/initialized" }, listMsg(2)],
+  );
+  const notes = journalOf(journal);
+  const hidden = notes.filter((n) => n.kind === "hidden");
+  assert.equal(hidden.length, 1, `${hidden.length} hidden lines for one filtered list`);
+  assert.deepEqual(hidden[0]!.tools, [{ tool: "demo_add", because: "its description differs from the baseline" }]);
+  assert.equal(hidden[0]!.shown, 3);
+  assert.equal(hidden[0]!.n, 1);
+  /* And would-hide is still there, so the two readings are both available. */
+  assert.equal(notes.filter((n) => n.kind === "would-hide").length, 1);
+});
+
+test("the counts run, so the journal says how many by now", { timeout: 120_000 }, async () => {
+  const { pin, journal } = await pinnedDemo();
+  const r = await run(
+    [BUILT, "--pin", pin, "--journal", journal, "--mode", "enforce", "--", process.execPath, DEMO, "--mode=changed-description"],
+    [
+      INIT,
+      { jsonrpc: "2.0", method: "notifications/initialized" },
+      listMsg(2),
+      { msg: callMsg(3, "demo_add"), afterId: 2 },
+      { msg: callMsg(4, "demo_add"), afterId: 3 },
+      { msg: callMsg(5, "demo_echo"), afterId: 4 },
+    ],
+  );
+  /* Two refused, one forwarded to the server, which answered it. */
+  const got = messages(r.stdout);
+  assert.equal(got.find((m) => m.id === 3)?.error?.code, REFUSAL_CODE);
+  assert.equal(got.find((m) => m.id === 4)?.error?.code, REFUSAL_CODE);
+  assert.ok(got.find((m) => m.id === 5)?.result, "the call to a tool nobody hid was not forwarded");
+  const refused = journalOf(journal).filter((n) => n.kind === "refused");
+  assert.deepEqual(refused.map((n) => n.n), [1, 2], "the running count did not run");
+  assert.deepEqual(new Set(refused.map((n) => n.tool)), new Set(["demo_add"]));
+});
+
+test("shadow mode writes neither line, because it does neither thing", { timeout: 120_000 }, async () => {
+  const { pin, journal } = await pinnedDemo();
+  await run(
+    [BUILT, "--pin", pin, "--journal", journal, "--", process.execPath, DEMO, "--mode=changed-description"],
+    [INIT, { jsonrpc: "2.0", method: "notifications/initialized" }, listMsg(2), { msg: callMsg(3, "demo_add"), afterId: 2 }],
+  );
+  const notes = journalOf(journal);
+  assert.equal(notes.filter((n) => n.kind === "refused").length, 0, "shadow mode recorded a refusal");
+  assert.equal(notes.filter((n) => n.kind === "hidden").length, 0, "shadow mode recorded a hidden tool");
+  /* It recorded what it would have done, which is the whole of shadow. */
+  assert.equal(notes.filter((n) => n.kind === "would-hide").length, 1);
+});
+
+test("the journal carries no description, no path and no command", { timeout: 120_000 }, async () => {
+  /*
+   * The journal is the file a tester is asked to send when something
+   * breaks, so it has to be the one file they can send without reading
+   * it first. The planted descriptions are known here, so they can be
+   * searched for by name.
+   */
+  const { pin, journal } = await pinnedDemo();
+  await run(
+    [BUILT, "--pin", pin, "--journal", journal, "--mode", "enforce", "--refusal-style", "result", "--", process.execPath, DEMO, "--mode=changed-description"],
+    [INIT, { jsonrpc: "2.0", method: "notifications/initialized" }, listMsg(2), { msg: callMsg(3, "demo_add"), afterId: 2 }],
+  );
+  const text = readFileSync(journal, "utf8");
+  assert.ok(text.length > 0, "the journal is empty");
+
+  /* Not one word of either planted wording. */
+  for (const phrase of ["Planted demo tool", "SECOND WORDING", "Adds its two numbers", "returns their total"]) {
+    assert.ok(!text.includes(phrase), `the journal carries description text: ${JSON.stringify(phrase)}`);
+  }
+  /* And none of the operator detail the refusals themselves are free of. */
+  for (const [what, re] of [
+    ["the pin's path", /pin\.json/],
+    ["a path", /(^|[\s"])[/~][A-Za-z]/],
+    ["a command", /\b(node|npx|npm)\s/],
+    ["a subcommand", /\bgate (approve|pin|rollback|build)\b/],
+    ["a flag", /(^|[\s"])--[a-z]/],
+  ] as const) {
+    const hit = re.exec(text);
+    assert.equal(hit, null, `the journal carries ${what}: ${JSON.stringify(hit?.[0])}`);
+  }
+  /* What it does carry: kinds, tool names and the fixed reasons. */
+  const kinds = new Set(journalOf(journal).map((n) => n.kind));
+  assert.ok(kinds.has("refused"), `kinds were ${[...kinds].join(", ")}`);
+  assert.ok(kinds.has("hidden"));
 });

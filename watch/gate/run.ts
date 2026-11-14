@@ -46,7 +46,7 @@ import { dirname, join } from "node:path";
 import { relay, type Line, type Relay } from "./transport.ts";
 import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./router.ts";
 import { ADOPTED, NotAPin, adopt, read as readPin, write as writePin, type Pin } from "./pin.ts";
-import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, REFUSAL_STYLES, type RefusalStyle } from "./enforce.ts";
+import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, REFUSAL_STYLES, type RefusalStyle, type Why } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
 import { detachedOn, killStyleOn, startupAdvice } from "./spawning.ts";
@@ -279,16 +279,47 @@ function reportOn(records: ToolRecord[], hidden: WouldHide[]): void {
   }
 }
 
+/*
+ * Running totals for the journal, so a reader is not left adding up.
+ */
+let refusalsSoFar = 0;
+let hiddenSoFar = 0;
+
+/**
+ * Why a call was not forwarded, in the few fixed phrases.
+ *
+ * One place, so the stderr line and the journal line cannot drift apart,
+ * and so neither can ever carry anything but these.
+ */
+const reasonOf = (why: Why): string =>
+  why.kind === "withdrawn" ? "no longer offered by the server" : why.kind === "unread" ? "the tool list has not been read in full" : why.because;
+
 const enforcer =
   mode === "enforce" && pin
     ? new Enforcer({
         pinFile: pinPath ?? "(none)",
         refusalStyle,
-        onHide: (hidden, shown) => process.stderr.write(`${hidLine(hidden, shown)}\n`),
-        onRefuse: (tool, why) =>
-          process.stderr.write(
-            `gate: did not forward a call to "${tool}" (${why.kind === "withdrawn" ? "no longer offered by the server" : why.because}).\n`,
-          ),
+        onHide: (hidden, shown) => {
+          process.stderr.write(`${hidLine(hidden, shown)}\n`);
+          hiddenSoFar += hidden.length;
+          /*
+           * In the journal as well as on stderr. A client's log usually
+           * swallows a server's stderr, and this is the record of what
+           * enforcement did rather than of what a gate would do.
+           */
+          note({
+            kind: "hidden",
+            at: Date.now(),
+            tools: hidden.map((h) => ({ tool: h.tool, because: h.because })),
+            shown,
+            n: hiddenSoFar,
+          });
+        },
+        onRefuse: (tool, why) => {
+          const because = reasonOf(why);
+          process.stderr.write(`gate: did not forward a call to "${tool}" (${because}).\n`);
+          note({ kind: "refused", at: Date.now(), tool, because, n: ++refusalsSoFar });
+        },
         onFailClosed: (because) => process.stderr.write(`gate: failing closed: ${because}\n`),
       })
     : null;
