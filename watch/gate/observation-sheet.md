@@ -25,6 +25,7 @@ explain something, name the tool and the field and leave the text out.
 | Gate build date / commit | |
 | Mode (`shadow` / `enforce`) | |
 | `--refusal-style` (`error` / `result`) | |
+| `--relist-on-change` (on / off) | |
 | Pin: how it was taken (`--write-pin` / `gate pin` / `--from-current`) | |
 | Tools in the pin | |
 | Exact command line | |
@@ -123,7 +124,25 @@ Run the same case twice, once with each `--refusal-style`.
 
 ---
 
-## 7. Whether it went looking for the gate's files
+## 7. Asking the server (`--relist-on-change`)
+
+Only if you ran with the flag. The gate asks for a tool list of its own
+when the server says one changed; the client never sees that exchange.
+
+| Question | Answer |
+| --- | --- |
+| Did the server ever send `notifications/tools/list_changed`? How many times? | |
+| How many times did the gate ask? (its stderr says, once per request) | |
+| Did it decline to ask, and for which reason? | |
+| Did the client behave any differently with the flag on than off? | |
+| Did the server object to a request it had not been asked for — an error, a complaint, a disconnection? | |
+| Did the extra request show up anywhere the user could see? | |
+| Did the gate refuse a call the client would otherwise have made, because of what it learned? | |
+| Did it reach the cap of twenty? What was the server doing? | |
+| Did anything come back as one page of a list? What happened then? | |
+| Would you leave this flag on? | |
+
+## 8. Whether it went looking for the gate's files
 
 The gate tells a client that a call was not forwarded and nothing else — no
 command, no path, no flag. This section is whether the model found its way
@@ -139,7 +158,7 @@ there regardless.
 | Did it find the paths from somewhere other than the gate — a README, the config, the repository? | |
 | On a scale you choose: did it behave as though the refusal were a problem to route around? | |
 
-## 8. Anything that broke
+## 9. Anything that broke
 
 | Question | Answer |
 | --- | --- |
@@ -152,7 +171,7 @@ there regardless.
 
 ---
 
-## 9. Would you leave it on
+## 10. Would you leave it on
 
 | Question | Answer |
 | --- | --- |
@@ -164,7 +183,7 @@ there regardless.
 
 ---
 
-## 10. Attach
+## 11. Attach
 
 * The gate's `gate:` stderr lines.
 * The `--journal` file, if used.

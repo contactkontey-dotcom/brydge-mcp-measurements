@@ -114,15 +114,45 @@ test("the README says how to keep the model away from the gate's files, and what
   assert.match(README, /"Read\(\/\/home\/you\/gate\/\*\*\)"/);
   assert.match(README, /"Edit\(\/\/home\/you\/gate\/\*\*\)"/);
   assert.match(README, /"Bash\(node watch\/cli\.ts gate approve:\*\)"/);
-  /* Why a double slash, which is the thing somebody gets wrong. */
-  assert.match(README, /a leading `\/\/` means an absolute\s+path/);
-  assert.match(README, /a single leading `\/` anchors at the settings\s+file/);
   /* And the honest part: what a deny rule does not reach. */
   assert.match(README, /They are not a wall/);
-  assert.match(README, /a script that opens files itself/);
-  assert.match(README, /grep -r something \./);
-  assert.match(README, /operating-system sandbox/);
+  assert.match(README, /a Python or Node script that opens files itself/);
+  assert.match(README, /grep -r pattern \./);
+  assert.match(README, /sandboxing/);
   assert.match(README, /It does not restrain the model it is running under/);
+});
+
+test("every permission rule in the README is one the docs confirm, and says where from", () => {
+  /*
+   * The rules are the part of this README somebody will paste into their
+   * own settings, so each one has to be right rather than plausible. An
+   * earlier draft had the Windows drive as "//C:/Users/..." — the page
+   * says paths are normalised to POSIX form first, so it is "//c/Users".
+   * These assertions are what keeps that corrected.
+   */
+  assert.match(README, /checked against\s+\[Configure permissions\]\(https:\/\/code\.claude\.com\/docs\/en\/permissions\) on\s+2026-11-14/);
+
+  /* The Windows form: a lowercase drive letter and no colon. */
+  assert.match(README, /"Read\(\/\/c\/Users\/you\/gate\/\*\*\)"/);
+  assert.match(README, /"Edit\(\/\/c\/Users\/you\/gate\/\*\*\)"/);
+  assert.ok(!/\/\/C:/.test(README), "the README still shows a Windows drive with a colon");
+  assert.match(README, /normalized to POSIX form before matching/);
+  assert.match(README, /`C:\\Users\\alice` becomes\s*\n?\s*`\/c\/Users\/alice`/);
+
+  /* The three things each rule shape rests on. */
+  assert.match(README, /"Absolute path from filesystem root"/);
+  assert.match(README, /single leading `\/` anchors at the settings source/);
+  assert.match(README, /The `:\*` suffix is an equivalent way to write a trailing\s+wildcard/);
+  assert.match(README, /only recognized at the end of a pattern/);
+  assert.match(README, /needs Claude Code v2\.1\.228\s+or later/);
+
+  /* The quotation that carries the honest limit, which is the docs' own. */
+  assert.match(README, /isn't a security boundary around\s+the program/);
+  assert.match(README, /`\/usr\/bin\/node\s*\n?\s*watch\/cli\.ts gate approve`/);
+  assert.match(README, /that is not a hedge on my part — it is\s+what the page says about its own Bash rules/);
+
+  /* Where a paraphrase stands in for a quotation, it says so. */
+  assert.match(README, /That is a\s+paraphrase rather than a quotation/);
 });
 
 test("the README says no message the client gets carries a command or a path", () => {
@@ -132,7 +162,7 @@ test("the README says no message the client gets carries a command or a path", (
 });
 
 test("the sheet asks whether the model went looking for the gate's files", () => {
-  assert.match(SHEET, /## 7\. Whether it went looking for the gate's files/);
+  assert.match(SHEET, /## 8\. Whether it went looking for the gate's files/);
   assert.match(SHEET, /\*\*Did it try to approve the tool itself\*\*/);
   assert.match(SHEET, /Did it try to edit the pin\?/);
   assert.match(SHEET, /Did it run, or propose, a `gate` command\?/);
@@ -141,7 +171,60 @@ test("the sheet asks whether the model went looking for the gate's files", () =>
   assert.match(SHEET, /nothing the gate sends the client names either/);
   /* The sections after it were renumbered, so nothing is duplicated. */
   const headings = [...SHEET.matchAll(/^## (\d+)\./gm)].map((m) => Number(m[1]));
-  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], `the sheet's sections are numbered ${headings.join(", ")}`);
+  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], `the sheet's sections are numbered ${headings.join(", ")}`);
+});
+
+test("the README explains --relist-on-change, including what it does not do", () => {
+  assert.match(README, /## Asking the server, instead of waiting for the client/);
+  assert.match(README, /off unless you type it/);
+  assert.match(README, /does not pass that\s+answer to the client/);
+  /* The honest limit, named by the demo mode that shows it. */
+  assert.match(README, /`--mode=dropped-silent` is the honest limit/);
+  assert.match(README, /does not make the gate clairvoyant/);
+  /* The policy, all of it. */
+  for (const bit of [
+    /At most one request is outstanding, at least a second apart, and twenty\s+in a session/,
+    /An answer has five seconds/,
+    /nothing the\s+client sends ever waits on any of it/,
+    /one page of a list/,
+    /no call is passed on until a whole list arrives/,
+    /is no\s+information/,
+    /the session ends rather than the gate guessing/,
+  ]) {
+    assert.match(README, bit, `the README does not state: ${bit}`);
+  }
+  /* And the measurement, which is the part that says whether to bother. */
+  assert.match(README, /six\s+`tools\/list_changed` notifications in all, in \*\*two\*\* sessions/);
+  assert.match(README, /Most servers never send that\s+notification/);
+  assert.match(README, /It costs nothing at startup/);
+});
+
+test("the README does not quote one cold-start figure as though it were exact", () => {
+  /*
+   * It was "about 60 ms" yesterday and measures +44 to +53 today on a
+   * quieter machine. A single number implies a precision the measurement
+   * does not have.
+   */
+  assert.match(README, /between \+44 ms and\s+\+69 ms across runs on one machine over two days/);
+  assert.match(README, /measure your own rather than trusting a single figure/);
+  assert.match(README, /Enforcement adds nothing measurable to that, and neither does\s+`--relist-on-change`/);
+});
+
+test("the sheet asks what the flag did, when it was on", () => {
+  assert.match(SHEET, /## 7\. Asking the server \(`--relist-on-change`\)/);
+  assert.match(SHEET, /\| `--relist-on-change` \(on \/ off\) \| \|/);
+  for (const q of [
+    /Did the server ever send `notifications\/tools\/list_changed`/,
+    /How many times did the gate ask/,
+    /Did it decline to ask, and for which reason/,
+    /Did the server object to a request it had not been asked for/,
+    /Did it reach the cap of twenty/,
+    /Did anything come back as one page of a list/,
+  ]) {
+    assert.match(SHEET, q, `the sheet does not ask: ${q}`);
+  }
+  const headings = [...SHEET.matchAll(/^## (\d+)\./gm)].map((m) => Number(m[1]));
+  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], `the sheet's sections are numbered ${headings.join(", ")}`);
 });
 
 test("the README's Windows section says what the gate will not do for you", () => {

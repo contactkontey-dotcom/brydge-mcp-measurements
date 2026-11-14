@@ -36,6 +36,7 @@ import { test } from "node:test";
 import { lineOf } from "../watch/gate/transport.ts";
 import { Router, type Pinned, type Side } from "../watch/gate/router.ts";
 import { Enforcer } from "../watch/gate/enforce.ts";
+import { CAP, isReservedId, Lister } from "../watch/gate/relist.ts";
 
 const KEPT = join(import.meta.dirname, "..", "watch", "transcripts");
 const SANDBOXES = "/srv/brydge-measure";
@@ -370,4 +371,152 @@ test("nothing the enforcer sends a client carries a description", { skip: !have 
     }
   }
   assert.ok(checked > 100, `only ${checked} descriptions were checked for`);
+});
+
+/* ── Replayed with --relist-on-change ───────────────────────────────────── */
+
+/*
+ * The question the flag raises is how much traffic it adds, and these
+ * recordings can answer it: each entry carries the millisecond it happened,
+ * so the Lister can be driven on the clock those servers actually ran on
+ * rather than on a guess.
+ *
+ * Nothing answers the gate's requests in a replay — there is no server
+ * here — so after five recorded seconds each one is forgotten and a later
+ * notification may ask again, which is what would happen against a server
+ * that went quiet.
+ */
+
+interface Stamped extends Entry {
+  t?: number;
+}
+
+interface Would {
+  notices: number;
+  asked: number;
+  declined: Record<string, number>;
+}
+
+/** What the flag would have done over one recorded session. */
+function wouldAsk(transcript: Stamped[]): Would {
+  let at = transcript[0]?.t ?? 0;
+  const lister = new Lister({ now: () => at });
+  const out: Would = { notices: 0, asked: 0, declined: {} };
+  for (const e of transcript) {
+    if (typeof e.t === "number") at = e.t;
+    if (e.dir === "stderr") continue;
+    if (e.dir === "to-server") {
+      lister.sawClient(e.message);
+      continue;
+    }
+    if (!lister.isChangeNotice(e.message)) continue;
+    out.notices++;
+    const decided = lister.consider();
+    if (decided.ask) out.asked++;
+    else out.declined[decided.why] = (out.declined[decided.why] ?? 0) + 1;
+  }
+  return out;
+}
+
+test("replayed with the flag, the policy holds over every recorded session", { skip: !have }, () => {
+  const over: string[] = [];
+  let sessions_ = 0;
+  let notices = 0;
+  let asked = 0;
+  let withNotices = 0;
+  const declined: Record<string, number> = {};
+  let most = { label: "", asked: 0, notices: 0 };
+
+  for (const f of sessions()) {
+    const t = transcriptOf(f) as Stamped[] | null;
+    if (!t) continue;
+    sessions_++;
+    const w = wouldAsk(t);
+    notices += w.notices;
+    asked += w.asked;
+    if (w.notices) withNotices++;
+    for (const [why, n] of Object.entries(w.declined)) declined[why] = (declined[why] ?? 0) + n;
+    if (w.asked > most.asked) most = { label: label(f), asked: w.asked, notices: w.notices };
+
+    /* The two promises the policy makes, per session. */
+    if (w.asked > CAP) over.push(`${label(f)}: ${w.asked} requests, past the cap of ${CAP}`);
+    if (w.asked > w.notices) over.push(`${label(f)}: ${w.asked} requests for ${w.notices} notification(s)`);
+  }
+
+  assert.ok(sessions_ >= 20, `only ${sessions_} sessions replayed`);
+  assert.deepEqual(over, [], "the policy did not hold");
+  const say = (o: Record<string, number>) =>
+    Object.entries(o)
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, n]) => `${k}: ${n}`)
+      .join("; ") || "none";
+  process.stderr.write(
+    `\n    with --relist-on-change over ${sessions_} recorded session(s): ${notices} notification(s) in ${withNotices} session(s), ` +
+      `${asked} request(s) the gate would have sent\n    declined — ${say(declined)}\n` +
+      (most.asked ? `    the most in one session: ${most.asked} request(s) for ${most.notices} notification(s) (${most.label})\n` : ""),
+  );
+});
+
+test("replayed with the flag, nothing about the comparison changes", { skip: !have }, () => {
+  /*
+   * The flag adds requests and reads their answers. In a replay there are
+   * no answers to them, so every comparison must come out exactly as it
+   * does without the flag — same notes, same counts, same order. If this
+   * differs, the flag is changing how the recorded lists are read, which
+   * is not what it is for.
+   */
+  const differed: string[] = [];
+  let compared = 0;
+  for (const f of sessions()) {
+    const t = transcriptOf(f) as Stamped[] | null;
+    if (!t) continue;
+    const plain = replay(t).notes.map((n) => n.kind).join(",");
+    /* The same replay, with the lister running alongside it. */
+    let at = t[0]?.t ?? 0;
+    const lister = new Lister({ now: () => at });
+    const router = new Router();
+    for (const e of t) {
+      if (typeof (e as Stamped).t === "number") at = (e as Stamped).t!;
+      if (e.dir === "stderr") continue;
+      const side: Side = e.dir === "to-server" ? "client-to-server" : "server-to-client";
+      const raw = e.dir === "stdout-noise" ? Buffer.from(String(e.message), "utf8") : Buffer.from(JSON.stringify(e.message), "utf8");
+      if (side === "client-to-server") lister.sawClient(e.message);
+      else if (lister.isChangeNotice(e.message)) {
+        const d = lister.consider();
+        /* What run.ts does with it: tell the router to expect an answer. */
+        if (d.ask) router.expectOwnList(d.id);
+      }
+      router.see(lineOf(raw), side);
+    }
+    compared++;
+    const withFlag = router.notes.map((n) => n.kind).join(",");
+    if (withFlag !== plain) differed.push(label(f));
+  }
+  assert.ok(compared >= 20, `only ${compared} sessions compared`);
+  assert.deepEqual(differed, [], "the flag changed what the comparison recorded");
+});
+
+test("no recorded session ever used an id in the gate's namespace", { skip: !have }, () => {
+  /*
+   * The collision rule ends a session when a client uses one of the gate's
+   * ids. Worth knowing whether any real client ever has: across the whole
+   * corpus, in both directions, nothing does.
+   */
+  let checked = 0;
+  const used: string[] = [];
+  for (const f of sessions()) {
+    const t = transcriptOf(f);
+    if (!t) continue;
+    for (const e of t) {
+      if (e.dir === "stderr") continue;
+      const m = e.message as { id?: unknown } | null;
+      if (m && typeof m === "object" && "id" in m) {
+        checked++;
+        if (isReservedId(m.id)) used.push(`${label(f)}: ${String(m.id)}`);
+      }
+    }
+  }
+  assert.ok(checked > 200, `only ${checked} ids were checked`);
+  assert.deepEqual(used, [], "a recorded session used an id this gate reserves");
+  process.stderr.write(`    ${checked} recorded id(s) checked; none in the gate's namespace\n`);
 });

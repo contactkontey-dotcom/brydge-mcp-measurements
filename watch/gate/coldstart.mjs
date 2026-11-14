@@ -83,6 +83,14 @@ const ways = {
   gate_from_source: [GATE, "--", process.execPath, SERVER],
   gate_built_shadow: [BUILT, "--pin", pinFile, "--", process.execPath, SERVER],
   gate_built_enforce: [BUILT, "--pin", pinFile, "--mode", "enforce", "--", process.execPath, SERVER],
+  /*
+   * --relist-on-change costs one more module and one more object at
+   * startup, and nothing else: it sends nothing until the server says its
+   * tool list changed, which is after the first answer the clock here
+   * stops on. If this row is not within noise of the row above it, the
+   * flag is doing something at startup that it should not be.
+   */
+  gate_built_enforce_relist: [BUILT, "--pin", pinFile, "--mode", "enforce", "--relist-on-change", "--", process.execPath, SERVER],
 };
 
 const got = {};

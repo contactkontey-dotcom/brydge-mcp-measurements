@@ -131,6 +131,65 @@ When something does differ:
 
 ---
 
+## Asking the server, instead of waiting for the client
+
+`--relist-on-change` is off unless you type it. With it on, the gate sends
+a `tools/list` of its own when the server says
+`notifications/tools/list_changed`, reads the answer, and does not pass that
+answer to the client — the client never asked for it.
+
+It exists because of one case. A client typically lists the tools once, at
+startup. If the server changes a description or stops offering a tool after
+that, the gate only finds out when the client next lists, which may be
+never. With the flag, the gate finds out when the server says so:
+
+```
+client -> tools/list                        answered, four tools
+server -> notifications/tools/list_changed
+gate   -> tools/list (brydge-gate/1)        not the client's, never shown to it
+client -> tools/call demo_subtract
+gate   -> the gate did not forward this call: the server is no longer
+          offering "demo_subtract"
+```
+
+Without the flag, that last call goes through to a server that no longer
+has the tool. Try it both ways with the demo server: `--mode=dropped-notified`
+is the case above, and `--mode=dropped-silent` is the honest limit — no
+notification means nothing to ask on, so the call is forwarded. The flag
+does not make the gate clairvoyant.
+
+**What it does to your session.**
+
+* It adds requests the client did not make. That is the one thing the gate
+  otherwise never does, which is why the flag is off by default and why it
+  says so on stderr when it is on.
+* Those requests use ids beginning `brydge-gate/`. Nothing the server sends
+  under such an id reaches the client, whether the gate asked under it or
+  not. If your client ever sends a request with an id in that namespace,
+  the session ends rather than the gate guessing whose answer is whose —
+  with the flag off it reserves nothing and the same id is left alone.
+* At most one request is outstanding, at least a second apart, and twenty
+  in a session. At twenty it says so once and goes back to comparing the
+  lists the client asks for. An answer has five seconds, and nothing the
+  client sends ever waits on any of it.
+* An answer carrying a cursor is one page of a list, so a tool that changed
+  may be on a page the gate did not get. It is not compared at all, and
+  under enforcement no call is passed on until a whole list arrives.
+* An error, or an answer to an id this session never sent, is no
+  information: noted, and nothing changes.
+
+**How often it will matter, measured.** Replayed over the 75 recorded
+sessions this project has kept, from 70-odd real servers: six
+`tools/list_changed` notifications in all, in **two** sessions, and the
+policy would have sent two requests. Most servers never send that
+notification, so for most servers this flag changes nothing — which is
+worth knowing before you turn it on and expect it to earn its keep. The one
+server that sent three in a burst would have been asked once, the rest
+declined because a request was already outstanding.
+
+It costs nothing at startup: it sends nothing until the server speaks, so
+the cold-start figures below are the same with it and without.
+
 ## The client's config
 
 Wherever your client lists its MCP servers, the gate goes in front of the
@@ -173,7 +232,9 @@ that was there before, unchanged — including its own flags, and including
 `env` if your client supports it, which stays where it was and reaches the
 server as before.
 
-Drop `--mode enforce` to watch first. That is the suggested order.
+Drop `--mode enforce` to watch first. That is the suggested order. Add
+`--relist-on-change` after that, when you want the gate to ask rather than
+wait; see [asking the server](#asking-the-server-instead-of-waiting-for-the-client).
 
 ### On Windows
 
@@ -296,7 +357,14 @@ to stderr and into the report, which a person reads.
 
 That is the gate's side of it. Your side is to put the files out of reach.
 In Claude Code, add `deny` rules to `.claude/settings.json` in the project,
-or to `~/.claude/settings.json` for every project:
+or to `~/.claude/settings.json` for every project.
+
+Everything in this section was checked against
+[Configure permissions](https://code.claude.com/docs/en/permissions) on
+2026-11-14. Each claim below says which part of that page it comes from, so
+you can check it again rather than trust this file.
+
+**On macOS and Linux:**
 
 ```json
 {
@@ -312,32 +380,79 @@ or to `~/.claude/settings.json` for every project:
 }
 ```
 
+**On Windows**, the drive is spelled differently, and an earlier draft of
+this file had it wrong. From *How path patterns match*: "On Windows, paths
+are normalized to POSIX form before matching. `C:\Users\alice` becomes
+`/c/Users/alice`, so use `//c/**/.env` to match `.env` files anywhere on
+that drive." So it is a lowercase drive letter with no colon:
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(//c/Users/you/gate/**)",
+      "Edit(//c/Users/you/gate/**)",
+      "Bash(node watch/cli.ts gate approve:*)",
+      "Bash(node watch/cli.ts gate pin:*)",
+      "Bash(node watch/cli.ts gate rollback:*)"
+    ]
+  }
+}
+```
+
 Keep the pins, the reports and the journal in one directory outside the
-repository — `~/gate` above — so one pair of rules covers all of them. The
-path patterns are gitignore syntax, and a leading `//` means an absolute
-path from the filesystem root: a single leading `/` anchors at the settings
-file instead, which is not what you want here. On Windows the same rules
-work with `//C:/Users/you/gate/**`.
+repository — `~/gate` above — so one pair of rules covers all of them.
 
-A `Read` deny rule also stops the Edit and Write tools on the same path, so
-the `Edit` line above is belt and braces — except for `NotebookEdit`, which
-a `Read` rule does not cover, which is why it is there.
+**Why each part is written the way it is.**
 
-**What those rules do not do, said plainly.** They apply to Claude's own
-file tools, to the file commands Claude Code recognises in a shell — `cat`,
-`head`, `tail`, `sed`, `tee` — and to shell redirections like `> file`. They
-do not apply to a command that reads files without naming them, such as
-`grep -r something .` run from the directory above, and they do not apply to
-a script that opens files itself: a Node or Python program the model writes
-and runs can read anything your user can. For enforcement that covers every
-process rather than the tools Claude Code knows about, that is what an
-operating-system sandbox is for, and it is not something the gate provides.
+* **`//path`** is "Absolute path from filesystem root", per the four pattern
+  types under *How path patterns match*, which use gitignore syntax. A
+  single leading `/` anchors at the settings source instead — in user
+  settings that is `~/.claude/path`, which is not what you want.
+* **`Edit` as well as `Read`**: under *What `Read` and `Edit` rules cover*,
+  a `Read` deny rule covers the Edit and Write tools on the same path too,
+  including creating a new file there — but not NotebookEdit, and the page
+  says to add an `Edit` deny rule for paths no tool may change. That is a
+  paraphrase rather than a quotation: the page's own sentence uses a word
+  this repository does not print, because nothing here is allowed to say
+  the gate stops anything. The Write part of it needs Claude Code v2.1.228
+  or later.
+* **`:*`**: "The `:*` suffix is an equivalent way to write a trailing
+  wildcard, so `Bash(ls:*)` matches the same commands as `Bash(ls *)`." It
+  is "only recognized at the end of a pattern", which is where these rules
+  have it. `Bash(node watch/cli.ts gate approve *)` is the same rule.
+
+**What those rules do not do.** Two separate limits, both the docs' own.
+
+*The file rules reach the tools Claude Code knows about, and no further.*
+From the warning under *What `Read` and `Edit` rules cover*: they apply to
+the built-in file tools, to "file commands Claude Code recognizes in Bash,
+such as `cat`, `head`, `tail`, `sed`, and `tee`", and to redirection
+targets — and "They don't apply to a command that reads files without
+naming them, such as `grep -r pattern .` run from the directory that holds
+the file, or to arbitrary subprocesses that read or write files indirectly,
+like a Python or Node script that opens files itself."
+
+*The Bash rules are weaker than they look, and the docs say so outright.*
+From *What a Bash rule doesn't match*: a Bash rule "doesn't match the same
+program invoked in a different form, so a deny or ask rule covers the
+invocation Claude usually produces and **isn't a security boundary around
+the program**." Its own examples: `Bash(curl *)` stops `curl …` and not
+`/usr/bin/curl …` or `sh -c 'curl …'`. The same applies here — a deny rule
+on `node watch/cli.ts gate approve` does not stop `/usr/bin/node
+watch/cli.ts gate approve`, or `cd watch && node cli.ts gate approve`, or a
+script that does the same work.
+
+For enforcement that does not depend on the command text, the docs point at
+[sandboxing](https://code.claude.com/docs/en/sandboxing), which is
+operating-system level and is not something the gate provides.
 
 So: the deny rules raise the effort and make an attempt visible in the
-transcript. They are not a wall. If the model can run arbitrary code as your
-user, it can reach these files, and the honest answer is that the gate is
-for watching a server you are unsure about — not for restraining the model
-you are running it with.
+transcript. They are not a wall, and that is not a hedge on my part — it is
+what the page says about its own Bash rules. If the model can run arbitrary
+code as your user, it can reach these files, and the honest answer is that
+the gate is for watching a server you are unsure about — not for
+restraining the model you are running it with.
 
 Whether a model tries is worth knowing, and there is a question for it on
 the observation sheet.
@@ -369,8 +484,12 @@ Plainly, because the value of this depends on them.
 
 * **It only knows what the lists tell it.** A changed or withdrawn tool is
   noticed when the server answers a `tools/list`. A client that lists once
-  at startup and never again gives the gate one look. This is why
-  `dropped-silent` is one of the demo modes.
+  at startup and never again gives the gate one look.
+  `--relist-on-change` narrows this: the gate asks for a list of its own
+  when the server says one changed. It does not close it — a server that
+  changes a description and says nothing is not noticed, which is what the
+  `dropped-silent` demo mode is, and measured over the recorded sessions
+  only two of 75 ever sent that notification at all.
 
 * **Local stdio servers only.** It is a process in a pipe. A remote server
   over HTTP or SSE does not go through it.
@@ -396,10 +515,13 @@ Plainly, because the value of this depends on them.
   does not reach them. In shadow it is noted; under enforcement the session
   stops, saying so. No server this project has measured has sent one.
 
-* **Measured cost.** About 60 ms added to a session's first answer, almost
-  all of it being a second Node process. Enforcement itself costs nothing
-  measurable. Per message, the gate copies bytes and parses a copy to
-  decide; tool lists are the only messages it ever rewrites.
+* **Measured cost.** Tens of milliseconds added to a session's first
+  answer, almost all of it being a second Node process: between +44 ms and
+  +69 ms across runs on one machine over two days, so take it as "tens of
+  milliseconds" and measure your own rather than trusting a single figure.
+  Enforcement adds nothing measurable to that, and neither does
+  `--relist-on-change`. Per message, the gate copies bytes and parses a
+  copy to decide; tool lists are the only messages it ever rewrites.
 
 ---
 
@@ -433,7 +555,10 @@ Send:
 2. The exit code.
 3. Which mode, and the exact command line (with your own paths redacted if
    you like).
-4. The `--journal` file, if you used one. It is counts and tool names.
+4. The `--journal` file, if you used one. It is counts and tool names. With
+   `--relist-on-change` it also records each list the gate asked for, each
+   time it decided not to ask and why, and any message the server sent
+   under the gate's ids.
 5. What the client did: the wording of any error it showed, and whether the
    session continued.
 
