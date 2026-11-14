@@ -534,6 +534,91 @@ restraining the model you are running it with.
 Whether a model tries is worth knowing, and there is a question for it on
 the observation sheet.
 
+## What a pin compares, and what the gate never reads
+
+Two questions worth answering exactly, because a gate that watched the
+wrong fields would be one a server could walk straight past.
+
+### Every field of a tool definition, not a chosen few
+
+A pin stores each tool as the server declared it, and compares by a
+sha256 over the whole definition, canonically serialised — object keys
+sorted at every depth, so a server that emits its keys in another order
+has not changed anything. Any difference in any field makes that tool a
+changed tool: it is reported in shadow mode, and under enforcement it is
+taken out of the list the client gets and calls to it are not forwarded.
+
+| Field | In the comparison | Named in a report as |
+| --- | --- | --- |
+| `name` | yes | a tool added or removed |
+| `description` | yes | `description` |
+| `inputSchema` | yes | `input schema` |
+| `title` | yes | differs in some other field |
+| `outputSchema` | yes | differs in some other field |
+| `annotations` | yes | differs in some other field |
+| `_meta` | yes | differs in some other field |
+| anything else the server sends | yes | differs in some other field |
+
+`description` and `inputSchema` have hashes of their own as well, which is
+only so a report can say which of the two moved. Everything else lands in
+the third column: the tool is a changed tool either way, and the report
+says a field moved without reading it aloud.
+
+`annotations` is in there deliberately. It carries `readOnlyHint` and
+`destructiveHint`, and a client may decide whether to ask you before
+running a tool by reading them. A gate that let those turn over quietly
+would be missing the point.
+
+**One exception, and it is written down rather than quietly left out.** A
+`description` that is not a string — an object, a number — is dropped
+before the comparison, so a server that changed one non-string
+description for another would not be seen to have changed anything. The
+specification says a description is a string, so a well-formed server
+never reaches this. It is recorded in `test/gate-fields.test.ts`, with the
+fix named there, and it has not been changed: closing it alters what every
+pin written so far hashes, which is a format change and not a patch.
+
+### Five things are looked at. Everything else is carried
+
+The gate reads:
+
+* `tools/list`, to know an answer is on its way
+* the answer to it — compared against the pin, and the one kind of message
+  the gate ever rewrites
+* `tools/call` from the client — the name is compared against what is
+  hidden, and with `--verify-on-call` the call may wait
+* `notifications/tools/list_changed` from the server — counted, and with
+  `--relist-on-change` it prompts a list of the gate's own
+* `notifications/initialized` from the client — a marker only, so the gate
+  sends nothing of its own before the client has finished starting up
+
+Anything carrying an id in the gate's reserved namespace belongs to the
+gate, in either direction, and does not reach the other side.
+
+**Everything else is passed on as it arrived and is not read.** That is:
+
+* the `initialize` request and its result — including `instructions`,
+  which is server-authored text that a client may put in front of a model.
+  The gate does not look at it, compare it, or pin it.
+* `resources/list`, `resources/templates/list`, `resources/read`,
+  `resources/subscribe`, and the resource notifications
+* `prompts/list`, `prompts/get`, and `notifications/prompts/list_changed`
+  — prompt text is server-authored too, and is not pinned
+* `sampling/createMessage`, `elicitation/create` and `roots/list`, which a
+  server sends to the client
+* `logging/setLevel`, `notifications/message`, `completion/complete`,
+  `ping`, `notifications/progress`, `notifications/cancelled`
+* **the result of a `tools/call`.** The gate decides about the call. What
+  comes back is the server's, and the gate does not read it — which is
+  why a journal never carries anything out of one.
+* any method that does not exist yet
+
+A test holds this to the bytes: with everything approved, a run of those
+messages through the gate reaches the server as the same lines it receives
+with no gate at all, and the client gets the same bytes back.
+
+---
+
 ## The limits
 
 Plainly, because the value of this depends on them.
@@ -574,6 +659,14 @@ Plainly, because the value of this depends on them.
 * **It hides and refuses. Nothing more.** It does not stop the server from
   doing anything, inspect what a tool does when it runs, or examine the
   arguments of a call it forwards.
+
+* **Tools are the only surface it pins.** Resources, prompts, the
+  `instructions` field of the `initialize` result and everything a tool
+  call returns are carried between the client and the server without being
+  read. A server with nothing worth noting in its tool list and something
+  worth noting in a prompt is a server this gate has nothing to say about.
+  See [what a pin compares, and what the gate never
+  reads](#what-a-pin-compares-and-what-the-gate-never-reads).
 
 * **It does not restrain the model it is running under.** The pin and the
   reports are ordinary files belonging to your user. Nothing the gate sends

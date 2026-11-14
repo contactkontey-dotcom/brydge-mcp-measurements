@@ -108,8 +108,20 @@ test("the README's demo table matches the modes the demo server has", () => {
     "renamed-notified",
   ]);
   for (const m of declared) assert.ok(README.includes(`\`${m}\``), `the README does not describe the ${m} mode`);
-  /* And nothing in the table is a mode the server does not have. */
-  for (const m of README.matchAll(/^\| `([a-z-]+)` \| /gm)) {
+  /*
+   * And nothing in the DEMO table is a mode the server does not have.
+   *
+   * Scoped to that section rather than the whole file: the README has other
+   * tables, and a sweep over all of them read the first column of each as a
+   * claimed demo mode.
+   */
+  const from = README.indexOf("## Trying it without your own server");
+  assert.ok(from > 0, "the demo section is not in the README");
+  const end = README.indexOf("\n## ", from + 1);
+  const section = README.slice(from, end === -1 ? undefined : end);
+  const rows = [...section.matchAll(/^\| `([a-z-]+)` \| /gm)];
+  assert.ok(rows.length >= declared.length - 1, `the demo table has ${rows.length} rows, so this test is not reading it`);
+  for (const m of rows) {
     assert.ok(declared.includes(m[1]!), `the README describes a mode the demo server does not have: ${m[1]}`);
   }
 });
@@ -367,4 +379,55 @@ test("the sheet does not put words in the model's mouth about being stopped", ()
    * question about the model, and says in the same line that it was not. */
   assert.match(SHEET, /the gate did not forward a message/);
   assert.ok(!/the gate stopped|the gate blocked/i.test(SHEET), "the sheet says the gate stopped something");
+});
+
+test("the README says which fields a pin compares, and names the one it does not", () => {
+  assert.match(README, /## What a pin compares, and what the gate never reads/);
+
+  /*
+   * Tied to the fixture rather than to a list typed twice: every field
+   * watch/gate/fixtures/fields-server.mjs can change on its own has to
+   * appear in the README's table, so a field added to the audit cannot be
+   * audited without being written down.
+   */
+  const fixture = readFileSync(join(ROOT, "watch", "gate", "fixtures", "fields-server.mjs"), "utf8");
+  const changed = /const CHANGED = \{([\s\S]*?)\n\};/.exec(fixture)![1]!;
+  const fields = [...changed.matchAll(/^  "?([A-Za-z_][A-Za-z-]*)"?: /gm)].map((m) => m[1]!);
+  for (const f of fields) {
+    if (["none", "key-order", "unknown", "nonstring-description"].includes(f)) continue;
+    assert.ok(README.includes(`\`${f}\``), `the README's table does not name ${f}, which the audit varies`);
+  }
+  assert.ok(fields.length >= 8, `only ${fields.length} fields in the fixture, so this test is not reading it`);
+
+  /* Key order is not a change, and the README has to say so: a reader who
+   * assumed otherwise would read a quiet day as a suspicious one. */
+  assert.match(README, /sorted at every depth/);
+  assert.match(README, /another order\s+has not changed anything/); /* the README wraps; the claim must not depend on where */
+
+  /* The exception, said rather than left out. */
+  assert.match(README, /`description` that is not a string/);
+  assert.match(README, /test\/gate-fields\.test\.ts/, "the README does not say where the exception is recorded");
+});
+
+test("the README lists what passes through without being read", () => {
+  for (const m of [
+    "resources/list",
+    "resources/read",
+    "prompts/list",
+    "prompts/get",
+    "sampling/createMessage",
+    "roots/list",
+    "elicitation/create",
+    "completion/complete",
+    "notifications/progress",
+    "ping",
+  ]) {
+    assert.ok(README.includes(m), `the README does not say ${m} passes through`);
+  }
+  /* The two that matter most, because both are server-authored text a
+   * client may put in front of a model. */
+  assert.match(README, /`instructions`/);
+  assert.match(README, /the result of a `tools\/call`/);
+  /* And the five it does read, so the two lists are both in one place. */
+  assert.match(README, /Five things are looked at/);
 });
