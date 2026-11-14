@@ -79,11 +79,11 @@ export const ANNOUNCEMENT =
   `Everything else goes through as it did.`;
 
 /** Why a session is ending, when a client uses an id the gate reserves. */
-export function collisionBecause(id: unknown, pinFile: string): string {
+export function collisionBecause(id: unknown, pinFile: string, becauseOf: string = FLAG): string {
   return (
     `the client sent a request with id ${JSON.stringify(id)}, which is in the namespace this gate uses for its ` +
-    `own requests while ${FLAG} is on. It cannot tell an answer to that id apart from an answer to its own, ` +
-    `so it is not guessing. Run without ${FLAG}, or have the client use another id. Pin: ${pinFile}.`
+    `own requests while ${becauseOf} is on. It cannot tell an answer to that id apart from an answer to its own, ` +
+    `so it is not guessing. Run without ${becauseOf}, or have the client use another id. Pin: ${pinFile}.`
   );
 }
 
@@ -176,7 +176,11 @@ export type Declined =
   | "the client has not finished starting up"
   | "one is already outstanding"
   | "the last one was less than a second ago"
-  | "this session has asked as many times as it will";
+  | "this session has asked as many times as it will"
+  | "this session has checked as many times as it will";
+
+/** The budget for lists asked because a call is about to be forwarded. */
+export const VERIFY_BUDGET = 20;
 
 export type Asked = { ask: true; id: string; payload: Buffer } | { ask: false; why: Declined };
 
@@ -195,8 +199,20 @@ export class Lister {
   private started = false;
   private outstanding: { id: string; at: number } | null = null;
   private lastAt = 0;
+  /*
+   * The id sequence and the two budgets are three different numbers.
+   *
+   * Every request the gate sends takes the next id, whichever reason it
+   * was sent for, so no two ever collide. The budgets are counted apart
+   * because the two reasons are different: a notification storm must not
+   * use up the allowance that keeps calls checked, and the other way
+   * round.
+   */
+  private seq = 0;
   private count = 0;
+  private checksAsked = 0;
   private saidCapped = false;
+  private saidVerifyCapped = false;
   /** Ids the gate has asked under, so an answer can be recognised. */
   private readonly mine = new Set<string>();
 
@@ -238,17 +254,50 @@ export class Lister {
     if (this.lastAt && at - this.lastAt < MIN_INTERVAL_MS) {
       return { ask: false, why: "the last one was less than a second ago" };
     }
-    const id = reservedId(++this.count);
+    this.count++;
+    return this.send();
+  }
+
+  /**
+   * Whether to ask because a call is about to be forwarded and the
+   * picture is older than somebody is willing to accept.
+   *
+   * No minimum interval: the window the caller keeps is what decides how
+   * often this happens, and a second rule on top of it would refuse a
+   * request the window says is needed. `afterMs` is how long an
+   * outstanding request has before it is forgotten — the verifier's own
+   * timeout, not the one a notification uses, so one unanswered
+   * verification does not stop a later call being checked.
+   */
+  considerVerify(afterMs: number): Asked {
+    if (!this.started) return { ask: false, why: "the client has not finished starting up" };
+    this.forget(afterMs);
+    if (this.outstanding) return { ask: false, why: "one is already outstanding" };
+    if (this.checksAsked >= VERIFY_BUDGET) {
+      return { ask: false, why: "this session has checked as many times as it will" };
+    }
+    this.checksAsked++;
+    return this.send();
+  }
+
+  /** How many lists were asked for because a call was about to go on. */
+  get checksCount(): number {
+    return this.checksAsked;
+  }
+
+  /** The next id, recorded as outstanding. */
+  private send(): Asked & { ask: true } {
+    const id = reservedId(++this.seq);
     this.mine.add(id);
-    this.outstanding = { id, at };
-    this.lastAt = at;
+    this.outstanding = { id, at: this.now() };
+    this.lastAt = this.now();
     return { ask: true, id, payload: Buffer.from(JSON.stringify({ jsonrpc: "2.0", id, method: "tools/list" }), "utf8") };
   }
 
   /** Drop an outstanding request that has run out of time. */
-  forget(): string | null {
+  forget(afterMs: number = TIMEOUT_MS): string | null {
     if (!this.outstanding) return null;
-    if (this.now() - this.outstanding.at < TIMEOUT_MS) return null;
+    if (this.now() - this.outstanding.at < afterMs) return null;
     const id = this.outstanding.id;
     this.outstanding = null;
     return id;
@@ -264,6 +313,21 @@ export class Lister {
     if (!this.isMine(id)) return false;
     if (this.outstanding?.id === id) this.outstanding = null;
     return true;
+  }
+
+  /**
+   * The verification budget's one line, said once.
+   *
+   * Said rather than left to be noticed, because from here every call
+   * that finds a stale picture is answered the way a timeout is.
+   */
+  verifyCapLine(): string | null {
+    if (this.checksAsked < VERIFY_BUDGET || this.saidVerifyCapped) return null;
+    this.saidVerifyCapped = true;
+    return (
+      `gate: this session has asked the server for a tool list before a call ${VERIFY_BUDGET} times, which is as many ` +
+      `as it will. From here a call that finds the picture stale is treated as one whose check timed out.`
+    );
   }
 
   /** The cap's one line, said once, or null if it has been said. */

@@ -113,7 +113,13 @@ export type Note =
   /** A tools/call the gate answered itself instead of forwarding. */
   | { kind: "refused"; at: number; tool: string; because: string; n: number }
   /** Tools kept out of a tools/list result the client then received. */
-  | { kind: "hidden"; at: number; tools: Array<{ tool: string; because: string }>; shown: number; n: number };
+  | { kind: "hidden"; at: number; tools: Array<{ tool: string; because: string }>; shown: number; n: number }
+  /**
+   * A tool list checked because a call was about to be forwarded, under
+   * --verify-on-call. `ms` is how long the client's call waited, which is
+   * the cost of the flag and the reason it is written down.
+   */
+  | { kind: "checked"; at: number; tool: string | null; outcome: string; ms: number; held: boolean };
 
 const idKey = (id: unknown): string => (typeof id === "string" ? `s:${id}` : `n:${String(id)}`);
 

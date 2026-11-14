@@ -179,6 +179,19 @@ async function handle(m) {
           result: { tools: [{ name: "read_file", description: A, inputSchema: { type: "object" } }], nextCursor: "FIXTURE-PAGE-2" },
         });
       }
+      if (CASE === "relist-die") {
+        /*
+         * Exits while the gate is waiting for this very answer. The gate
+         * must say so and go, rather than wait for a process that no
+         * longer exists.
+         */
+        return process.exit(4);
+      }
+      if (CASE === "relist-slow") {
+        /* Slow, but inside a patient enough timeout. */
+        await slowly(1200);
+        return send({ jsonrpc: "2.0", id: m.id, result: toolList(2) });
+      }
       if (CASE === "relist-stranger") {
         /* An answer to an id nobody sent, and then a message carrying the
          * gate's id with a method on it, which is a request and not an

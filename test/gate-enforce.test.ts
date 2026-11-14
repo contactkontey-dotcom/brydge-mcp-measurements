@@ -576,6 +576,12 @@ function everyClientMessage(): Array<{ what: string; text: string }> {
       text: w.fromClient(line({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "read_file" } })).replyToClient!.toString("utf8"),
     });
 
+    /* A check that did not finish before a call. */
+    const u = enforcer({ refusalStyle: style });
+    u.noteList([{ name: "read_file" }], []);
+    const unver = u.refuseUnchecked(line({ jsonrpc: "2.0", id: 9, method: "tools/call", params: { name: "read_file" } }));
+    if (unver) out.push({ what: `a ${style} refusal (the check did not finish)`, text: unver.toString("utf8") });
+
     /* A tool list it cannot read, every shape. */
     for (const result of [{ tools: "nope" }, {}, { tools: [{}] }, { tools: [{ name: 1 }] }, { tools: [{ name: "a" }, { name: "a" }] }]) {
       const f = enforcer({ refusalStyle: style });

@@ -94,7 +94,12 @@ export type Why =
   | { kind: "hidden"; because: WouldHide["because"] }
   | { kind: "withdrawn" }
   /** The surface is not known: a list the gate asked for came back partial. */
-  | { kind: "unread"; because: string };
+  | { kind: "unread"; because: string }
+  /**
+   * The gate asked the server for its current list before forwarding this
+   * call, and did not get one in time. Only under --verify-on-call.
+   */
+  | { kind: "unchecked" };
 
 /**
  * The shape a refused tools/call comes back in.
@@ -252,6 +257,19 @@ export class Enforcer {
    * again, which is the loop this is meant not to cause.
    */
   sentence(tool: string, why: Why): string {
+    if (why.kind === "unchecked") {
+      /*
+       * No command, no path, no flag: a model reads this. It says what was
+       * attempted, that it did not finish, and who decides — and that
+       * retrying is not the way, because a model reading this as a
+       * temporary failure will try again.
+       */
+      return (
+        `${DID_NOT_FORWARD}: it asked the server for its current tool list before passing this on, ` +
+        `and no answer came back in time, so it cannot tell whether "${tool}" is one of the tools that changed. ` +
+        `Retrying will not change it. The person running this client decides what is approved.`
+      );
+    }
     if (why.kind === "unread") {
       return (
         `${DID_NOT_FORWARD}: ${why.because}, so the gate has not read what the server is offering now ` +
@@ -267,10 +285,34 @@ export class Enforcer {
         `the person running this client decides what is approved, and the gate has written down what differs for them.`;
   }
 
+  /**
+   * The refusal for a call the verifier has decided not to let through.
+   *
+   * The enforcer does not know about verification: it is told. This keeps
+   * the shape of a refusal, and the rule that it carries no command, path
+   * or flag, in the one place that already has both.
+   */
+  refuseUnchecked(line: Line): Buffer | null {
+    if (!plain(line.parsed)) return null;
+    const message = line.parsed;
+    const id = message.id;
+    const tool = nameOf(message.params);
+    if (id === undefined || tool === null) return null;
+    const why: Why = { kind: "unchecked" };
+    this.opts.onRefuse?.(tool, why);
+    return this.refusal(id, tool, why);
+  }
+
   refusal(id: unknown, tool: string, why: Why): Buffer {
     const said = this.sentence(tool, why);
     const reason =
-      why.kind === "withdrawn" ? "no longer offered by the server" : why.kind === "unread" ? "the tool list has not been read in full" : why.because;
+      why.kind === "withdrawn"
+        ? "no longer offered by the server"
+        : why.kind === "unread"
+          ? "the tool list has not been read in full"
+          : why.kind === "unchecked"
+            ? "the tool list could not be checked before this call"
+            : why.because;
     /* Said as data as well as in words, because a client that shows only a
      * code and a field should still be able to show who refused. */
     const data = { gate: GATE, tool, reason, didNotForward: true };

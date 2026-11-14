@@ -13,6 +13,10 @@
  *   --refusal-style error|result   the shape of a refused call (enforce only)
  *   --on-bad-pin=refuse|empty what to do with a pin that cannot be read
  *   --relist-on-change        ask for a tool list when the server says one changed
+ *   --verify-on-call          ask for one before forwarding a call, and HOLD the call
+ *   --verify-window <ms>      how old the picture may be before that happens (10000)
+ *   --verify-timeout <ms>     how long the call waits for the answer (3000)
+ *   --on-verify-timeout=refuse|forward   what to do when it does not finish
  *
  * The client launches this instead of the server; the server becomes its
  * child. Every byte goes through in both directions. With a pin, the live
@@ -46,10 +50,25 @@ import { dirname, join } from "node:path";
 import { relay, type Line, type Relay } from "./transport.ts";
 import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./router.ts";
 import { ADOPTED, NotAPin, adopt, read as readPin, write as writePin, type Pin } from "./pin.ts";
-import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, REFUSAL_STYLES, type RefusalStyle, type Why } from "./enforce.ts";
+import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, nameOf, REFUSAL_STYLES, type RefusalStyle, type Why } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
 import { detachedOn, killStyleOn, startupAdvice } from "./spawning.ts";
+import {
+  announcement as verifyAnnouncement,
+  askedLine as verifyAskedLine,
+  failedLine as verifyFailedLine,
+  FAILED as VERIFY_FAILED,
+  FLAG as VERIFY_FLAG,
+  ON_TIMEOUT_FLAG as VERIFY_ON_TIMEOUT_FLAG,
+  ON_TIMEOUTS as ON_VERIFY_TIMEOUTS,
+  TIMEOUT_FLAG as VERIFY_TIMEOUT_FLAG,
+  TIMEOUT_MS as VERIFY_TIMEOUT_MS,
+  Verifier,
+  WINDOW_FLAG as VERIFY_WINDOW_FLAG,
+  WINDOW_MS as VERIFY_WINDOW_MS,
+  type OnTimeout as OnVerifyTimeout,
+} from "./verify.ts";
 import {
   ANNOUNCEMENT,
   askedLine,
@@ -86,6 +105,10 @@ if (dashdash === -1 || dashdash === argv.length - 1) {
     "  --refusal-style error|result   the shape of a refused call (enforce only)",
     "  --on-bad-pin=refuse|empty      what to do with a pin that cannot be read",
     "  --relist-on-change             ask for a tool list of its own when the server says one changed",
+    "  --verify-on-call               ask for one before forwarding a call, holding the call meanwhile",
+    "  --verify-window <ms>           how old the picture may be before that happens (default 10000)",
+    "  --verify-timeout <ms>          how long the call waits for that answer (default 3000)",
+    "  --on-verify-timeout=refuse|forward   what to do when the check does not finish (default refuse)",
   ]);
 }
 const flags = argv.slice(0, dashdash);
@@ -169,6 +192,44 @@ if (writePinPath !== null) {
  * types it. watch/gate/relist.ts has why.
  */
 const relistOnChange = flags.includes(RELIST_FLAG);
+
+/*
+ * --verify-on-call: the one place a client's message waits on this gate.
+ * Off unless somebody types it. watch/gate/verify.ts has why.
+ */
+const verifyOnCall = flags.includes(VERIFY_FLAG);
+/** The flags that make the gate use its id namespace, for what it says. */
+const reservingFlags = [relistOnChange ? RELIST_FLAG : null, verifyOnCall ? VERIFY_FLAG : null].filter((f) => f !== null).join(" or ");
+const positiveMs = (name: string, fallback: number): number => {
+  const given = flag(name) ?? (flags.find((f) => f.startsWith(`${name}=`)) ?? "=").split("=")[1] ?? "";
+  if (!given) return fallback;
+  const n = Number(given);
+  if (!Number.isFinite(n) || n < 0) refuse(64, [`gate: ${name} is a number of milliseconds, not ${JSON.stringify(given)}`]);
+  return n;
+};
+const verifyWindow = positiveMs(VERIFY_WINDOW_FLAG, VERIFY_WINDOW_MS);
+const verifyTimeout = positiveMs(VERIFY_TIMEOUT_FLAG, VERIFY_TIMEOUT_MS);
+const onVerifyTimeoutGiven =
+  flag(VERIFY_ON_TIMEOUT_FLAG) ?? (flags.find((f) => f.startsWith(`${VERIFY_ON_TIMEOUT_FLAG}=`)) ?? "=").split("=")[1] ?? "";
+const onVerifyTimeout = (onVerifyTimeoutGiven || "refuse") as OnVerifyTimeout;
+if (!ON_VERIFY_TIMEOUTS.includes(onVerifyTimeout)) {
+  refuse(64, [`gate: ${VERIFY_ON_TIMEOUT_FLAG} is ${ON_VERIFY_TIMEOUTS.join(" or ")}, not ${JSON.stringify(onVerifyTimeout)}`]);
+}
+if (!verifyOnCall) {
+  /* A setting that would do nothing is said rather than ignored. */
+  for (const [name, given] of [
+    [VERIFY_WINDOW_FLAG, flag(VERIFY_WINDOW_FLAG) ?? (flags.find((f) => f.startsWith(`${VERIFY_WINDOW_FLAG}=`)) ? "given" : null)],
+    [VERIFY_TIMEOUT_FLAG, flag(VERIFY_TIMEOUT_FLAG) ?? (flags.find((f) => f.startsWith(`${VERIFY_TIMEOUT_FLAG}=`)) ? "given" : null)],
+    [VERIFY_ON_TIMEOUT_FLAG, onVerifyTimeoutGiven || null],
+  ] as const) {
+    if (given !== null && given !== "") {
+      refuse(64, [
+        `gate: ${name} only applies with ${VERIFY_FLAG}, which was not given.`,
+        "gate: nothing is checked before a call without it, so there is nothing for that setting to do. The server was not started.",
+      ]);
+    }
+  }
+}
 
 const started = Date.now();
 const today = new Date().toISOString().slice(0, 10);
@@ -292,7 +353,13 @@ let hiddenSoFar = 0;
  * and so neither can ever carry anything but these.
  */
 const reasonOf = (why: Why): string =>
-  why.kind === "withdrawn" ? "no longer offered by the server" : why.kind === "unread" ? "the tool list has not been read in full" : why.because;
+  why.kind === "withdrawn"
+    ? "no longer offered by the server"
+    : why.kind === "unread"
+      ? "the tool list has not been read in full"
+      : why.kind === "unchecked"
+        ? "the tool list could not be checked before this call"
+        : why.because;
 
 const enforcer =
   mode === "enforce" && pin
@@ -359,9 +426,47 @@ function takePin(records: ToolRecord[]): void {
  * sends nothing itself, which is what makes the policy testable without a
  * server. watch/gate/relist.ts has the policy and why each part of it.
  */
-const lister = relistOnChange ? new Lister() : null;
+const lister = relistOnChange || verifyOnCall ? new Lister() : null;
 /* Assigned once the relay exists; the reader below closes over it. */
 let toServer: Relay | null = null;
+
+/*
+ * THE ONE PLACE A CLIENT'S MESSAGE WAITS ON THIS GATE.
+ *
+ * Off unless somebody typed --verify-on-call. watch/gate/verify.ts has the
+ * whole of why, and the announcement below says it on stderr.
+ */
+const verifier =
+  verifyOnCall && lister
+    ? new Verifier({
+        lister,
+        window: verifyWindow,
+        timeout: verifyTimeout,
+        inject: (payload) => {
+          /*
+           * Into the relay the held line is in. Its own machinery sends an
+           * injection made during a hold BEFORE the held line, which it
+           * has to: the held line is waiting for this answer.
+           */
+          if (toServer?.inject(payload) === "ended") {
+            process.stderr.write("gate: the connection to the server has closed, so the tool list check was not sent.\n");
+          }
+        },
+        onAsked: (id) => {
+          process.stderr.write(`${verifyAskedLine(id, verifyWindow)}\n`);
+          router.expectOwnList(id);
+        },
+        onOutcome: (outcome, ms, tool) => {
+          verifyMs.push(ms);
+          note({ kind: "checked", at: Date.now(), tool, outcome, ms, held: VERIFY_FAILED.includes(outcome) || outcome === "checked" });
+          if (!VERIFY_FAILED.includes(outcome)) return;
+          process.stderr.write(`${verifyFailedLine(outcome, ms, enforcer !== null, onVerifyTimeout)}\n`);
+        },
+        onBudgetSpent: (line) => process.stderr.write(`${line}\n`),
+      })
+    : null;
+/** How long each check took, for the one line at the end. */
+const verifyMs: number[] = [];
 
 const router = new Router({
   mode,
@@ -370,8 +475,19 @@ const router = new Router({
   onList: (records, hidden) => {
     enforcer?.noteList(records, hidden);
     reportOn(records, hidden);
+    /*
+     * The picture is fresh as of now. onList runs for a list the client
+     * asked for and for one the gate asked for, and NOT for a page of a
+     * list — the router returns before calling back on a partial answer,
+     * because a page is a surface it has not read.
+     */
+    verifier?.pictureSeen();
   },
-  onBaseline: writePinPath ? (records) => takePin(records) : undefined,
+  onBaseline: (records) => {
+    /* A first list, adopted rather than compared, is still a list read. */
+    verifier?.pictureSeen();
+    if (writePinPath) takePin(records);
+  },
 });
 
 if (enforcer && pin) {
@@ -383,6 +499,9 @@ if (enforcer && pin) {
  * something on, and a log should not leave somebody guessing where an extra
  * request came from. */
 if (relistOnChange) process.stderr.write(`${ANNOUNCEMENT}\n`);
+if (verifyOnCall) {
+  process.stderr.write(`${verifyAnnouncement(verifyWindow, verifyTimeout, onVerifyTimeout, mode === "enforce")}\n`);
+}
 
 /* ── The child ──────────────────────────────────────────────────────────── */
 
@@ -433,10 +552,16 @@ const observe = (side: Side) => (line: Line) => {
    * same id is just a string, so ending a working session over it would be
    * the gate breaking a server for its own convenience.
    */
-  if (relistOnChange && side === "client-to-server") {
+  if (lister && side === "client-to-server") {
+    /*
+     * Whenever the gate reserves the namespace — which is either flag, not
+     * only --relist-on-change. A test for --verify-on-call found this:
+     * with only that flag on, the gate was sending requests under ids it
+     * was no longer refusing a client for using.
+     */
     const clash = clientUsesReservedId(line.parsed);
     if (clash) {
-      stop(collisionBecause(clash.id, pinPath ?? "(none)"));
+      stop(collisionBecause(clash.id, pinPath ?? "(none)", reservingFlags));
       return { pass: false, drop: true } as const;
     }
   }
@@ -515,6 +640,47 @@ const observe = (side: Side) => (line: Line) => {
     }
   }
 
+  /*
+   * ── THE HOLD ────────────────────────────────────────────────────────
+   *
+   * A tools/call, with --verify-on-call on and the picture stale, is the
+   * one message this gate makes wait. Returning a promise here is what
+   * holds it: watch/gate/transport.ts stops reading the client until it
+   * settles, so everything the client sent behind this call stays behind
+   * it and the order it sent them in is kept.
+   *
+   * A second tools/call arriving meanwhile is not even read, so it cannot
+   * start a second check — and by the time it is read the picture is
+   * fresh, so it is not held at all.
+   */
+  if (verifier && side === "client-to-server" && isToolCall(line.parsed) && verifier.stale()) {
+    const tool = nameOf(plainOf(line.parsed)?.params);
+    return verifier.ensureFresh(tool).then((outcome) => {
+      /*
+       * A check that did not finish. Under enforcement that refuses, by
+       * default: the gate asked what the server is offering and does not
+       * know. --on-verify-timeout=forward is the explicit choice to take
+       * the latency and forward anyway, and shadow mode never refuses.
+       */
+      if (VERIFY_FAILED.includes(outcome) && enforcer && onVerifyTimeout === "refuse") {
+        const said = enforcer.refuseUnchecked(line);
+        if (said) {
+          process.stdout.write(Buffer.concat([said, Buffer.from("\n")]));
+          return { pass: false, drop: true } as const;
+        }
+      }
+      return decide(line, side);
+    });
+  }
+
+  return decide(line, side);
+};
+
+/** Whether this is a call, without reading anything but the method. */
+const isToolCall = (parsed: unknown): boolean => plainOf(parsed)?.method === "tools/call";
+
+/** What the enforcer makes of one line. Unchanged by the hold above it. */
+function decide(line: Line, side: Side) {
   if (!enforcer) return { pass: true } as const;
 
   const action = side === "client-to-server" ? enforcer.fromClient(line) : enforcer.fromServer(line);
@@ -531,7 +697,7 @@ const observe = (side: Side) => (line: Line) => {
     return { pass: false, drop: true } as const;
   }
   return { pass: true } as const;
-};
+}
 /** The parsed message, when it is one. */
 const plainOf = (v: unknown): Record<string, unknown> | null =>
   v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
@@ -567,14 +733,39 @@ child.on("error", (e) => {
 });
 
 child.on("exit", (code, signal) => {
+  /*
+   * THE SERVER DIED. If a call was being held for a tool list check, that
+   * answer is never coming — so say it, and then go. The gate exiting is
+   * what a client needs: its transport closes and it knows the session is
+   * over. Waiting for an answer from a process that no longer exists
+   * would be the one thing worse than refusing the call.
+   */
+  if (verifier && verifier.callsHeld > 0) {
+    const waiting = lister?.waiting;
+    if (waiting) {
+      process.stderr.write(
+        `gate: the server exited while a call was waiting for the tool list check it asked for (${waiting}). ` +
+          `That answer is not coming, so the session is ending rather than waiting for it.\n`,
+      );
+    }
+  }
   const counts = Object.entries(router.summary())
     .map(([k, n]) => `${k}=${n}`)
     .sort()
     .join(" ");
   const against = pin ? `pin ${pin.package}@${pin.packageVersion} (${pin.source})` : "no pin: the first list seen";
   const said = enforcer ? `enforce, ${enforcer.hiddenCount} hidden` : "shadow";
+  /*
+   * What the flag cost, in the one place somebody reads at the end. The
+   * total is what a client waited, which is the whole point of writing it
+   * down rather than leaving it to be guessed at.
+   */
+  const checkCost = verifier
+    ? `, ${verifier.checksMade} check(s) before a call, ${verifyMs.reduce((a, b) => a + b, 0)}ms held in total` +
+      (verifyMs.length ? `, longest ${Math.max(...verifyMs)}ms` : "")
+    : "";
   process.stderr.write(
-    `gate: ${Date.now() - started}ms, ${said}, ${router.baselineSize} tool(s) against ${against}, ${counts || "nothing to note"}` +
+    `gate: ${Date.now() - started}ms, ${said}${checkCost}, ${router.baselineSize} tool(s) against ${against}, ${counts || "nothing to note"}` +
       `${reports ? `, ${reports} report(s)` : ""}\n${enforcer ? "" : `${SHADOW_MEANS}\n`}`,
   );
   setTimeout(() => process.exit(stopping ? 78 : signal ? 128 : (code ?? 0)), 10);

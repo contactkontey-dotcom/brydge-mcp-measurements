@@ -168,23 +168,34 @@ test("no gate module writes to stdout, and none of them logs", () => {
   }
 });
 
-test("run.ts writes to stdout exactly once, and only a refusal it made", () => {
+test("every stdout write in run.ts is a refusal the gate made, and nothing else", () => {
   /*
    * G1 and G2 had this at zero: everything on stdout came from the server,
-   * through the pipe. Enforcement changed that, because a refused call has
-   * to be answered by somebody and the server never saw it. One write, of
-   * one thing, is the whole of the change — so it is counted rather than
-   * permitted in general.
+   * through the pipe. Enforcement changed it, because a refused call has
+   * to be answered by somebody and the server never saw it. V2 added a
+   * second, for a call whose tool list check did not finish.
+   *
+   * So the rule is no longer "one write". It is that every write is a
+   * refusal this gate built and that none carries anything which came
+   * from the server — counted, so a third cannot arrive quietly.
    */
   const src = strip("watch/gate/run.ts");
   for (const call of ["console.log", "console.info", "console.debug", "console.warn", "console.error"]) {
     assert.ok(!src.includes(call), `run.ts uses ${call}`);
   }
-  const writes = [...src.matchAll(/process\.stdout\.write\(([^;]*)\);/g)];
-  assert.equal(writes.length, 1, "run.ts writes to stdout somewhere new");
-  const what = writes[0]![1]!.replace(/\s+/g, " ");
-  assert.match(what, /action\.replyToClient/, `the one stdout write is not the refusal: ${what}`);
-  assert.ok(!/child|server|read/.test(what), `the one stdout write carries something else too: ${what}`);
+  const writes = [...src.matchAll(/process\.stdout\.write\(([^;]*)\);/g)].map((m) => m[1]!.replace(/\s+/g, " "));
+  assert.equal(writes.length, 2, `run.ts makes ${writes.length} stdout writes: ${writes.join(" | ")}`);
+  assert.ok(
+    writes.some((w) => /action\.replyToClient/.test(w)),
+    `no write carries the enforcer's refusal: ${writes.join(" | ")}`,
+  );
+  assert.ok(
+    writes.some((w) => /\bsaid\b/.test(w)),
+    `no write carries the refusal for a check that did not finish: ${writes.join(" | ")}`,
+  );
+  for (const w of writes) {
+    assert.ok(!/child|read\.|line\.raw/.test(w), `a stdout write carries something from the server: ${w}`);
+  }
 });
 
 /* ── Holding a line on purpose ──────────────────────────────────────────── */
