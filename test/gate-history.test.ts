@@ -11,7 +11,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { archive, historyDir, list, NoSuchArchive, renderHistory, rollback } from "../watch/gate/history.ts";
-import { adopt, NotAPin, pathFor, read as readPin, serialize, write as writePin } from "../watch/gate/pin.ts";
+import { ADOPTED, adopt, NotAPin, pathFor, read as readPin, serialize, write as writePin } from "../watch/gate/pin.ts";
+import { enforcingLine } from "../watch/gate/enforce.ts";
 import { recordOf } from "../watch/tools.ts";
 import { CONTAINMENT, flatten, GATEKEEPING } from "./banned.ts";
 
@@ -345,4 +346,133 @@ test("gate rollback for a pin with no history says so", () => {
 test("the commands are in the usage, so somebody can find them", () => {
   const r = cli([]);
   assert.match(r.err + r.out, /gate rollback <package@version> \[--to <number\|name>\]/);
+});
+
+/* ── The page a gate's report makes, and the loop it closes ─────────────── */
+
+/*
+ * `review --page <pkg> <a> <b>` reads two stored measurement captures,
+ * which a server this project has never measured does not have — so there
+ * was no way from a gate's own report to the review page at all, and a
+ * reviewer had to hand-write the export file by reading item hashes out of
+ * JSON. `--from-pending` renders the same page from the report's own
+ * prepared queue.
+ *
+ * Every fixture here is planted. The page is read as bytes and searched;
+ * no description is printed.
+ */
+
+test("review --page --from-pending renders the report's own queue", () => {
+  const f = approvable();
+  const r = cli(["review", "--page", "--from-pending", f.report]);
+  assert.equal(r.code, 0, `${r.err}\n${r.out}`);
+  assert.match(r.err, /1 item\(s\) -> /);
+  assert.match(r.err, /makes no network request/);
+  /* It says what to do next, with the report it was made from. */
+  assert.match(r.err, new RegExp(`gate approve --pending ${f.report.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
+
+  const file = /-> (\S+\.html)/.exec(r.err)![1]!;
+  const page = readFileSync(file, "utf8");
+  /* The same page as the other command makes: no network, and a CSP that
+   * allows none. */
+  assert.match(page, /<title>Review fixture-mcp/);
+  assert.match(page, /default-src 'none'/);
+  assert.match(page, /connect-src 'none'/);
+  assert.equal([...page.matchAll(/https?:\/\//g)].length, 0, "the page references a URL");
+  assert.equal([...page.matchAll(/\ssrc=/g)].length, 0, "the page loads something");
+  /* And the item is there, by name and by hash, so a decision can be made. */
+  assert.ok(page.includes("demo_add"), "the flagged tool is not on the page");
+  const hash = (JSON.parse(readFileSync(f.report, "utf8")) as { prepared: { items: Array<{ itemHash: string }> } }).prepared.items[0]!.itemHash;
+  assert.ok(page.includes(hash), "the item's hash is not on the page, so a decision could not be tied to it");
+});
+
+test("it refuses anything that is not a gate report, by name", () => {
+  const f = approvable();
+  const dir = mkdtempSync(join(tmpdir(), "gate-page-bad-"));
+  const notJson = join(dir, "x.json");
+  writeFileSync(notJson, "{ this is not json");
+  const wrongFormat = join(dir, "y.json");
+  writeFileSync(wrongFormat, JSON.stringify({ format: "something-else" }));
+  const noQueue = join(dir, "z.json");
+  writeFileSync(noQueue, JSON.stringify({ format: "brydge-gate-pending" }));
+
+  for (const [file, why] of [
+    [join(dir, "missing.json"), /No such report/],
+    [notJson, /is not a gate report/],
+    [wrongFormat, /its format is "something-else"/],
+    [noQueue, /carries no prepared queue/],
+  ] as const) {
+    const r = cli(["review", "--page", "--from-pending", file]);
+    assert.notEqual(r.code, 0, `${file} was accepted`);
+    assert.match(r.err, why);
+  }
+  /* And --from-pending with no value says so rather than guessing. */
+  const bare = cli(["review", "--page", "--from-pending"]);
+  assert.notEqual(bare.code, 0);
+  assert.match(bare.err, /--from-pending needs the report file a gate wrote/);
+  void f;
+});
+
+test("the loop closes: a tool approved from the report is pinned, and the line says so", () => {
+  /*
+   * The whole point. Before: one item differs and the pin does not name
+   * it. After `gate approve`: the pin carries it, with who decided and
+   * when, and the line a person reads at startup counts it.
+   */
+  const f = approvable();
+  const before = readPin(f.file);
+  assert.equal(before.tools["demo_add"]!.how, ADOPTED);
+  assert.equal(before.tools["demo_add"]!.by, null);
+  assert.match(enforcingLine(before, f.file), /adopted, not reviewed\./);
+  assert.ok(!/carries a decision/.test(enforcingLine(before, f.file)), "it counted a decision nobody made");
+
+  const r = cli(["gate", "approve", "--pending", f.report, "--decisions-from", f.exported, "--pins", f.pins, "--decisions", f.decisionsOut]);
+  assert.equal(r.code, 0, `${r.err}\n${r.out}`);
+
+  const after = readPin(f.file);
+  assert.equal(after.tools["demo_add"]!.how, "approve");
+  assert.equal(after.tools["demo_add"]!.by, WHO);
+  assert.equal(after.tools["demo_add"]!.at, DAY);
+  /* The approved description is what is pinned now, so it no longer differs. */
+  assert.equal(after.tools["demo_add"]!.descriptionHash, tool("demo_add", B).descriptionHash);
+  /* The other tool is untouched: approving one approves one. */
+  assert.equal(after.tools["demo_echo"]!.how, ADOPTED);
+
+  /* And the line a person reads counts it, rather than calling the whole
+   * pin unreviewed as it did before. */
+  const line = enforcingLine(after, f.file);
+  assert.match(line, /of which 1 now carries a decision/);
+  assert.match(line, /The server is running and this does not change what it can reach/);
+});
+
+test("gate approve refuses a file that is not a gate report", () => {
+  /*
+   * Found by a mutation aimed at the new page command: the same line
+   * appears in two functions, the mutation hit the other one, and every
+   * test still passed. So `gate approve` has been checking the format of
+   * its report since G2 with nothing insisting that it does — and without
+   * the check it would read any JSON file as a report and try to carry
+   * decisions out of it.
+   */
+  const f = approvable();
+  const dir = mkdtempSync(join(tmpdir(), "gate-approve-bad-"));
+  const wrongFormat = join(dir, "y.json");
+  writeFileSync(wrongFormat, JSON.stringify({ format: "something-else", package: "fixture-mcp", packageVersion: "1.0.0" }));
+  const notJson = join(dir, "x.json");
+  writeFileSync(notJson, "{ not json");
+
+  const was = readFileSync(f.file);
+  for (const [file, why] of [
+    [wrongFormat, /its format is "something-else"/],
+    [notJson, /is not a gate report/],
+  ] as const) {
+    const r = cli(["gate", "approve", "--pending", file, "--decisions-from", f.exported, "--pins", f.pins, "--decisions", f.decisionsOut]);
+    assert.notEqual(r.code, 0, `${file} was accepted as a report`);
+    assert.match(r.err, why);
+    assert.match(r.err, /Refusing to read/);
+  }
+  /* Nothing was written on the way to refusing. */
+  assert.ok(readFileSync(f.file).equals(was), "a refused report still changed the pin");
+  assert.equal(list(f.file).length, 0, "a refused report archived the pin");
+  assert.ok(!existsSync(f.decisionsOut), "a refused report wrote decisions");
 });

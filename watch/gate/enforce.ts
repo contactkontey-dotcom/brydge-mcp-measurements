@@ -381,9 +381,25 @@ export function nameOf(params: unknown): string | null {
 
 /** The line stderr gets once, when enforcement is on. */
 export function enforcingLine(pin: Pin, pinFile: string): string {
-  const adopted = pin.source === ADOPTED ? `, taken from what the server offered and ${ADOPTED}` : "";
+  const tools = Object.values(pin.tools);
+  const approved = tools.filter((t) => t.how === "approve").length;
+  /*
+   * The count, not only the pin's own label.
+   *
+   * A pin adopted from a server and then approved item by item keeps
+   * `source: adopted, not reviewed` — which is true of how the pin began
+   * and gets less true with every approval. Saying "4 tools, 1 approved"
+   * is the whole of it, where the label alone told somebody who had just
+   * approved something that nothing had been reviewed.
+   */
+  const how =
+    pin.source === ADOPTED
+      ? approved
+        ? `, taken from what the server offered and ${ADOPTED}, of which ${approved} now carr${approved === 1 ? "ies" : "y"} a decision`
+        : `, taken from what the server offered and ${ADOPTED}`
+      : `, of which ${approved} carr${approved === 1 ? "ies" : "y"} a decision`;
   return (
-    `gate: enforcing against ${Object.keys(pin.tools).length} pinned tool(s) for ${pin.package}@${pin.packageVersion}${adopted}. ` +
+    `gate: enforcing against ${tools.length} pinned tool(s) for ${pin.package}@${pin.packageVersion}${how}. ` +
     `Tools that differ from ${pinFile} are not passed to the client, and calls to them are not forwarded. ` +
     `The server is running and this does not change what it can reach.`
   );

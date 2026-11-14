@@ -748,6 +748,48 @@ function reviewQueue(pkg: string, a: string, b: string): void {
  * thing in front of the person deciding about them and not a thing to
  * publish: the argument is the one watch/tools.ts makes about watch/runs.
  */
+/**
+ * The review page for a report the GATE wrote.
+ *
+ * `review --page <pkg> <a> <b>` renders two stored measurement captures,
+ * which a server this project has never measured does not have. A gate in
+ * front of somebody's own server writes a pending report instead, and that
+ * report already carries the prepared queue — the word diffs, the schema
+ * diffs, the visible markers — because approving an item needs something
+ * to show the reviewer. So the page is the same page; only where the
+ * material comes from differs.
+ *
+ * Without this there was no way from a gate's report to the page at all:
+ * a reviewer had to hand-write the export file, reading item hashes out of
+ * JSON, which is exactly the sort of step that gets one wrong.
+ */
+function reviewPageFromPending(pendingFile: string): void {
+  if (!existsSync(pendingFile)) {
+    console.error(`No such report: ${pendingFile}`);
+    process.exit(1);
+  }
+  let pending: Pending;
+  try {
+    pending = JSON.parse(readFileSync(pendingFile, "utf8")) as Pending;
+    if (pending.format !== "brydge-gate-pending") throw new Error(`its format is ${JSON.stringify(pending.format)}`);
+    if (!pending.prepared || !Array.isArray(pending.prepared.items)) throw new Error("it carries no prepared queue");
+  } catch (e) {
+    console.error(`Refusing to read ${pendingFile}: it is not a gate report (${(e as Error).message}).`);
+    process.exit(1);
+  }
+  const client = readFileSync(join(HERE, "review-client.js"), "utf8");
+  const html = reviewPage(pending.prepared, client);
+  const dir = join(HERE, "review");
+  mkdirSync(dir, { recursive: true });
+  const file = join(dir, `${slugOf(pending.package)}-${pending.packageVersion}-pending-${Date.now()}.html`);
+  writeFileSync(file, html);
+  /* stderr, like the other page command: a shell that redirects stdout
+   * gets nothing, and the page's own text never lands in a log. */
+  console.error(`${pending.prepared.items.length} item(s) -> ${file}`);
+  console.error(`Open it in a browser. It makes no network request; decisions leave as a file you download.`);
+  console.error(`Then: node watch/cli.ts gate approve --pending ${pendingFile} --decisions-from <that file>`);
+}
+
 function reviewPageFor(pkg: string, a: string, b: string): void {
   const A = steadyCapture(pkg, a);
   const B = steadyCapture(pkg, b);
@@ -955,8 +997,17 @@ async function main(): Promise<void> {
     const bare = rest.filter((r) => r !== "--page");
     const positional = bare.filter((r, i) => !r.startsWith("--") && !bare[i - 1]?.startsWith("--"));
     if (page) {
+      const fromPending = flag("--from-pending");
+      if (fromPending !== null) {
+        if (!fromPending) {
+          console.error("--from-pending needs the report file a gate wrote");
+          process.exit(1);
+        }
+        return reviewPageFromPending(fromPending);
+      }
       if (positional.length !== 3) {
         console.error("usage: node watch/cli.ts review --page <package> <versionA> <versionB>");
+        console.error("       node watch/cli.ts review --page --from-pending <report.json>");
         process.exit(1);
       }
       return reviewPageFor(positional[0]!, positional[1]!, positional[2]!);
@@ -970,6 +1021,7 @@ async function main(): Promise<void> {
     }
     if (positional.length === 3) return reviewQueue(positional[0]!, positional[1]!, positional[2]!);
     console.error("usage: node watch/cli.ts review <package> <versionA> <versionB>");
+    console.error("       node watch/cli.ts review --page --from-pending <report.json>");
     console.error("       node watch/cli.ts review --apply <file> [--alias <name>]");
     process.exit(1);
   }
@@ -1005,6 +1057,7 @@ async function main(): Promise<void> {
       "  node watch/cli.ts gate rollback <package@version> [--to <number|name>]",
       "  node watch/cli.ts review   <package> <versionA> <versionB>",
       "  node watch/cli.ts review   --page <package> <versionA> <versionB>",
+      "  node watch/cli.ts review   --page --from-pending <report.json>",
       "  node watch/cli.ts review   --apply <file> [--alias <name>]",
       "  node watch/cli.ts poll     <file of package@version lines>",
       "  node watch/cli.ts alert    <package> <approvedVersion> <newVersion>",
