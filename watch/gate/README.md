@@ -320,15 +320,71 @@ node watch/gate/fixtures/demo-server.mjs --mode=<mode>
 | `changed-description` | one description differs from the baseline, from the first list on. Nothing announces it. |
 | `dropped-notified` | starts as the baseline, then stops offering `demo_subtract` and sends `notifications/tools/list_changed`. |
 | `dropped-silent` | the same drop, and sends nothing. |
+| `reworded-notified` | starts as the baseline, then changes `demo_add`'s description to a second planted wording and sends `notifications/tools/list_changed`. |
+| `reworded-silent` | the same rewording, and sends nothing. |
 
-The drop happens two seconds after the first tool list; `--drop-after=<ms>`
-moves it.
+The change happens two seconds after the first tool list, in all four modes
+that change something mid-session; `--drop-after=<ms>` moves it, whatever
+the change is.
 
 Take a pin from `baseline`, then point your client at the gate in front of
-one of the other three. `changed-description` is the case the whole thing is
-about: a description changing with no version bump. The two dropping modes
-are there because the interesting difference is in the **client** — does it
-re-list when it is told, and what does it do when it is not told?
+one of the other five. The two dropping modes are there because the
+interesting difference is in the **client** — does it re-list when it is
+told, and what does it do when it is not told?
+
+**The two rewording modes are the ones to spend your time on.**
+`changed-description` differs from the pin before the client has listed even
+once, so the first list it gets is already filtered and it never saw the
+tool. The rewording modes give the client the baseline first, let it cache a
+list with `demo_add` in it, and only then change the words — so what the
+client has on screen and what the server is offering have come apart, which
+is the thing no version number catches.
+
+With `--mode enforce --relist-on-change` in front of `reworded-notified`,
+the client lists **once** and then:
+
+```
+client -> tools/list                        answered, four tools, demo_add among them
+server -> notifications/tools/list_changed  (after --drop-after ms)
+gate   -> tools/list (brydge-gate/1)        not the client's, never shown to it
+client -> tools/call demo_add
+gate   -> the gate did not forward this call: "demo_add" is hidden, because its
+          description differs from the baseline. If your client listed the tools
+          before it was hidden, it may still be showing it.
+```
+
+A report lands in `--pending` about a change the client never saw. Note what
+does *not* happen: there is no "did not pass N tool(s)" line, because no
+tool list went to the client after the change — nothing was filtered on the
+way out. The hiding shows up in the refusal instead.
+
+### Why `reworded-silent` forwards the call
+
+Run the same thing against `reworded-silent` and the call goes through: the
+server answers `5`, and the gate neither hides nor refuses anything.
+
+That is not a defect in the gate, and it is not something a flag fixes. The
+gate learns what a tool looks like from a `tools/list` answer, and it gets
+one of those in exactly two ways: the client asks, or — with
+`--relist-on-change` — the server says something changed and the gate asks.
+In `reworded-silent` the client has already listed and will not again, and
+the server says nothing. There is no third source. The gate is not wrong
+here; it has not been told.
+
+So the honest shape of what this covers:
+
+| the server… | and it… | the gate |
+| --- | --- | --- |
+| changes a description | announces it | notices, with `--relist-on-change` |
+| changes a description | says nothing | notices only when the client next lists |
+| stops offering a tool | announces it | notices, with `--relist-on-change` |
+| stops offering a tool | says nothing | notices only when the client next lists |
+
+Closing the bottom rows would mean polling a server on a timer, which this
+does not do and which would be a different thing to agree to. Measured over
+the recorded sessions, only two of 75 servers ever sent that notification at
+all — so for most servers the gate is in the second row, and the thing that
+actually helps is a client that lists more than once.
 
 `observation-sheet.md` in this directory is for writing down what you see.
 

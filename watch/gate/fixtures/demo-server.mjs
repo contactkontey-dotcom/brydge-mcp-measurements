@@ -15,15 +15,21 @@
  *     baseline              four tools, and they never change. Pin this.
  *     changed-description   one description differs from the baseline, from
  *                           the very first list. Nothing announces it.
- *     dropped-notified      starts as the baseline; after the first tool
- *                           list it stops offering one tool and sends
+ *     dropped-notified      starts as the baseline; then it stops offering
+ *                           one tool and sends
  *                           notifications/tools/list_changed.
  *     dropped-silent        the same drop, and nothing is sent. The client
  *                           finds out only if it lists again.
+ *     reworded-notified     starts as the baseline; then one tool's
+ *                           description changes to a second planted
+ *                           wording and it sends
+ *                           notifications/tools/list_changed.
+ *     reworded-silent       the same rewording, and nothing is sent.
  *
- * The drop happens once, two seconds after the first tools/list is
+ * The change happens once, two seconds after the first tools/list is
  * answered — long enough that a client has the first list, short enough to
- * watch. --drop-after=<ms> moves it.
+ * watch. --drop-after=<ms> moves it, in all four of the modes that change
+ * something mid-session, whatever the change is.
  *
  * ── WHAT EACH MODE IS FOR ────────────────────────────────────────────────
  *
@@ -39,10 +45,43 @@
  * calls something that is gone? The gate answers the second case with "the
  * server is no longer offering …", and whether the model reads that, retries
  * it, or loops is what the observation sheet is for.
+ *
+ * reworded-notified and reworded-silent are changed-description moved into
+ * the middle of a session, which is the case the gate is actually for.
+ * changed-description differs from the pin before the client has listed
+ * even once, so the first list the client gets is already filtered and it
+ * never saw the tool. These two give the client the baseline first, let it
+ * cache a list with the tool in it, and only then change the words — so
+ * what the client has on screen and what the server is offering have come
+ * apart, which is the thing no version number catches.
+ *
+ * Notified against silent is the whole measurement:
+ *
+ *   reworded-notified, with --relist-on-change, the gate asks for a list of
+ *   its own on the notification, finds the description has moved, and
+ *   refuses a call to that tool — before the client has re-listed, and
+ *   possibly while the client is still showing it.
+ *
+ *   reworded-silent, nothing announces the change, so there is nothing for
+ *   the gate to ask on. The call is forwarded and the server answers it.
+ *   That is the limit of the whole approach, not a defect in it, and the
+ *   README says so in those words.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-const MODES = ["baseline", "changed-description", "dropped-notified", "dropped-silent"];
+const MODES = [
+  "baseline",
+  "changed-description",
+  "dropped-notified",
+  "dropped-silent",
+  "reworded-notified",
+  "reworded-silent",
+];
+/** The modes that change something once, a while into the session. */
+const DROPS = ["dropped-notified", "dropped-silent"];
+const REWORDS = ["reworded-notified", "reworded-silent"];
+/** Of those, the ones that say so. */
+const ANNOUNCES = ["dropped-notified", "reworded-notified"];
 const arg = (name, fallback) => {
   const hit = process.argv.slice(2).find((a) => a.startsWith(`--${name}=`));
   return hit === undefined ? fallback : hit.slice(name.length + 3);
@@ -62,6 +101,8 @@ const NAME = "brydge-demo-server";
 const VERSION = "1.0.0";
 /** The tool the two dropping modes stop offering. */
 const DROPPED = "demo_subtract";
+/** The tool whose words change, in changed-description and the two rewordings. */
+const REWORDED = "demo_add";
 
 /*
  * The four tools. Written here, about themselves, and nothing else.
@@ -100,17 +141,25 @@ const BASELINE = [
  * only the words differ, which is the case a version number cannot catch.
  */
 const CHANGED = BASELINE.map((t) =>
-  t.name === "demo_add"
+  t.name === REWORDED
     ? { ...t, description: "Planted demo tool, SECOND WORDING. Adds the two numbers it is given and returns their total as text." }
     : t,
 );
 
-const listFor = (dropped) => {
-  const base = mode === "changed-description" ? CHANGED : BASELINE;
+/*
+ * The list as it stands.
+ *
+ * `reworded` is the same second wording changed-description uses, so a
+ * tester comparing the two modes is looking at one pair of planted
+ * wordings rather than two.
+ */
+const listFor = (dropped, reworded) => {
+  const base = mode === "changed-description" || reworded ? CHANGED : BASELINE;
   return dropped ? base.filter((t) => t.name !== DROPPED) : base;
 };
 
 let dropped = false;
+let reworded = false;
 let listsAnswered = 0;
 const startedAt = Date.now();
 
@@ -118,14 +167,27 @@ const send = (m) => process.stdout.write(JSON.stringify(m) + "\n");
 const ok = (id, result) => send({ jsonrpc: "2.0", id, result });
 const text = (id, s) => ok(id, { content: [{ type: "text", text: s }] });
 
-/** The drop, once, after the first list has gone out. */
-function scheduleDrop() {
-  if (mode !== "dropped-notified" && mode !== "dropped-silent") return;
-  if (dropped || listsAnswered !== 1) return;
+/**
+ * The one change, once, after the first list has gone out.
+ *
+ * A drop or a rewording, whichever the mode is, and then either the
+ * notification or nothing. Scheduled off the FIRST list only, so a client
+ * that lists several times does not reset the clock.
+ */
+function scheduleChange() {
+  const drops = DROPS.includes(mode);
+  const rewords = REWORDS.includes(mode);
+  if (!drops && !rewords) return;
+  if (dropped || reworded || listsAnswered !== 1) return;
   setTimeout(() => {
-    dropped = true;
-    process.stderr.write(`demo-server: stopped offering ${DROPPED}\n`);
-    if (mode === "dropped-notified") {
+    if (drops) {
+      dropped = true;
+      process.stderr.write(`demo-server: stopped offering ${DROPPED}\n`);
+    } else {
+      reworded = true;
+      process.stderr.write(`demo-server: reworded the description of ${REWORDED}\n`);
+    }
+    if (ANNOUNCES.includes(mode)) {
       send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" });
       process.stderr.write("demo-server: sent notifications/tools/list_changed\n");
     } else {
@@ -148,9 +210,9 @@ function handle(m) {
     return;
   }
   if (method === "tools/list") {
-    ok(id, { tools: listFor(dropped) });
+    ok(id, { tools: listFor(dropped, reworded) });
     listsAnswered++;
-    scheduleDrop();
+    scheduleChange();
     return;
   }
   if (method === "tools/call") {
@@ -178,7 +240,7 @@ function handle(m) {
   send({ jsonrpc: "2.0", id, error: { code: -32601, message: `${NAME} does not handle "${String(method)}"` } });
 }
 
-process.stderr.write(`demo-server: ${NAME} ${VERSION}, mode ${mode}, ${listFor(false).length} planted tool(s)\n`);
+process.stderr.write(`demo-server: ${NAME} ${VERSION}, mode ${mode}, ${listFor(false, false).length} planted tool(s)\n`);
 
 let buffered = "";
 process.stdin.setEncoding("utf8");
