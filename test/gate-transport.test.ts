@@ -7,7 +7,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { Frames, lineOf, relay, type Reader } from "../watch/gate/transport.ts";
+import { Frames, lineOf, relay, type Reader, type Decision } from "../watch/gate/transport.ts";
 
 const ROOT = join(import.meta.dirname, "..");
 const B = (s: string) => Buffer.from(s, "utf8");
@@ -185,4 +185,216 @@ test("run.ts writes to stdout exactly once, and only a refusal it made", () => {
   const what = writes[0]![1]!.replace(/\s+/g, " ");
   assert.match(what, /action\.replyToClient/, `the one stdout write is not the refusal: ${what}`);
   assert.ok(!/child|server|read/.test(what), `the one stdout write carries something else too: ${what}`);
+});
+
+/* ── Holding a line on purpose ──────────────────────────────────────────── */
+
+/*
+ * V1 of --verify-on-call: the mechanism, with nothing using it yet.
+ *
+ * A reader may return a promise, and that line and everything behind it
+ * waits. These tests are about the two things that can go wrong with
+ * that — order, and a stream left shut — and about the one thing that
+ * must not change: a synchronous reader is still handled synchronously.
+ */
+
+/** Everything the relay produced, as whole lines. */
+function lines(r: ReturnType<typeof relay>): { of: () => string[]; bytes: () => Buffer } {
+  const chunks: Buffer[] = [];
+  r.on("data", (c: Buffer) => chunks.push(c));
+  return {
+    of: () => Buffer.concat(chunks).toString("utf8").split("\n").filter(Boolean),
+    bytes: () => Buffer.concat(chunks),
+  };
+}
+
+const tick = () => new Promise((d) => setImmediate(d));
+const after = (ms: number) => new Promise((d) => setTimeout(d, ms));
+
+test("a synchronous reader is still synchronous, with no microtask in the way", async () => {
+  /*
+   * The property that makes "the feature is off" true of the code rather
+   * than only of a test: with a reader that returns a decision, the line
+   * is out by the time write() returns.
+   */
+  const r = relay(() => ({ pass: true }));
+  const out = lines(r);
+  r.write(Buffer.from('{"id":1}\n'));
+  assert.deepEqual(out.of(), ['{"id":1}'], "a synchronous line needed a turn of the event loop");
+});
+
+test("a held line and everything behind it wait, and the order is kept", async () => {
+  let release: ((d: { pass: true }) => void) | null = null;
+  const asked: string[] = [];
+  const r = relay((line) => {
+    asked.push(line.text);
+    if (line.text === '{"id":2}') return new Promise<{ pass: true }>((res) => (release = res));
+    return { pass: true };
+  });
+  const out = lines(r);
+
+  /* Five lines in one chunk; the second one holds. */
+  r.write(Buffer.from('{"id":1}\n{"id":2}\n{"id":3}\n{"id":4}\n{"id":5}\n'));
+  await tick();
+
+  /* One has gone, two is held, and the reader has not even been shown the
+   * rest: that is what keeps them in order. */
+  assert.deepEqual(out.of(), ['{"id":1}'], "something behind the held line went out");
+  assert.deepEqual(asked, ['{"id":1}', '{"id":2}'], `the reader saw ${asked.length} lines while one was held`);
+
+  release!({ pass: true });
+  await tick();
+  assert.deepEqual(
+    out.of().map((l) => JSON.parse(l).id),
+    [1, 2, 3, 4, 5],
+    "the lines came out in a different order",
+  );
+  assert.equal(asked.length, 5);
+});
+
+test("a hold spans chunks: what arrives later still comes out later", async () => {
+  let release: ((d: { pass: true }) => void) | null = null;
+  const asked: string[] = [];
+  const r = relay((line) => {
+    asked.push(line.text);
+    if (line.text === '{"id":1}') return new Promise<{ pass: true }>((res) => (release = res));
+    return { pass: true };
+  });
+  const out = lines(r);
+
+  r.write(Buffer.from('{"id":1}\n'));
+  await tick();
+  /* A second chunk, written while the first is held. */
+  r.write(Buffer.from('{"id":2}\n'));
+  await after(20);
+  assert.deepEqual(out.of(), [], "a line from a later chunk overtook a held one");
+  assert.deepEqual(asked, ['{"id":1}'], "the reader was shown a later chunk while a line was held");
+
+  release!({ pass: true });
+  await after(20);
+  assert.deepEqual(out.of().map((l) => JSON.parse(l).id), [1, 2]);
+});
+
+test("a hold that rejects releases the stream and keeps the line", async () => {
+  const failures: string[] = [];
+  const r = relay(
+    (line) => (line.text === '{"id":2}' ? Promise.reject(new Error("the planted hold failed")) : { pass: true }),
+    (e) => failures.push(e.message),
+  );
+  const out = lines(r);
+  r.write(Buffer.from('{"id":1}\n{"id":2}\n{"id":3}\n'));
+  await after(20);
+  /* The line is not lost — a gate failing is not a reason for somebody's
+   * server to stop hearing from its client. */
+  assert.deepEqual(out.of().map((l) => JSON.parse(l).id), [1, 2, 3]);
+  assert.deepEqual(failures, ["the planted hold failed"]);
+});
+
+test("a held line can be replaced or dropped, as a synchronous one can", async () => {
+  const r = relay((line) =>
+    line.text === '{"id":2}'
+      ? Promise.resolve({ pass: false as const, replaceWith: Buffer.from('{"id":"instead"}') })
+      : line.text === '{"id":3}'
+        ? Promise.resolve({ pass: false as const, drop: true as const })
+        : { pass: true as const },
+  );
+  const out = lines(r);
+  r.write(Buffer.from('{"id":1}\n{"id":2}\n{"id":3}\n{"id":4}\n'));
+  await after(20);
+  assert.deepEqual(out.of().map((l) => JSON.parse(l).id), [1, "instead", 4]);
+});
+
+test("the stream always finishes, however a hold ends", async () => {
+  /*
+   * The worst thing this file could do is leave done() unspent: the
+   * client's messages stop arriving at the server and nothing says why.
+   * Three ways a hold can end, and all three must release.
+   */
+  for (const [what, decide] of [
+    ["resolved", () => Promise.resolve({ pass: true as const })],
+    ["rejected", () => Promise.reject(new Error("planted"))],
+    ["a reader that throws after the hold", () => Promise.resolve({ pass: true as const }).then(() => { throw new Error("planted"); })],
+  ] as const) {
+    const r = relay((line) => (line.text === '{"id":1}' ? (decide() as Promise<Decision>) : { pass: true }), () => {});
+    const out = lines(r);
+    r.write(Buffer.from('{"id":1}\n{"id":2}\n'));
+    r.end();
+    const finished = await Promise.race([
+      new Promise<string>((d) => r.on("end", () => d("ended"))),
+      after(2_000).then(() => "the stream never ended"),
+    ]);
+    assert.equal(finished, "ended", `${what}: ${finished}`);
+    /* And the line behind the hold still went. */
+    assert.ok(out.of().some((l) => JSON.parse(l).id === 2), `${what}: the line behind the hold was lost`);
+  }
+});
+
+test("a hold on the last line, with no newline, still ends the stream", async () => {
+  let release: ((d: { pass: true }) => void) | null = null;
+  const r = relay((line) => (line.unterminated ? new Promise<{ pass: true }>((res) => (release = res)) : { pass: true }));
+  const out = lines(r);
+  r.write(Buffer.from('{"id":1}\n{"id":2}'));
+  r.end();
+  await after(20);
+  assert.deepEqual(out.of(), ['{"id":1}'], "the unterminated line went out before its hold resolved");
+  release!({ pass: true });
+  const ended = await Promise.race([
+    new Promise<string>((d) => r.on("end", () => d("ended"))),
+    after(2_000).then(() => "the stream never ended"),
+  ]);
+  assert.equal(ended, "ended");
+  /* No newline invented for a line that never had one. */
+  assert.equal(out.bytes().toString("utf8"), '{"id":1}\n{"id":2}');
+});
+
+test("a line injected while another is held goes FIRST, or it would deadlock", async () => {
+  /*
+   * Everywhere else the gate's own line follows the line that prompted it.
+   * Here it must precede it: the held line is waiting for the answer to
+   * the injected one, so deferring the injection behind the held line
+   * would be a deadlock — and a quiet one, with a client simply never
+   * hearing back.
+   */
+  let release: ((d: { pass: true }) => void) | null = null;
+  const r: ReturnType<typeof relay> = relay((line) => {
+    if (line.text !== '{"id":2}') return { pass: true };
+    /* What the verifier will do: ask, then wait for the answer. */
+    const held = new Promise<{ pass: true }>((res) => (release = res));
+    r.inject(Buffer.from('{"id":"brydge-gate/1","method":"tools/list"}'));
+    return held;
+  });
+  const out = lines(r);
+  r.write(Buffer.from('{"id":1}\n{"id":2}\n{"id":3}\n'));
+  await after(20);
+  assert.deepEqual(
+    out.of().map((l) => JSON.parse(l).id),
+    [1, "brydge-gate/1"],
+    "the gate's own request did not go out while the line that needs its answer was held",
+  );
+  release!({ pass: true });
+  await after(20);
+  assert.deepEqual(out.of().map((l) => JSON.parse(l).id), [1, "brydge-gate/1", 2, 3]);
+});
+
+test("with nothing held, the bytes are what they were", async () => {
+  /*
+   * The awkward shapes again, through the relay that can now hold: an id
+   * above 2^53, a float that is not an integer, an accent, a line that is
+   * not JSON, an empty line, keys out of order. One byte at a time, so
+   * every boundary lands mid-message.
+   */
+  const planted =
+    [
+      '{"jsonrpc":"2.0","id":9007199254740993,"method":"tools/list"}',
+      '{"jsonrpc":"2.0","id":1,"result":{"n":1.0,"s":"\\u00e9"}}',
+      "not json at all",
+      "",
+      '{"b":1,"a":2}',
+    ].join("\n") + "\n";
+  const r = relay(() => ({ pass: true }));
+  const out = lines(r);
+  for (const byte of Buffer.from(planted)) r.write(Buffer.from([byte]));
+  r.end();
+  await after(30);
+  assert.equal(out.bytes().toString("utf8"), planted, "the relay changed the bytes");
 });

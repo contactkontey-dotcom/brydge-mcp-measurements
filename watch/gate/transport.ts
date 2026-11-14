@@ -62,9 +62,37 @@
  * retries, because a Transform's _read is its own machinery and wrapping it
  * to drain a queue is a way to break a working transport.
  *
- * ORDINARY LINES ARE NEVER HELD. Only the gate's own. A client's message
- * waiting on the gate's bookkeeping would be the gate slowing down the
- * thing it is supposed to be invisible to.
+ * ORDINARY LINES ARE NEVER HELD BY THE INJECTION MACHINERY. Only the gate's
+ * own lines wait for room. A client's message waiting on the gate's
+ * bookkeeping would be the gate slowing down the thing it is supposed to
+ * be invisible to.
+ *
+ * ── HOLDING A LINE ON PURPOSE ────────────────────────────────────────────
+ *
+ * A reader may return a PROMISE of a decision instead of a decision. That
+ * line, and every line behind it, then waits until the promise settles.
+ *
+ * It is done by not calling the Transform's `done()`: a transform that has
+ * not finished stops accepting input, so the rest of the stream stays
+ * unread. Order is then the stream's own doing rather than a queue written
+ * here, and there is no second place where messages are put in order.
+ *
+ * THE SYNCHRONOUS PATH IS UNTOUCHED. A reader that returns a decision —
+ * every reader in this repository except the one that verifies a call — is
+ * handled in the same synchronous loop as before, with no promise and no
+ * microtask. So "the feature is off" is a property of the code and not
+ * only of a test.
+ *
+ * `done()` IS CALLED ON EVERY PATH. A held line whose promise rejects, a
+ * reader that throws inside a handler, a server that dies mid-wait: each
+ * releases the stream. A path that forgets leaves a client waiting for
+ * ever, which is the worst thing this file could do.
+ *
+ * AN INJECTION DURING A HOLD GOES FIRST. Everywhere else a line the gate
+ * injects follows the line that prompted it. While a line is held the
+ * order is reversed on purpose, because the held line is waiting for the
+ * answer to the injected one — deferring the injection until the held line
+ * had gone would be a deadlock, and a quiet one.
  *
  * AND THE READER IS NOT CONSULTED for an injected line: the gate does not
  * decide about its own messages, and asking would mean a line could be
@@ -147,7 +175,16 @@ export type Decision =
   /** Hand on nothing at all. */
   | { pass: false; drop: true };
 
-export type Reader = (line: Line) => Decision;
+/**
+ * What to do with one line.
+ *
+ * A promise holds the line, and everything behind it, until it settles.
+ * Returning a decision outright keeps the line on the synchronous path.
+ */
+export type Reader = (line: Line) => Decision | Promise<Decision>;
+
+const isPromised = (v: Decision | Promise<Decision>): v is Promise<Decision> =>
+  typeof v === "object" && v !== null && typeof (v as { then?: unknown }).then === "function";
 
 /** What became of a line the gate tried to send. */
 export type Injected =
@@ -182,24 +219,103 @@ export interface Relay extends Transform {
  */
 export function relay(read: Reader, onReaderError?: (e: Error, line: Line) => void): Relay {
   const frames = new Frames();
-  const handle = (raw: Buffer, unterminated: boolean, push: (b: Buffer) => void) => {
-    const line = lineOf(raw, unterminated);
-    let decision: Decision = { pass: true };
+  /**
+   * Ask the reader about one line.
+   *
+   * `handling` is true only for the SYNCHRONOUS part of the call, so an
+   * injection made while a line is held is not deferred behind it. A
+   * reader that throws is recorded and the line goes through untouched.
+   */
+  const ask = (line: Line): Decision | Promise<Decision> => {
     handling = true;
     try {
-      decision = read(line);
+      return read(line);
     } catch (e) {
       onReaderError?.(e as Error, line);
-      decision = { pass: true };
+      return { pass: true };
     } finally {
       handling = false;
     }
+  };
+
+  /** Put the decision into effect. */
+  const apply = (raw: Buffer, unterminated: boolean, decision: Decision, push: (b: Buffer) => void) => {
     const tail = unterminated ? Buffer.alloc(0) : Buffer.from([NEWLINE]);
     if (decision.pass) push(Buffer.concat([raw, tail]));
     else if ("replaceWith" in decision) push(Buffer.concat([decision.replaceWith, tail]));
     /* else dropped */
     /* Anything the reader injected goes now, after the line it answers. */
     if (waiting.length) drain();
+  };
+
+  /**
+   * One line at a time, in order, releasing the stream when they are done.
+   *
+   * `lines` is a whole chunk, or the one unterminated line at the end of
+   * the stream. A promise from the reader returns from this function with
+   * `done` unspent: the stream then stops accepting input, and the rest of
+   * the work happens when the promise settles.
+   */
+  const walk = (
+    lines: Buffer[],
+    unterminated: boolean,
+    push: (b: Buffer) => void,
+    done: () => void,
+  ): void => {
+    let i = 0;
+    let released = false;
+    /* Once, whatever happens. A path that forgets leaves a client waiting
+     * for ever. */
+    const release = () => {
+      if (released) return;
+      released = true;
+      done();
+    };
+    const step = (): void => {
+      try {
+        while (i < lines.length) {
+          const raw = lines[i++]!;
+          const line = lineOf(raw, unterminated);
+          const decided = ask(line);
+          if (!isPromised(decided)) {
+            apply(raw, unterminated, decided, push);
+            continue;
+          }
+          /*
+           * Held. Whatever the reader injected goes NOW, before the line
+           * it is holding: the hold is waiting for the answer to it.
+           */
+          if (waiting.length) drain();
+          decided.then(
+            (d) => {
+              try {
+                apply(raw, unterminated, d, push);
+              } catch (e) {
+                onReaderError?.(e as Error, line);
+              }
+              step();
+            },
+            (e) => {
+              /* A hold that failed is not a reason to lose the line, or
+               * to leave the stream shut. */
+              onReaderError?.(e as Error, line);
+              try {
+                apply(raw, unterminated, { pass: true }, push);
+              } catch (e2) {
+                onReaderError?.(e2 as Error, line);
+              }
+              step();
+            },
+          );
+          return;
+        }
+      } catch (e) {
+        /* Nothing above should throw; if it does the stream still goes. */
+        onReaderError?.(e as Error, lineOf(Buffer.alloc(0)));
+      }
+      release();
+    };
+    step();
   };
 
   /* Lines of the gate's own, waiting for room or for the current line. */
@@ -214,15 +330,17 @@ export function relay(read: Reader, onReaderError?: (e: Error, line: Line) => vo
       /* Anything waiting goes first, so a line the gate sent earlier is not
        * overtaken by one that arrived later. */
       drain();
-      for (const raw of frames.push(chunk)) handle(raw, false, (b) => this.push(b));
-      done();
+      const push = (b: Buffer) => void this.push(b);
+      walk(frames.push(chunk), false, push, () => done());
     },
     flush(done: TransformCallback) {
       drain();
       const left = frames.rest();
-      if (left) handle(left, true, (b) => this.push(b));
-      ended = true;
-      done();
+      const push = (b: Buffer) => void this.push(b);
+      walk(left ? [left] : [], true, push, () => {
+        ended = true;
+        done();
+      });
     },
   }) as Relay;
 
