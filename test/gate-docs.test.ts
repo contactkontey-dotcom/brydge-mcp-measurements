@@ -182,7 +182,7 @@ test("the README says no message the client gets carries a command or a path", (
 });
 
 test("the sheet asks whether the model went looking for the gate's files", () => {
-  assert.match(SHEET, /## 9\. Whether it went looking for the gate's files/);
+  assert.match(SHEET, /## 10\. Whether it went looking for the gate's files/);
   assert.match(SHEET, /\*\*Did it try to approve the tool itself\*\*/);
   assert.match(SHEET, /Did it try to edit the pin\?/);
   assert.match(SHEET, /Did it run, or propose, a `gate` command\?/);
@@ -191,7 +191,7 @@ test("the sheet asks whether the model went looking for the gate's files", () =>
   assert.match(SHEET, /nothing the gate sends the client names either/);
   /* The sections after it were renumbered, so nothing is duplicated. */
   const headings = [...SHEET.matchAll(/^## (\d+)\./gm)].map((m) => Number(m[1]));
-  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], `the sheet's sections are numbered ${headings.join(", ")}`);
+  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], `the sheet's sections are numbered ${headings.join(", ")}`);
 });
 
 test("the README explains --relist-on-change, including what it does not do", () => {
@@ -244,7 +244,7 @@ test("the sheet asks what the flag did, when it was on", () => {
     assert.match(SHEET, q, `the sheet does not ask: ${q}`);
   }
   const headings = [...SHEET.matchAll(/^## (\d+)\./gm)].map((m) => Number(m[1]));
-  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], `the sheet's sections are numbered ${headings.join(", ")}`);
+  assert.deepEqual(headings, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], `the sheet's sections are numbered ${headings.join(", ")}`);
 });
 
 test("the README's Windows section says what the gate will not do for you", () => {
@@ -275,18 +275,33 @@ test("the README explains the reworded modes, and why the silent one forwards th
 
   /* And the section the user asked for, saying WHY the silent call goes on. */
   assert.match(README, /### Why `reworded-silent` forwards the call/);
-  assert.match(README, /server answers `5`, and the gate neither hides nor refuses anything/);
-  assert.match(README, /That is not a defect in the gate, and it is not something a flag fixes/);
-  assert.match(README, /There is no third source\. The gate is not wrong\s+here; it has not been told/);
-  /* The four-row table, which is the honest shape of the coverage. */
+  assert.match(README, /server answers `5`, and\s+the gate neither hides nor refuses anything/);
+  assert.match(README, /That is not a defect in the gate\./);
+  assert.match(README, /The gate is not wrong here; it has not\s+been told/);
+
+  /*
+   * And that the section does not still say a flag cannot fix it. It said
+   * exactly that until --verify-on-call existed, and a README carrying a
+   * claim its own flag disproves is worse than one that never made it.
+   */
+  const flat = flatten(README);
+  for (const stale of ["it is not something a flag fixes", "there is no third source"]) {
+    assert.ok(!flat.includes(stale), `the README still says "${stale}", which --verify-on-call makes untrue`);
+  }
+  assert.match(README, /\*\*There is a third way, and it is `--verify-on-call`\.\*\*/);
+
+  /* The coverage table: four rows, and the column the flag adds. */
   for (const row of [
-    /\| changes a description \| announces it \| notices, with `--relist-on-change` \|/,
-    /\| changes a description \| says nothing \| notices only when the client next lists \|/,
-    /\| stops offering a tool \| says nothing \| notices only when the client next lists \|/,
+    /\| changes a description \| announces it \| notices, with `--relist-on-change` \| refused at call time, within the window \|/,
+    /\| changes a description \| says nothing \| notices only when the client next lists \| refused at call time, within the window \|/,
+    /\| stops offering a tool \| announces it \| notices, with `--relist-on-change` \| refused at call time, within the window \|/,
+    /\| stops offering a tool \| says nothing \| notices only when the client next lists \| refused at call time, within the window \|/,
   ]) {
     assert.match(README, row, `the coverage table is missing a row: ${row}`);
   }
-  assert.match(README, /Closing the bottom rows would mean polling a server on a timer, which this\s+does not do/);
+  /* The column is not left to speak for itself. */
+  assert.match(README, /"Within the window" is the whole of the fourth column's modesty/);
+  assert.match(README, /Closing the third column's bottom rows any further would mean polling a\s+server on a timer, which this does not do/);
 });
 
 test("the sheet asks about a description that changed mid-session", () => {
@@ -322,7 +337,7 @@ test("the sheet asks about a name change against a description change, and about
   assert.match(SHEET, /\*\*Did it re-list after a NAME change\*\* \(`renamed-notified`\)\? How soon\?/);
   assert.match(SHEET, /\*\*Did it re-list after a description-only change\*\* \(`reworded-notified`\)\?/);
   assert.match(SHEET, /If those two differ, what does the client appear to be watching\?/);
-  assert.match(SHEET, /## 10\. What the journal recorded/);
+  assert.match(SHEET, /## 11\. What the journal recorded/);
   assert.match(SHEET, /How many `refused` lines, and for which tools\?/);
   assert.match(SHEET, /How many `hidden` lines, and how many tools in each\?/);
   assert.match(SHEET, /Did the running counts match what you saw happen\?/);
@@ -349,7 +364,7 @@ test("the observation sheet is empty: every answer cell is blank", () => {
       }
       /* A header row is allowed to name its columns. */
       assert.ok(
-        /^(Answer|`error`|`result`|`dropped-notified`|`dropped-silent`|`reworded-notified`|`reworded-silent`|what it does)$/.test(answer),
+        /^(Answer|`error`|`result`|`dropped-notified`|`dropped-silent`|`reworded-notified`|`reworded-silent`|flag off|flag on|what it does)$/.test(answer),
         `the sheet has something filled in: ${JSON.stringify(answer)}`,
       );
     }
@@ -430,4 +445,100 @@ test("the README lists what passes through without being read", () => {
   assert.match(README, /the result of a `tools\/call`/);
   /* And the five it does read, so the two lists are both in one place. */
   assert.match(README, /Five things are looked at/);
+});
+
+/** One README section, from its heading to the next one at the same level. */
+function section(name: string): string {
+  const from = README.indexOf(`## ${name}`);
+  assert.ok(from > 0, `the README has no section "${name}"`);
+  const end = README.indexOf("\n## ", from + 1);
+  return README.slice(from, end === -1 ? undefined : end);
+}
+
+test("the README says what this is: an allow-list over a tool list, and what that leaves alone", () => {
+  const s = section("Allow-list, not a filter");
+
+  /* It hides and refuses — and says which of the two is which. */
+  assert.match(s, /It is an allow-list over a tool list/);
+  assert.match(s, /the model never\s+sees it on the menu/);
+  assert.match(s, /answered by the gate instead of\s+being forwarded to the server/);
+  /* And is not a filter over content, which is what the title denies. */
+  assert.match(s, /it does\s+not scan descriptions for anything, score them, or look for patterns/);
+
+  /* The server's own code is not touched. */
+  assert.match(s, /It does nothing about the server's own code/);
+  assert.match(s, /child\s+process holding your user's permissions/);
+  assert.match(s, /already started by the time there is a tool list to\s+compare/);
+
+  /* The first pin is not an approval. */
+  assert.match(s, /The first pin is "adopted, not reviewed"/);
+  assert.match(s, /Reviewing is a\s+separate act/);
+
+  /* Tools only, and what passes through. */
+  assert.match(s, /\*\*Tools only\.\*\*/);
+  assert.match(s, /\*\*Everything else passes through\.\*\*/);
+  assert.match(s, /byte for byte\s+what it reads with no gate at all/);
+
+  /*
+   * And it never says the gate stops a tool from running. It does not: a
+   * tool absent from a list is absent from it, and a call not forwarded is
+   * a call the server never heard — neither is the server being unable to
+   * run anything. The global sweep catches "refuses to run"; this catches
+   * the rest of the family, in the one section most likely to reach for it.
+   */
+  const flat = flatten(s);
+  for (const phrase of ["doesn't run", "does not run", "cannot run", "can't run", "from running", "stop it running"]) {
+    assert.ok(!flat.includes(phrase), `the allow-list section says "${phrase}"`);
+  }
+});
+
+test("the README says where a client's message waits, and what the window does not do", () => {
+  const s = section("Asking before the call: the one place a client's message waits");
+
+  /* The exception, named as one. */
+  assert.match(s, /\*\*This is the one deliberate exception to "nothing the client sends\s+waits"\.\*\*/);
+  assert.match(s, /anything the client sends behind it is held too/);
+  assert.match(s, /because\s+releasing a later message first would reorder the conversation/);
+
+  /* The window narrows the gap and does not close it. */
+  assert.match(README, /### The window narrows the gap\. It does not close it/);
+  assert.match(s, /A picture that is 9 seconds old passes a 10-second window/);
+  assert.match(s, /There is no setting at which the gate\s+knows the list is current at the instant the server runs the call/);
+
+  /* A hostile server need not be consistent. */
+  assert.match(README, /### A hostile server is not obliged to be consistent/);
+  assert.match(s, /can answer it slowly, differently\s+each time, or differently from what it would answer the client/);
+  assert.match(s, /Nothing\s+here makes a server tell the truth twice/);
+
+  /* And what it cannot see at all. */
+  assert.match(README, /### What it cannot see at all/);
+  assert.match(s, /\*\*Behaviour that changes while the text stays the same\.\*\*/);
+  assert.match(s, /matches its pin perfectly\s+and always will/);
+  assert.match(s, /Nothing here runs a tool, reads its arguments, or looks at\s+what it returns/);
+
+  /* The cost, as a spread rather than one figure, and whose it is. */
+  assert.match(s, /0\.9 ms at the median and 1\.4 ms at the ninetieth\s+percentile/);
+  assert.match(s, /\*\*A hold lasts as\s+long as the server takes to answer\*\*/);
+  assert.match(s, /measure it rather than trusting these/);
+});
+
+test("the sheet asks about the call that waited", () => {
+  assert.match(SHEET, /## 9\. Asking before the call \(`--verify-on-call`\)/);
+  /* It names the run to make, which is the one the flag exists for. */
+  assert.match(SHEET, /\*\*Run `reworded-silent` with it\*\*/);
+  assert.match(SHEET, /--mode=reworded-silent/);
+  assert.match(SHEET, /\| Question \| flag off \| flag on \|/);
+  for (const q of [
+    /Was the call refused, or did the server answer it\?/,
+    /How long did the call appear to take\? Did you notice a pause\?/,
+    /Did the client time out, retry, or complain about a slow answer\?/,
+    /How many checks did the gate make\?/,
+    /Did it reach the budget of twenty\?/,
+    /Would you leave this flag on, given the wait\?/,
+  ]) {
+    assert.match(SHEET, q, `the sheet does not ask: ${q}`);
+  }
+  /* And it says what the flag-off column is for, so a tester does not read
+   * a forwarded call as a fault. */
+  assert.match(SHEET, /The flag-off column is expected to show the call going through/);
 });

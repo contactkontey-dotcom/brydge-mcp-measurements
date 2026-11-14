@@ -18,7 +18,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { Lister, reservedId, VERIFY_BUDGET } from "../watch/gate/relist.ts";
+import { Lister, RESERVED_PREFIX, reservedId, VERIFY_BUDGET } from "../watch/gate/relist.ts";
 import { announcement, askedLine, failedLine, TIMEOUT_MS, Verifier, WINDOW_MS } from "../watch/gate/verify.ts";
 import { CONTAINMENT, flatten, GATEKEEPING } from "./banned.ts";
 
@@ -179,6 +179,10 @@ interface Ran {
   answers: Array<Record<string, any>>;
   order: unknown[];
   notices: string[];
+  /* Every byte the client read, kept as it arrived. The byte comparisons
+   * below need the bytes: re-serialising a parsed copy is not the identity,
+   * so a comparison of parsed messages would not ask the same question. */
+  stdout: Buffer;
   stderr: string;
   code: number | null;
 }
@@ -190,6 +194,7 @@ function run(args: string[], script: Array<unknown | { wait: number }>, capMs = 
     const answers: Array<Record<string, any>> = [];
     const order: unknown[] = [];
     const notices: string[] = [];
+    const chunks: Buffer[] = [];
     let err = "";
     let buf = "";
     let settled = false;
@@ -198,11 +203,13 @@ function run(args: string[], script: Array<unknown | { wait: number }>, capMs = 
     const finish = (code: number | null) => {
       if (settled) return;
       settled = true;
-      resolve({ answers, order, notices, stderr: err, code });
+      resolve({ answers, order, notices, stdout: Buffer.concat(chunks), stderr: err, code });
     };
-    child.stdout.setEncoding("utf8");
-    child.stdout.on("data", (c: string) => {
-      buf += c;
+    /* No setEncoding: the bytes are kept, and the decoding for the parsed
+     * copy happens here instead. */
+    child.stdout.on("data", (c: Buffer) => {
+      chunks.push(c);
+      buf += c.toString("utf8");
       let nl: number;
       while ((nl = buf.indexOf("\n")) !== -1) {
         const l = buf.slice(0, nl);
@@ -516,4 +523,125 @@ test("a page of a list is not a fresh picture, so the check does not finish", { 
   const said = r.answers.find((m) => m.id === 3)!;
   assert.equal(said.error?.code, -32000, `the call went through on a page of a list: ${JSON.stringify(said)}`);
   assert.equal(said.error.data.reason, "the tool list could not be checked before this call");
+});
+
+/* ── Both byte comparisons ──────────────────────────────────────────────── */
+
+/*
+ * The flag makes the gate send something of its own, which is the one
+ * thing a proxy is not supposed to do. So the question is asked twice, in
+ * the strictest form available: what did the SERVER receive, and what did
+ * the CLIENT receive, as bytes.
+ *
+ * The planted hostile server's `stable` case answers the same tool list
+ * every time, so a pin can match it exactly and nothing is hidden or
+ * refused — which is what makes a byte comparison mean anything. Its
+ * `--log-in` records every line it received, in order, as it arrived.
+ */
+
+/** Everything the server received, as whole lines. */
+const receivedBy = (file: string): string[] =>
+  existsSync(file) ? readFileSync(file, "utf8").split("\n").filter(Boolean) : [];
+
+/* Two lists and two calls: enough that a gate asking before a call has
+ * somewhere to put its request, and enough that an ordering mistake shows. */
+const BYTES_SCRIPT = [
+  INIT,
+  READY,
+  listMsg(2),
+  { wait: 200 },
+  callMsg(3, "read_file"),
+  { wait: 200 },
+  callMsg(4, "list_dir"),
+  { wait: 200 },
+  listMsg(5),
+  { wait: 200 },
+  { jsonrpc: "2.0", id: 99, method: "fixture/done" },
+];
+
+test("with the flag off, the server receives exactly what it receives with no gate at all", { timeout: 120_000 }, async () => {
+  const pin = await pinFor(HOSTILE, ["--case=stable"]);
+  const dir = mkdtempSync(join(tmpdir(), "gate-verify-in-"));
+  const direct = join(dir, "direct.txt");
+  const gated = join(dir, "gated.txt");
+
+  await run([HOSTILE, "--case=stable", `--log-in=${direct}`], BYTES_SCRIPT);
+  await run(
+    [GATE, "--pin", pin, "--mode", "enforce", "--", process.execPath, HOSTILE, "--case=stable", `--log-in=${gated}`],
+    BYTES_SCRIPT,
+  );
+
+  const a = receivedBy(direct);
+  assert.ok(a.length >= 6, `the planted server logged only ${a.length} line(s), so this test proved nothing`);
+  assert.deepEqual(receivedBy(gated), a, "the gate changed what reached the server with the flag off");
+});
+
+test("with the flag on, the only extra lines the server receives are the gate's own tools/list", { timeout: 120_000 }, async () => {
+  const pin = await pinFor(HOSTILE, ["--case=stable"]);
+  const dir = mkdtempSync(join(tmpdir(), "gate-verify-in2-"));
+  const off = join(dir, "off.txt");
+  const on = join(dir, "on.txt");
+
+  await run(
+    [GATE, "--pin", pin, "--mode", "enforce", "--", process.execPath, HOSTILE, "--case=stable", `--log-in=${off}`],
+    BYTES_SCRIPT,
+  );
+  /* A window of zero, so every call is checked and there is something to
+   * find. The default window would let the client's own list stand. */
+  const r = await run(
+    [GATE, "--pin", pin, "--mode", "enforce", VERIFY, "--verify-window", "0",
+      "--", process.execPath, HOSTILE, "--case=stable", `--log-in=${on}`],
+    BYTES_SCRIPT,
+  );
+
+  const before = receivedBy(off);
+  const after = receivedBy(on);
+  const mine = after.filter((l) => l.includes(`"${RESERVED_PREFIX}`));
+  assert.ok(mine.length > 0, `nothing of the gate's reached the server:\n${r.stderr}`);
+
+  /* Every one is a bare tools/list under one of the gate's own ids, and
+   * carries nothing else — no params, no _meta, nothing of the client's. */
+  for (const l of mine) {
+    const m = JSON.parse(l) as Record<string, unknown>;
+    assert.equal(m.method, "tools/list", `the gate sent something else: ${l}`);
+    assert.equal(m.jsonrpc, "2.0");
+    assert.deepEqual(Object.keys(m).sort(), ["id", "jsonrpc", "method"], `the gate's request carries more than it should: ${l}`);
+    assert.ok(String(m.id).startsWith(RESERVED_PREFIX));
+  }
+
+  /* With those removed: the same lines the server received with the flag
+   * off, in the same order. The flag adds; it does not alter or reorder. */
+  assert.deepEqual(
+    after.filter((l) => !l.includes(`"${RESERVED_PREFIX}`)),
+    before,
+    "the flag changed something else as well",
+  );
+});
+
+test("with the flag on and nothing differing, the client reads the same bytes", { timeout: 120_000 }, async () => {
+  /*
+   * The other direction, and the one a tester feels: the answers to the
+   * gate's own questions never reach the client, and holding a call does
+   * not change what the client eventually reads — only when it reads it.
+   *
+   * Byte for byte, not message for message: re-serialising a parsed copy
+   * is not the identity, so a gate that rebuilt messages would pass a
+   * comparison of parsed objects and fail this one.
+   */
+  const pin = await pinFor(HOSTILE, ["--case=stable"]);
+  const off = await run(
+    [GATE, "--pin", pin, "--mode", "enforce", "--", process.execPath, HOSTILE, "--case=stable"],
+    BYTES_SCRIPT,
+  );
+  const on = await run(
+    [GATE, "--pin", pin, "--mode", "enforce", VERIFY, "--verify-window", "0",
+      "--", process.execPath, HOSTILE, "--case=stable"],
+    BYTES_SCRIPT,
+  );
+
+  assert.ok(off.stdout.length > 0, "the flag-off run read nothing, so this test proved nothing");
+  assert.match(on.stderr, /asked the server for a tool list/, "no check was made, so this test proved nothing");
+  assert.equal(on.stdout.toString("hex"), off.stdout.toString("hex"), "the flag changed what the client reads");
+  /* And none of it is the gate's own traffic. */
+  assert.ok(!on.stdout.toString("utf8").includes(RESERVED_PREFIX), "one of the gate's own ids reached the client");
 });

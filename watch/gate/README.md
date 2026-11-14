@@ -15,6 +15,44 @@ before you decide what this is worth.
 
 ---
 
+## Allow-list, not a filter
+
+What this is, in five lines, because the name people reach for is usually
+the wrong one.
+
+* **It is an allow-list over a tool list.** A pin names the tools somebody
+  signed off, by content. A tool that is not in the pin, or that is in it
+  and now reads differently, is not passed to the client — the model never
+  sees it on the menu — and a call to it is answered by the gate instead of
+  being forwarded to the server. It is not a filter over content: it does
+  not scan descriptions for anything, score them, or look for patterns.
+  Either a tool matches what was signed off or it does not.
+
+* **It does nothing about the server's own code.** The server is a child
+  process holding your user's permissions: your files, your network, your
+  credentials. It has already started by the time there is a tool list to
+  compare. The gate reads and writes the messages between the client and
+  the server, and that is the whole of its reach.
+
+* **The first pin is "adopted, not reviewed".** `--write-pin` and `gate pin
+  --from-current` record what a server was saying at one moment. If it was
+  already saying something worth holding, that is now your baseline. Every
+  record carries the label and so does every report. Reviewing is a
+  separate act, by a person, and nothing here does it for you.
+
+* **Tools only.** Resources, prompts, the `instructions` field of the
+  `initialize` result, and everything a tool call returns are carried
+  between the client and the server without being read.
+
+* **Everything else passes through.** The gate reads five kinds of message
+  and forwards the rest as they arrived — [the list is
+  here](#what-a-pin-compares-and-what-the-gate-never-reads). With
+  everything in the pin approved, what the client reads is byte for byte
+  what it reads with no gate at all, and there is a test that holds it to
+  that.
+
+---
+
 ## Steps
 
 Node 22 or later. No network access is needed and nothing is installed.
@@ -189,6 +227,81 @@ declined because a request was already outstanding.
 
 It costs nothing at startup: it sends nothing until the server speaks, so
 the cold-start figures below are the same with it and without.
+
+---
+
+## Asking before the call: the one place a client's message waits
+
+`--relist-on-change` depends on the server saying something changed. Most
+servers never do. `--verify-on-call` does not wait to be told: before a
+`tools/call` goes through, if the last list the gate read is older than
+`--verify-window` (10 s by default), it asks for a current one, waits up to
+`--verify-timeout` (3 s), compares it with the pin, and only then forwards
+the call or answers it itself.
+
+```
+gate --pin <pin> --mode enforce --verify-on-call -- <your server command>
+```
+
+**This is the one deliberate exception to "nothing the client sends
+waits".** Everywhere else the gate copies bytes straight through and parses
+a copy to decide, so a message is never delayed by the deciding. Here it
+is: the call is held, and anything the client sends behind it is held too,
+because releasing a later message first would reorder the conversation. The
+exception is written in the code at the point where it happens, and it is
+the only one.
+
+The hold ends when the answer arrives, when `--verify-timeout` runs out, or
+when the session's budget of 20 checks is spent — the last of which behaves
+exactly like a timeout. On a timeout, under enforcement, the call is not
+forwarded; `--on-verify-timeout=forward` is the explicit opt-out, and it
+says what it does. In shadow mode nothing is ever refused: the gate checks,
+updates its picture and writes its reports, and the announcement on stderr
+says so.
+
+**What it costs.** Measured against the planted demo server on one machine,
+per call: 0.8 ms median with no flag, 0.8 ms with the flag on and the
+picture fresh — inside the noise — and 1.7 ms with every call held, so a
+hold adds about **0.9 ms at the median and 1.4 ms at the ninetieth
+percentile**. A session of twelve calls 60 ms apart against a 200 ms window
+made three checks and held **3–5 ms in total**.
+
+Those figures are the gate's own share and nothing else. **A hold lasts as
+long as the server takes to answer**, up to the timeout: against the
+planted hostile server's slow case, which sits on the answer for 1200 ms,
+the client waited 1204–1205 ms. Your server's answer is your number;
+measure it rather than trusting these.
+
+### The window narrows the gap. It does not close it
+
+A picture that is 9 seconds old passes a 10-second window, so a change
+inside the window is forwarded on an out-of-date picture. Narrowing the
+window narrows that interval and buys more checks — a window of zero means
+every call is checked, until the budget of 20 is spent, after which calls
+are treated as having timed out. There is no setting at which the gate
+knows the list is current at the instant the server runs the call: the
+answer it compared was true when it arrived, and the call goes afterwards.
+
+### A hostile server is not obliged to be consistent
+
+A server answering the gate's question can answer it slowly, differently
+each time, or differently from what it would answer the client. Nothing
+here makes a server tell the truth twice. The planted hostile server has a
+case for each shape — no answer, an error, one page of a list, an answer to
+an id nobody sent, a slow answer, and exiting mid-question — and the gate's
+behaviour for each is in the tests, but the shape of the limit is the
+point: this compares what a server *says*, and a server chooses what to
+say.
+
+### What it cannot see at all
+
+**Behaviour that changes while the text stays the same.** A tool whose
+description, schema, title and annotations are byte for byte what was
+signed off, and which now does something else, matches its pin perfectly
+and always will. Nothing here runs a tool, reads its arguments, or looks at
+what it returns. Every comparison in this directory is over the text a
+server publishes about itself, and a server that changes nothing it
+publishes has nothing for the gate to notice.
 
 ## The client's config
 
@@ -381,31 +494,48 @@ because it is not in the pin.
 
 ### Why `reworded-silent` forwards the call
 
-Run the same thing against `reworded-silent` and the call goes through: the
-server answers `5`, and the gate neither hides nor refuses anything.
+Run the same thing against `reworded-silent` with `--mode enforce
+--relist-on-change` and the call goes through: the server answers `5`, and
+the gate neither hides nor refuses anything.
 
-That is not a defect in the gate, and it is not something a flag fixes. The
-gate learns what a tool looks like from a `tools/list` answer, and it gets
-one of those in exactly two ways: the client asks, or — with
-`--relist-on-change` — the server says something changed and the gate asks.
-In `reworded-silent` the client has already listed and will not again, and
-the server says nothing. There is no third source. The gate is not wrong
-here; it has not been told.
+That is not a defect in the gate. The gate learns what a tool looks like
+from a `tools/list` answer, and with those two flags it gets one in exactly
+two ways: the client asks, or the server says something changed and the
+gate asks. In `reworded-silent` the client has already listed and will not
+again, and the server says nothing. The gate is not wrong here; it has not
+been told.
+
+**There is a third way, and it is `--verify-on-call`.** Add it and the same
+run ends in a refusal instead: the gate asks for a list of its own before
+passing the call on, finds a description that no longer matches the pin,
+and does not forward it. What that costs, and the three things it still
+cannot do, are in [asking before the
+call](#asking-before-the-call-the-one-place-a-clients-message-waits). It is
+worth running `reworded-silent` both ways, because the pair is the clearest
+demonstration of what each flag is for.
 
 So the honest shape of what this covers:
 
-| the server… | and it… | the gate |
-| --- | --- | --- |
-| changes a description | announces it | notices, with `--relist-on-change` |
-| changes a description | says nothing | notices only when the client next lists |
-| stops offering a tool | announces it | notices, with `--relist-on-change` |
-| stops offering a tool | says nothing | notices only when the client next lists |
+| the server… | and it… | by default | with `--verify-on-call` |
+| --- | --- | --- | --- |
+| changes a description | announces it | notices, with `--relist-on-change` | refused at call time, within the window |
+| changes a description | says nothing | notices only when the client next lists | refused at call time, within the window |
+| stops offering a tool | announces it | notices, with `--relist-on-change` | refused at call time, within the window |
+| stops offering a tool | says nothing | notices only when the client next lists | refused at call time, within the window |
 
-Closing the bottom rows would mean polling a server on a timer, which this
-does not do and which would be a different thing to agree to. Measured over
-the recorded sessions, only two of 75 servers ever sent that notification at
-all — so for most servers the gate is in the second row, and the thing that
-actually helps is a client that lists more than once.
+"Within the window" is the whole of the fourth column's modesty: the gate
+asks when the picture it holds is older than `--verify-window`, so a change
+that lands inside the window is still forwarded on an out-of-date picture,
+and nothing it learns is current at the instant the server runs the call.
+
+Closing the third column's bottom rows any further would mean polling a
+server on a timer, which this does not do and which would be a different
+thing to agree to. `--verify-on-call` is the nearest thing that is not
+polling: it asks when a call is about to go, not on a clock, so a session
+that makes no calls asks nothing. Measured over the recorded sessions, only
+two of 75 servers ever sent `tools/list_changed` at all — so for most
+servers the third column is the second row, and the two things that
+actually help are a client that lists more than once and this flag.
 
 `observation-sheet.md` in this directory is for writing down what you see.
 
