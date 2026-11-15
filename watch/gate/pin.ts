@@ -166,6 +166,25 @@ export function pinnedToolOf(t: ToolRecord, how: How, who: { by: string | null; 
   };
 }
 
+/**
+ * The words for an approval with no decision behind it.
+ *
+ * One phrase, used by every report that shows one, so a reader meets the
+ * same sentence wherever it turns up.
+ */
+export const CARRIED_LABEL = "carried from an earlier approval";
+
+/**
+ * Whether this record is an approval carried from an earlier version.
+ *
+ * `how` is "approve" because somebody did approve this tool, once, at a
+ * version this pin is not about; the decision lives in that version's
+ * entry in watch/decisions.json and not here.
+ */
+export function isCarried(t: PinnedTool): boolean {
+  return t.how === "approve" && t.itemHash === null && t.by === null;
+}
+
 /** The records of a pin, back as the tool records everything else here uses. */
 export function recordsOf(pin: Pin): ToolRecord[] {
   return Object.values(pin.tools)
@@ -275,6 +294,14 @@ export function parse(text: string): Pin {
       if (r.by !== null && (typeof r.by !== "string" || !r.by)) say("have a reviewer that is not a name");
       if (r.at !== null && (typeof r.at !== "string" || !DATE.test(r.at))) say("have a date that is not YYYY-MM-DD");
       if (r.itemHash !== null && (typeof r.itemHash !== "string" || !HEX.test(r.itemHash))) say("have an itemHash that is not a sha256");
+      /*
+       * Kept here, where the tool rule above is not, and the asymmetry is
+       * deliberate: instructions are not carried. There is no approved list
+       * of names to carry them across a version, so nothing in this
+       * repository writes an instructions record that says "approve" with
+       * no decision behind it. One in a file is therefore not a carried
+       * approval — it is a file somebody edited.
+       */
       if (r.how === "approve" && r.itemHash === null && r.by === null) {
         say("say they were approved and name neither a decision nor a reviewer");
       }
@@ -298,9 +325,23 @@ export function parse(text: string): Pin {
     if (t.by !== null && (typeof t.by !== "string" || !t.by)) say("has a reviewer that is not a name");
     if (t.at !== null && (typeof t.at !== "string" || !DATE.test(t.at))) say("has a date that is not YYYY-MM-DD");
     if (t.itemHash !== null && (typeof t.itemHash !== "string" || !HEX.test(t.itemHash))) say("has an itemHash that is not a sha256");
-    if (t.how === "approve" && t.itemHash === null && t.by === null) {
-      say("says it was approved and names neither a decision nor a reviewer");
-    }
+    /*
+     * A TOOL APPROVED WITH NO DECISION BEHIND IT IS CARRIED, AND IS READ.
+     *
+     * This used to be refused, which contradicted the comment on
+     * `fromDecisions` two screens down: a tool on an approved list that did
+     * not change between versions has no decision of its own, so its record
+     * names neither a reviewer nor an item. `fromDecisions` writes exactly
+     * that, and `parse` then would not read it back — so `gate pin
+     * --from-decisions` could write a pin that stopped the server from
+     * starting, because the gate fails closed on a pin it cannot read.
+     *
+     * The cost of accepting it is that a hand-edited pin claiming an
+     * approval nobody made is no longer told apart here. That is paid for
+     * by naming it instead: `isCarried` marks the record, and a report says
+     * so in as many words, so a reader is never shown a carried approval as
+     * though somebody had just signed it off.
+     */
     /* The hashes must be the hashes OF the definition that is there. A pin
      * whose hashes and definitions disagree would compare one thing and show
      * another. */

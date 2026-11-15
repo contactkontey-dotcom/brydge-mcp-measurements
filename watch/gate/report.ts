@@ -25,7 +25,7 @@
 import { prepare, type Prepared } from "../page.ts";
 import { otherFieldLines, queueFor } from "../review.ts";
 import { definitionOf, normalise, type ToolRecord } from "../tools.ts";
-import { ADOPTED, recordsOf, type Pin } from "./pin.ts";
+import { ADOPTED, CARRIED_LABEL, isCarried, recordsOf, type Pin } from "./pin.ts";
 import type { WouldHide } from "./router.ts";
 
 export const PENDING_FORMAT = "brydge-gate-pending";
@@ -56,6 +56,15 @@ export interface Pending {
    */
   offered: Record<string, Record<string, unknown>>;
   notes: string[];
+  /**
+   * Pinned tools whose approval was carried from an earlier version, by
+   * name.
+   *
+   * Optional, so a report written before this field existed still reads.
+   * A reader seeing an approval with no reviewer beside it is owed the
+   * reason, and this is it.
+   */
+  carried?: string[];
   /** The queue, prepared: word diffs, schema diffs, visible markers. */
   prepared: Prepared;
 }
@@ -66,6 +75,11 @@ export const SHADOW_LINE =
   "This is a record of what differs from the pin.";
 
 /** Said wherever a pin nobody reviewed is the thing being compared against. */
+/** Said when a pin holds approvals that no decision in it accounts for. */
+export const carriedLine = (names: string[]): string =>
+  `${names.length} tool(s) in this pin are ${CARRIED_LABEL}: they were approved at an earlier version, ` +
+  `did not change, and so the pin names no reviewer and no decision for them — ${names.join(", ")}.`;
+
 export const ADOPTED_LINE =
   `This pin was ${ADOPTED}: it was taken from what the server was offering at the time, ` +
   "so a difference from it is a difference from that, and not from anything anybody signed off.";
@@ -81,6 +95,8 @@ export const ADOPTED_LINE =
 export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], seenAt: string): Pending {
   const queue = queueFor(pin.package, `pinned ${pin.pinnedAt}`, `offered ${seenAt}`, recordsOf(pin), live);
   const notes = otherFieldLines(queue);
+  const carried = Object.values(pin.tools).filter(isCarried).map((t) => t.name).sort();
+  if (carried.length) notes.unshift(carriedLine(carried));
   if (pin.source === ADOPTED) notes.unshift(ADOPTED_LINE);
   const offered: Record<string, Record<string, unknown>> = {};
   for (const h of wouldHide) {
@@ -96,6 +112,7 @@ export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], 
     seenAt,
     pinnedBy: pin.source,
     pinnedAt: pin.pinnedAt,
+    carried,
     shadow: SHADOW_LINE,
     wouldHide,
     notes,

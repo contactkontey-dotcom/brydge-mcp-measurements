@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { CONTAINMENT, flatten, GATEKEEPING } from "./banned.ts";
-import { ADOPTED, adopt, fromDecisions } from "../watch/gate/pin.ts";
+import { ADOPTED, CARRIED_LABEL, adopt, fromDecisions } from "../watch/gate/pin.ts";
 import { ADOPTED_LINE, SHADOW_LINE, pendingOf, stderrLine } from "../watch/gate/report.ts";
 import type { WouldHide } from "../watch/gate/router.ts";
 import { recordOf, type ToolRecord } from "../watch/tools.ts";
@@ -119,4 +119,34 @@ test("nothing in the report or the module claims the server is contained", () =>
     [JSON.stringify(p.notes), p.shadow, stderrLine(p, "/tmp/x.json"), readFileSync(join(ROOT, "watch", "gate", "report.ts"), "utf8")].join("\n"),
   );
   for (const w of [...CONTAINMENT, ...GATEKEEPING]) assert.ok(!text.includes(w), `the report says "${w}"`);
+});
+
+test("a report names the approvals it is carrying, rather than showing them as fresh", () => {
+  /*
+   * A reviewer opening a report sees which tools the pin holds. For a tool
+   * approved at an earlier version and carried since, the pin names no
+   * reviewer and no decision — so without a word of explanation the report
+   * would show an approval with nobody's name against it.
+   */
+  const carriedPin = fromDecisions({
+    package: "fixture-mcp",
+    version: "2.0.0",
+    approved: pinned.map((t) => t.name),
+    tools: pinned,
+    decisions: {},
+    at: "2026-11-01",
+  }).pin;
+  const p = pendingOf(carriedPin, live, hidden, "2026-11-02");
+
+  assert.deepEqual(p.carried, pinned.map((t) => t.name).sort(), "the report does not name the carried approvals");
+  const note = p.notes.find((n) => n.includes(CARRIED_LABEL));
+  assert.ok(note, `no note explains the carried approvals: ${JSON.stringify(p.notes)}`);
+  assert.match(note!, /approved at an earlier version/);
+  assert.match(note!, /names no reviewer and no decision for them/);
+});
+
+test("a report about a pin with no carried approvals says nothing about them", () => {
+  const p = pendingOf(adoptedPin(), live, hidden, "2026-11-02");
+  assert.deepEqual(p.carried, [], "an adopted pin was reported as carrying approvals");
+  assert.ok(!p.notes.some((n) => n.includes(CARRIED_LABEL)), "a note about carried approvals appeared where there are none");
 });

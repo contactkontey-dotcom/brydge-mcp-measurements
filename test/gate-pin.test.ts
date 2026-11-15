@@ -11,7 +11,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { test } from "node:test";
 import { flatten, GATEKEEPING, CONTAINMENT } from "./banned.ts";
-import { ADOPTED, NotAPin, adopt, fromDecisions, parse, pathFor, read, recordsOf, serialize, write } from "../watch/gate/pin.ts";
+import { ADOPTED, NotAPin, adopt, fromDecisions, isCarried, parse, pathFor, read, recordsOf, serialize, write } from "../watch/gate/pin.ts";
 import { definitionOf, recordOf, type ToolRecord } from "../watch/tools.ts";
 
 const A = "FIXTURE A: reads the planted file and returns its planted bytes.";
@@ -149,13 +149,26 @@ test("a pin whose hashes do not match the definitions beside them is refused", (
   );
 });
 
-test("a record that claims an approval nobody made is refused", () => {
+test("a record that claims an approval with nothing behind it is read, and named", () => {
+  /*
+   * THIS TEST USED TO ASSERT THE OPPOSITE, AND THE OPPOSITE WAS A BUG.
+   *
+   * It refused a tool whose record says "approve" with no reviewer and no
+   * item. But that is precisely what `fromDecisions` writes for a tool
+   * carried from an earlier version's approved list, so the writer could
+   * produce a pin this reader would not take — and the gate fails closed
+   * on a pin it cannot read, which makes that a server that does not
+   * start. See the round-trip test at the end of this file.
+   *
+   * What is given up is that a hand-edited pin claiming an approval nobody
+   * made now reads. What is gained instead is that it is never shown as a
+   * fresh approval: `isCarried` marks it and a report says so in words.
+   */
   const copy = JSON.parse(serialize(adopt("fixture-mcp", "1.0.0", [tool()], DAY)));
   copy.tools.read_file.how = "approve";
-  assert.throws(
-    () => parse(JSON.stringify(copy)),
-    (e: Error) => e instanceof NotAPin && /names neither a decision nor a reviewer/.test(e.message),
-  );
+  const back = parse(JSON.stringify(copy));
+  assert.equal(back.tools.read_file!.how, "approve");
+  assert.ok(isCarried(back.tools.read_file!), "the record was read but not marked as carried");
 });
 
 test("a missing, empty or unreadable file each say which", () => {
@@ -269,4 +282,64 @@ test("nothing in the pin module claims the server is contained", () => {
   const src = flatten(readFileSync(join(import.meta.dirname, "..", "watch", "gate", "pin.ts"), "utf8"));
   for (const w of [...CONTAINMENT, ...GATEKEEPING]) assert.ok(!src.includes(w), `watch/gate/pin.ts says "${w}"`);
   assert.ok(flatten(ADOPTED).includes("not reviewed"));
+});
+
+/* ── An approval carried from an earlier version ────────────────────────── */
+
+test("fromDecisions writes a carried approval, and parse reads it back", () => {
+  /*
+   * THE ROUND TRIP IS THE POINT.
+   *
+   * A tool on an approved list that did not change between versions has no
+   * decision of its own: `fromDecisions` writes `how: "approve"` with no
+   * reviewer and no item, exactly as its own comment says it should.
+   * `parse` used to refuse that, so the writer could produce a pin the
+   * reader would not take — and since the gate fails closed on a pin it
+   * cannot read, `gate pin --from-decisions` could write a file that
+   * stopped the server from starting.
+   */
+  const r = fromDecisions({
+    package: "fixture-mcp",
+    version: "2.0.0",
+    approved: ["read_file"],
+    tools: [tool()],
+    decisions: {},
+    at: DAY,
+  });
+  const written = r.pin.tools.read_file!;
+  assert.equal(written.how, "approve");
+  assert.equal(written.by, null);
+  assert.equal(written.at, null);
+  assert.equal(written.itemHash, null);
+  assert.ok(isCarried(written), "the record is not marked as carried");
+
+  /* Written, read, and the same pin on the other side. */
+  const back = parse(serialize(r.pin));
+  assert.deepEqual(Object.keys(back.tools), ["read_file"]);
+  assert.ok(isCarried(back.tools.read_file!), "a carried approval did not survive the round trip");
+  assert.deepEqual(recordsOf(back).map((t) => t.name), ["read_file"]);
+
+  /* And through a real file, which is how the gate meets one. */
+  const file = join(mkdtempSync(join(tmpdir(), "gate-pin-carried-")), "pin.json");
+  write(file, r.pin);
+  assert.ok(isCarried(read(file).tools.read_file!));
+});
+
+test("a decided approval is not a carried one", () => {
+  const r = fromDecisions({
+    package: "fixture-mcp",
+    version: "2.0.0",
+    approved: ["read_file"],
+    tools: [tool()],
+    decisions: { "anitem:read_file": { by: "planted-reviewer", at: DAY, itemHash: "b".repeat(64), decision: "approve" } },
+    at: DAY,
+  });
+  const written = r.pin.tools.read_file!;
+  assert.equal(written.by, "planted-reviewer");
+  assert.ok(!isCarried(written), "an approval with a reviewer behind it was called carried");
+});
+
+test("an adopted record is not a carried approval either", () => {
+  const pin = adopt("fixture-mcp", "1.0.0", [tool()], DAY);
+  assert.ok(!isCarried(pin.tools.read_file!), "an adopted tool was called an approval");
 });
