@@ -51,6 +51,7 @@ export const SOURCES = [
   ["watch", "gate", "router.ts"],
   ["watch", "gate", "instructions.ts"],
   ["watch", "gate", "excise.ts"],
+  ["watch", "gate", "held.ts"],
   ["watch", "gate", "pin.ts"],
   ["watch", "gate", "report.ts"],
   ["watch", "gate", "stale.ts"],

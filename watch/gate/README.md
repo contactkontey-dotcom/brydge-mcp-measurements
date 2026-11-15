@@ -120,7 +120,12 @@ the diff: changed descriptions first, with inserted and removed words
 marked and invisible characters made visible.
 
 `--journal` writes one line per thing the gate noticed. It is counts and
-tool names, not message contents.
+tool names, not message contents. Its first line is a header: the
+package and version the session was about, which mode it ran in, and a
+random label so two journals of the same server can be told apart. The
+mode is in it because the rest of the file depends on it — the same line
+means "a gate would have hidden this" in shadow and "a gate did" under
+enforcement.
 
 ### 4. Review and approve
 
@@ -557,6 +562,48 @@ actually help are a client that lists more than once and this flag.
 
 ---
 
+## The calls that waited and did not go
+
+`--verify-on-call` holds a `tools/call` while the gate asks the server for
+a current list. Most of those calls are then forwarded. `--held <file>`
+records the ones that were not — the check timed out, the session's budget
+was spent, or the list came back and the tool was not in it:
+
+```
+gate --pin <pin> --mode enforce --verify-on-call --held ~/gate/held.ndjson -- <your server command>
+```
+
+One line per call: the tool, the time, and a **fingerprint** of the
+arguments.
+
+```json
+{"tool":"demo_subtract","at":"2026-11-15T16:54:17.758Z","arguments":"sha256:a034da39…"}
+```
+
+It is refused where the file could only ever be empty: without
+`--verify-on-call` nothing waits, and in shadow mode nothing is refused. A
+new file each session, like the journal.
+
+**A hash is not privacy, and this is the place to say so.** The
+fingerprint cannot be turned back into the arguments. But it is a label
+for them, and a label for a *small set* is as good as the thing: if a tool
+is called with one of a dozen paths, anybody holding this file and a list
+of the likely arguments can hash the list and read the answer off. Twelve
+guesses is not an attack.
+
+So what the file honestly offers is: the same call was tried five times;
+this call is not that call; something was held at 16:54 and did not go.
+What it does not offer is concealment of a low-entropy argument. Keep it
+with the pin, not with the journal — the journal is the file you can send
+without reading it first, and this one is a file for somebody who is
+already allowed to know what your client was doing.
+
+**And it is not a way to run the call again.** There is nothing in a
+record to replay with, which is the point and also the cost: if a held
+call should have gone through, you ask the client to make it again.
+
+---
+
 ## Keeping the model away from the gate's own files
 
 The gate's value depends on one thing: that the person decides what is
@@ -569,6 +616,11 @@ approve anything.
 **The report** in `--pending` carries the live definitions of what differs,
 which is the server's prose, and `gate approve` turns a report plus a
 decisions file into a new pin.
+
+**The held-call report**, if you use `--held`, decides nothing — but it
+holds argument fingerprints, which are a disclosure rather than a lever.
+The directory rules below already cover it if you keep it beside the pin,
+which is where it belongs.
 
 Nothing the gate sends a client names any of this. A refusal used to end
 with "To approve it: run `node watch/cli.ts gate approve --pending <report>
@@ -835,6 +887,14 @@ Plainly, because the value of this depends on them.
 
 * **Local stdio servers only.** It is a process in a pipe. A remote server
   over HTTP or SSE does not go through it.
+
+* **It reaches no network itself.** Nothing the gate is made of imports a
+  network module or calls `fetch`, and a test holds that over every source
+  the build compiles. In the sealed room an enforcing run makes the same
+  `connect()` calls as the server with no gate at all — one, to a local
+  name-service socket — so the gate adds no outbound connection. What the
+  server it wraps reaches is the server's business and is not changed by
+  any of this.
 
 * **It hides and refuses. Nothing more.** It does not stop the server from
   doing anything, inspect what a tool does when it runs, or examine the

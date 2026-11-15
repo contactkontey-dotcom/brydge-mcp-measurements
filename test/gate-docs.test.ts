@@ -605,3 +605,32 @@ test("the sheet asks about the instructions string, in two sessions", () => {
   assert.match(SHEET, /Did `gate approve` carry your decision into the pin\?/);
   assert.match(SHEET, /Nothing is expected in the last row: that is what "silent" means here/);
 });
+
+test("the README says the journal's first line is a header, and why the mode is in it", () => {
+  assert.match(README, /Its first line is a header: the\s+package and version the session was about, which mode it ran in/);
+  assert.match(README, /The\s+mode is in it because the rest of the file depends on it/);
+});
+
+test("the README explains --held, and says a hash is not privacy next to it", () => {
+  const s = section("The calls that waited and did not go");
+  assert.match(s, /--held <file>`\s+records the ones that were not/); /* the README wraps; the claim must not depend on where */
+  assert.match(s, /the tool, the time, and a \*\*fingerprint\*\* of the\s+arguments/);
+  assert.match(s, /"arguments":"sha256:/);
+  /* The limit, in the same section rather than in a footnote. */
+  assert.match(s, /\*\*A hash is not privacy, and this is the place to say so\.\*\*/);
+  assert.match(s, /a label for a \*small set\* is as good as the thing/);
+  assert.match(s, /Twelve\s+guesses is not an attack/);
+  assert.match(s, /\*\*And it is not a way to run the call again\.\*\*/);
+  /* And what it refuses, so a tester is not left with an empty file. */
+  assert.match(s, /refused where the file could only ever be empty/);
+  /* The deny-rules section knows about it too. */
+  assert.match(README, /\*\*The held-call report\*\*, if you use `--held`, decides nothing/);
+});
+
+test("the README's offline claim says what was measured, not that it is impossible", () => {
+  assert.match(README, /\*\*It reaches no network itself\.\*\*/);
+  assert.match(README, /Nothing the gate is made of imports a\s+network module or calls `fetch`/);
+  assert.match(README, /the same\s+`connect\(\)` calls as the server with no gate at all/);
+  /* The thing it must not be read as claiming. */
+  assert.match(README, /What the\s+server it wraps reaches is the server's business/);
+});

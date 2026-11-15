@@ -99,6 +99,7 @@ export const CHECKED = [
   "watch/gate/verify.ts",
   "watch/gate/instructions.ts",
   "watch/gate/excise.ts",
+  "watch/gate/held.ts",
   "watch/gate/fixtures/demo-server.mjs",
   "watch/gate/fixtures/fields-server.mjs",
 ];

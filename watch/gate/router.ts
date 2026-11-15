@@ -74,6 +74,22 @@ export type WouldHide =
   | { tool: string; because: "it differs from the baseline in some other field" };
 
 export type Note =
+  /*
+   * THE HEADER. Written once, when the journal is opened, before anything
+   * is observed — so a journal says what session it is of rather than
+   * leaving a reader to infer it from the file's name.
+   *
+   * It carries the mode because what a journal MEANS depends on it: a
+   * `would-hide` in shadow is what a gate would have done, and in enforce
+   * it is what one did. Anything reading these files has to know which,
+   * and until now the file did not say.
+   *
+   * `package` and `packageVersion` are null when nothing named them —
+   * shadow mode with no pin, where the first list seen is the baseline.
+   * `session` is a random label, so two journals from the same server can
+   * be told apart without timestamps.
+   */
+  | { kind: "session"; at: number; mode: Mode; package: string | null; packageVersion: string | null; session: string }
   | { kind: "baseline"; at: number; tools: number; source: "first list seen" | "given" }
   | { kind: "would-hide"; at: number; listId: string; shown: number; hidden: WouldHide[] }
   | { kind: "list-unchanged"; at: number; listId: string; tools: number }

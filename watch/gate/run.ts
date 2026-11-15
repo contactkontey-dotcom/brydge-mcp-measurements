@@ -45,12 +45,14 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { relay, type Line, type Relay } from "./transport.ts";
 import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./router.ts";
 import { ADOPTED, FORMAT_VERSION as PIN_FORMAT_VERSION, NOT_LOOKED, NotAPin, adopt, instructionsStateOf, read as readPin, write as writePin, type Looked, type Pin } from "./pin.ts";
 import { UNPINNED_LINE, type Seen } from "./instructions.ts";
+import { append as appendHeld } from "./held.ts";
 import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, nameOf, REFUSAL_STYLES, type RefusalStyle, type Why } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
@@ -100,6 +102,7 @@ if (dashdash === -1 || dashdash === argv.length - 1) {
     "  --pin <file>                   the surface somebody signed off",
     "  --pending <dir>                where a report goes when the live list differs",
     "  --journal <file>               one line per note",
+    "  --held <file>                  the calls that waited and did not go: tool, time, argument fingerprint",
     "  --write-pin <file>             take a pin from the first live list (shadow only)",
     "  --package <name@version>       what that pin is a pin of",
     "  --mode shadow|enforce          shadow unless this says otherwise",
@@ -119,6 +122,11 @@ const flag = (name: string): string | null => {
   return i === -1 ? null : (flags[i + 1] ?? null);
 };
 const journalPath = flag("--journal");
+/*
+ * Where the calls that waited and did not go are written. Its own file,
+ * not the journal, for the reason in ./held.ts.
+ */
+const heldPath = flag("--held");
 const pinPath = flag("--pin");
 const pendingDir = flag("--pending");
 /*
@@ -215,6 +223,29 @@ const onVerifyTimeoutGiven =
 const onVerifyTimeout = (onVerifyTimeoutGiven || "refuse") as OnVerifyTimeout;
 if (!ON_VERIFY_TIMEOUTS.includes(onVerifyTimeout)) {
   refuse(64, [`gate: ${VERIFY_ON_TIMEOUT_FLAG} is ${ON_VERIFY_TIMEOUTS.join(" or ")}, not ${JSON.stringify(onVerifyTimeout)}`]);
+}
+/*
+ * --held NEEDS BOTH A HOLD AND A REFUSAL TO BE POSSIBLE.
+ *
+ * It records calls that waited and did not go. Without --verify-on-call
+ * nothing waits; in shadow mode nothing is refused. Either way the file
+ * would stay empty for ever, and a tester who asked for it and got
+ * silence would be entitled to think the gate was broken. Said rather
+ * than ignored, like the settings below.
+ */
+if (heldPath !== null) {
+  if (!verifyOnCall) {
+    refuse(64, [
+      `gate: --held only applies with ${VERIFY_FLAG}, which was not given.`,
+      "gate: nothing waits without it, so no call could be held. The server was not started.",
+    ]);
+  }
+  if (mode !== "enforce") {
+    refuse(64, [
+      "gate: --held only applies with --mode enforce.",
+      "gate: shadow mode forwards every call, so none is ever held and not forwarded. The server was not started.",
+    ]);
+  }
 }
 if (!verifyOnCall) {
   /* A setting that would do nothing is said rather than ignored. */
@@ -315,7 +346,22 @@ if (journalPath) {
   mkdirSync(dirname(journalPath), { recursive: true });
   writeFileSync(journalPath, "");
 }
+if (heldPath) {
+  mkdirSync(dirname(heldPath), { recursive: true });
+  /* One file, one session, like the journal. */
+  writeFileSync(heldPath, "");
+}
 if (pendingDir) mkdirSync(pendingDir, { recursive: true });
+
+/**
+ * A label for this session, so two journals of the same server can be told
+ * apart without comparing timestamps.
+ *
+ * Random, and nothing is derived from it: not the pid, which would say
+ * something about the machine, and not the time, which is in every line
+ * already.
+ */
+const sessionId = randomBytes(4).toString("hex");
 
 function note(n: Note): void {
   if (!journalPath) return;
@@ -332,6 +378,21 @@ function note(n: Note): void {
  * so the verdict waits here for the first tools/list and goes out with it.
  */
 let instructionsForReport: Seen | undefined = undefined;
+
+/*
+ * The header. First line of the journal, before anything is observed.
+ *
+ * `package` is the pin's when there is one, the --package reference when
+ * that is what names it, and null when nothing does.
+ */
+note({
+  kind: "session",
+  at: Date.now(),
+  mode,
+  package: pin?.package ?? (packageRef ? packageRef.slice(0, packageRef.lastIndexOf("@")) : null),
+  packageVersion: pin?.packageVersion ?? (packageRef ? packageRef.slice(packageRef.lastIndexOf("@") + 1) : null),
+  session: sessionId,
+});
 
 let reports = 0;
 function reportOn(records: ToolRecord[], hidden: WouldHide[]): void {
@@ -711,10 +772,24 @@ const observe = (side: Side) => (line: Line) => {
         const said = enforcer.refuseUnchecked(line);
         if (said) {
           process.stdout.write(Buffer.concat([said, Buffer.from("\n")]));
+          recordHeld(line);
           return { pass: false, drop: true } as const;
         }
       }
-      return decide(line, side);
+      /*
+       * The check finished, and the call goes on its merits — which may
+       * still be a refusal, if the list that came back no longer has the
+       * tool in it or has it differing from the pin. That is a call that
+       * waited and did not go, so it belongs in the report as much as a
+       * timeout does.
+       *
+       * `stopping` excludes the other way a decision does not forward: a
+       * session ending on something that failed closed is not a refused
+       * call, and a record of it would read as one.
+       */
+      const decided = decide(line, side);
+      if (!decided.pass && "drop" in decided && decided.drop && !stopping) recordHeld(line);
+      return decided;
     });
   }
 
@@ -723,6 +798,20 @@ const observe = (side: Side) => (line: Line) => {
 
 /** Whether this is a call, without reading anything but the method. */
 const isToolCall = (parsed: unknown): boolean => plainOf(parsed)?.method === "tools/call";
+
+/**
+ * One line in the held-call report, for a call that waited and did not go.
+ *
+ * The arguments reach ./held.ts, are hashed there, and are not kept by
+ * anything: no variable here holds them, and nothing else is told them.
+ */
+function recordHeld(line: Line): void {
+  if (!heldPath) return;
+  const params = plainOf(line.parsed)?.params;
+  const tool = nameOf(params);
+  if (tool === null) return;
+  appendHeld(heldPath, tool, plainOf(params)?.arguments);
+}
 
 /** What the enforcer makes of one line. Unchanged by the hold above it. */
 function decide(line: Line, side: Side) {

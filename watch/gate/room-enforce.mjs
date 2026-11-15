@@ -28,6 +28,7 @@
 import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { build } from "./build.mjs";
+import { readTrace } from "../../harness/trace.ts";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -119,6 +120,22 @@ function session(label, gated) {
   }
   const resultPath = join(runDir, "session-result.json");
   const result = existsSync(resultPath) ? JSON.parse(readFileSync(resultPath, "utf8")) : null;
+  /*
+   * EVERY connect() THE RUN MADE.
+   *
+   * strace already traces it — harness/session.ts asks for
+   * trace=open,openat,creat,execve,connect — so this costs nothing but
+   * reading the files it wrote. The question it answers is the one the
+   * notifier makes worth asking: does putting the gate in front of a
+   * server add an outbound connection? The comparison below is between
+   * the direct runs and the gated ones, so a connect the SERVER makes is
+   * not read as the gate's.
+   */
+  const trace = existsSync(join(runDir, "trace")) ? readTrace(join(runDir, "trace"), "t") : [];
+  const connects = trace
+    .filter((e) => e.syscall === "connect")
+    .map((e) => `${e.family ?? "?"} ${e.address ?? "?"}${e.port ? `:${e.port}` : ""}`)
+    .sort();
   return {
     label,
     runDir,
@@ -128,6 +145,8 @@ function session(label, gated) {
     offered: result?.offered ?? null,
     serverInfo: result?.serverInfo ?? null,
     initError: result?.initError ?? null,
+    connects,
+    tracedEvents: trace.length,
   };
 }
 
@@ -198,6 +217,22 @@ const gateLines = (t) => (t ? t.split("\n").filter((l) => l.startsWith("gate:"))
 
 const killRule = a.bytes && e.bytes ? a.bytes.equals(e.bytes) : null;
 
+/*
+ * THE OFFLINE RULE, beside the kill rule.
+ *
+ * The gate reaches no network, and test/gate-offline.test.ts holds that
+ * over the SOURCE. This is the same question put to the syscalls: the
+ * direct runs are the server on its own, the gated ones are the server
+ * with the gate in front of it, and the gate adds an outbound connection
+ * or it does not. Every address seen is printed either way, because a
+ * verdict with nothing behind it is worth less than a list.
+ */
+const connectsIn = (...runs) => [...new Set(runs.flatMap((r) => r.connects ?? []))].sort();
+const direct = connectsIn(a, b);
+const gated = connectsIn(s, e, z);
+const added = gated.filter((c) => !direct.includes(c));
+const traced = [a, b, s, e, z].every((r) => (r.tracedEvents ?? 0) > 0);
+
 console.log(JSON.stringify({
   installTree: found.from,
   serverStartedOnlyInTheRoom: true,
@@ -218,4 +253,11 @@ console.log(JSON.stringify({
   enforce0_differs_from_direct: a.bytes && z.bytes ? !a.bytes.equals(z.bytes) : null,
   enforce0_toolsOffered: z.offered ? z.offered.length : null,
   KILL_RULE: killRule === true ? "PASSED" : "FAILED",
+  connects_direct: direct,
+  connects_gated: gated,
+  connects_the_gate_added: added,
+  /* A run with no traced events at all would make the two lists above
+   * empty for the wrong reason, so the verdict says whether it measured. */
+  traces_were_read: traced,
+  OFFLINE_RULE: traced && added.length === 0 ? "PASSED" : traced ? "FAILED" : "NOT MEASURED",
 }, null, 2));
