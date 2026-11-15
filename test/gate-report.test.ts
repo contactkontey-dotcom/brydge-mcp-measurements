@@ -9,7 +9,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { CONTAINMENT, flatten, GATEKEEPING } from "./banned.ts";
+import { CONTAINMENT, GATEKEEPING, flatten, withoutDisclaimers } from "./banned.ts";
 import { ADOPTED, CARRIED_LABEL, adopt, fromDecisions } from "../watch/gate/pin.ts";
 import { ADOPTED_LINE, SHADOW_LINE, pendingOf, stderrLine } from "../watch/gate/report.ts";
 import type { WouldHide } from "../watch/gate/router.ts";
@@ -115,10 +115,21 @@ test("a reviewed pin's line does not call itself unreviewed", () => {
 
 test("nothing in the report or the module claims the server is contained", () => {
   const p = pendingOf(adoptedPin(), live, hidden, DAY);
-  const text = flatten(
-    [JSON.stringify(p.notes), p.shadow, stderrLine(p, "/tmp/x.json"), readFileSync(join(ROOT, "watch", "gate", "report.ts"), "utf8")].join("\n"),
+  /*
+   * The disclaimer is stripped before the sweep. A report's notes now
+   * carry the risk classifier's "inferred, not verified" on every queue,
+   * and that phrase contains "verified" in order to DENY it — which is
+   * the opposite of the claim the ban exists to stop. See DISCLAIMERS in
+   * ./banned.ts; a bare "verified" anywhere else still trips.
+   */
+  const text = withoutDisclaimers(
+    flatten(
+      [JSON.stringify(p.notes), p.shadow, stderrLine(p, "/tmp/x.json"), readFileSync(join(ROOT, "watch", "gate", "report.ts"), "utf8")].join("\n"),
+    ),
   );
   for (const w of [...CONTAINMENT, ...GATEKEEPING]) assert.ok(!text.includes(w), `the report says "${w}"`);
+  /* And the phrase really is in what a reviewer reads. */
+  assert.ok(JSON.stringify(p.notes).includes("inferred, not verified"), "the report's notes carry no disclaimer");
 });
 
 test("a report names the approvals it is carrying, rather than showing them as fresh", () => {

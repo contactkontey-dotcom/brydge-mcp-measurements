@@ -72,6 +72,29 @@ export const GATEKEEPING = ["denied", "prevented", "blocks", "blocked", "forbidd
  */
 export const CONTAINMENT = ["safe", "verified", "protected", "secure", "contained", "sandboxed", "trusted"];
 
+/**
+ * Phrases that contain a banned word in order to deny it.
+ *
+ * "verified" is banned because nothing here verifies anything. The risk
+ * classifier's output carries the words "inferred, not verified" on every
+ * assessment, which is the REFUSAL of that claim and the opposite of the
+ * thing the ban is for — and a sweep that could not tell them apart would
+ * force the disclaimer to be dropped, which is the wrong way round.
+ *
+ * Stripped before a search, so a bare "verified" anywhere else still
+ * trips. Nothing is added here to make a sentence pass; a phrase belongs
+ * on this list only when removing the banned word would make the text
+ * claim MORE than it does.
+ */
+export const DISCLAIMERS = ["inferred, not verified"];
+
+/** A flattened text with the disclaimers taken out, for a CONTAINMENT sweep. */
+export function withoutDisclaimers(flat: string): string {
+  let out = flat;
+  for (const d of DISCLAIMERS) out = out.split(d).join(" ");
+  return out;
+}
+
 /** Every file whose prose is checked. */
 export const CHECKED = [
   "site/diff-client.js",
@@ -80,6 +103,7 @@ export const CHECKED = [
   "watch/alert.ts",
   "watch/log.ts",
   "watch/words.ts",
+  "watch/risk.ts",
   "watch/schemadiff.ts",
   "watch/decisions.ts",
   "watch/review.ts",

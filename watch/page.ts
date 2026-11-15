@@ -41,6 +41,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { itemHashOf, type ItemKind, type ReviewItem } from "./decisions.ts";
+import { classify, parametersOf as riskParametersOf, triage, type Assessment } from "./risk.ts";
 import { FORMAT, FORMAT_VERSION, otherFieldLines, type Queue } from "./review.ts";
 import { paramsOf, renderSchemaDiff, schemaDiff, type Change } from "./schemadiff.ts";
 import { legendFor, markup, visible, wordDiff, MARKER_KEY, type Run } from "./words.ts";
@@ -80,6 +81,15 @@ export interface PreparedItem {
   schema: SchemaPart | null;
   /** For a new tool: what it declares it accepts. */
   parameters: ParamPart[] | null;
+  /**
+   * What kind of thing this tool looks like, from watch/risk.ts.
+   *
+   * `null` where there is no tool to classify: the instructions item is
+   * the server's own text and not a tool at all.
+   */
+  risk: Assessment | null;
+  /** Where this sits in the reading order. Lower is read first. */
+  rank: number;
 }
 
 export interface Prepared {
@@ -88,6 +98,14 @@ export interface Prepared {
   to: string;
   generatedAt: string;
   items: PreparedItem[];
+  /**
+   * The item keys in reading order, riskiest first.
+   *
+   * A separate list rather than a reordering of `items`, which stay in
+   * their own order — descriptions, then schemas, then new tools — so
+   * nothing that depended on that order is moved underneath it.
+   */
+  triage: string[];
   notes: string[];
   removed: string[];
   unchanged: number;
@@ -152,9 +170,34 @@ export function parametersOf(schema: unknown): ParamPart[] {
  * zero-width space in a brand new tool's description is exactly as worth
  * seeing as one that arrived in an old tool's.
  */
+/**
+ * What watch/risk.ts is given for one item.
+ *
+ * A queue carries as much of a tool as the change was about: the whole
+ * definition for a new tool, the two schemas for a schema change, and for
+ * a description change only the name. The last is the weakest case and it
+ * shows in the signals, which are then all `name` — a thing a reader can
+ * see rather than a thing this hides.
+ */
+function riskOf(item: ReviewItem): Assessment | null {
+  if (item.kind === "instructions") return null; /* not a tool */
+  if (item.kind === "new tool") {
+    return classify({ name: item.tool, ...((item.after ?? {}) as Record<string, unknown>) }, item.kind);
+  }
+  if (item.kind === "input schema") {
+    const before = new Set(riskParametersOf(item.before));
+    const addedParameters = riskParametersOf(item.after).filter((n) => !before.has(n));
+    return classify({ name: item.tool, inputSchema: item.after }, item.kind, { addedParameters });
+  }
+  return classify({ name: item.tool }, item.kind);
+}
+
 export function prepare(q: Queue, generatedAt: string): Prepared {
   const items: PreparedItem[] = q.items.map((item) => {
-    const base = { kind: item.kind, tool: item.tool, itemHash: itemHashOf(item) };
+    const risk = riskOf(item);
+    /* -1 for an item with no tool to classify, so the server's own
+     * instructions are read before the tools rather than after them. */
+    const base = { kind: item.kind, tool: item.tool, itemHash: itemHashOf(item), risk, rank: risk ? risk.rank : -1 };
     if (item.kind === "description") {
       return { ...base, words: wordsPart(item.before as string | null, item.after as string | null), schema: null, parameters: null };
     }
@@ -181,6 +224,7 @@ export function prepare(q: Queue, generatedAt: string): Prepared {
     to: q.to,
     generatedAt,
     items,
+    triage: triage(items).map((i) => `${i.kind}:${i.tool}`),
     notes: otherFieldLines(q),
     removed: q.removed,
     unchanged: q.unchanged,
@@ -270,6 +314,8 @@ h2 { font-size: 1.05rem; margin: 2.5rem 0 .5rem; }
 .item header { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
 .tool { font: 400 15px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 500; }
 .kind { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--quiet); }
+.risk{font-weight:600}
+.inferred{opacity:.7;font-size:.85em}
 .text {
   font: 400 14px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace;
   white-space: pre-wrap; overflow-wrap: anywhere; margin: .75rem 0;

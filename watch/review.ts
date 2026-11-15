@@ -55,6 +55,7 @@ import {
   type Tally,
 } from "./decisions.ts";
 import { canonical, definitionOf, diffTools, type ToolRecord } from "./tools.ts";
+import { INFERRED, classify, triage } from "./risk.ts";
 
 /* ── Building the queue ─────────────────────────────────────────────────── */
 
@@ -416,6 +417,19 @@ export function renderQueue(q: Queue): string {
   const out: string[] = [];
   out.push(`${q.package}: ${q.from} -> ${q.to}, ${q.items.length} item${q.items.length === 1 ? "" : "s"} to review.`);
   out.push("");
+  /*
+   * THE READING ORDER FIRST, because the order is the useful part of a
+   * queue of 33. Tokens and class names from watch/risk.ts, never a
+   * description; `render` prints only that file's own vocabulary.
+   */
+  const ranked = triage(q.items.map((i) => ({ item: i, ...classify({ name: i.tool }, i.kind) })));
+  if (ranked.length) {
+    out.push(`In reading order (${INFERRED}):`);
+    for (const r of ranked) out.push(`  ${r.classes.join(", ")} — ${r.item.kind} — ${r.item.tool}`);
+    out.push("");
+    out.push("Unknown means review, not nothing to worry about; the lowest rank is not a verdict that nothing can go wrong.");
+    out.push("");
+  }
   for (const kind of KIND_ORDER) {
     const items = q.items.filter((i) => i.kind === kind);
     if (!items.length) continue;

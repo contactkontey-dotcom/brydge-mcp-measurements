@@ -28,6 +28,7 @@ import { definitionOf, normalise, type ToolRecord } from "../tools.ts";
 import { ADOPTED, CARRIED_LABEL, instructionsStateOf, isCarried, recordsOf, type Pin } from "./pin.ts";
 import { INSTRUCTIONS_TOOL, type ReviewItem } from "../decisions.ts";
 import { compare as compareInstructions, type Seen } from "./instructions.ts";
+import { CLASSES, INFERRED, type Class } from "../risk.ts";
 import type { WouldHide } from "./router.ts";
 
 export const PENDING_FORMAT = "brydge-gate-pending";
@@ -87,6 +88,28 @@ export const SHADOW_LINE =
   "This is a record of what differs from the pin.";
 
 /** Said wherever a pin nobody reviewed is the thing being compared against. */
+/**
+ * What the queue looks like by class, for a reader deciding where to start.
+ *
+ * Counts and class names, which are this project's own words — nothing of
+ * the server's. The two sentences after the counts are the two rules that
+ * matter most when reading them, said here rather than left to be
+ * remembered.
+ */
+export function riskLine(prepared: Prepared): string | null {
+  const by = new Map<Class, number>();
+  for (const i of prepared.items) {
+    if (!i.risk) continue;
+    for (const c of i.risk.classes) by.set(c, (by.get(c) ?? 0) + 1);
+  }
+  if (!by.size) return null;
+  const counts = CLASSES.filter((c) => by.has(c)).map((c) => `${by.get(c)} ${c}`).join(", ");
+  return (
+    `By kind, ${INFERRED}: ${counts}. Unknown means review, not nothing to worry about; ` +
+    `the lowest rank is not a verdict that nothing can go wrong. The reading order is in "triage".`
+  );
+}
+
 /** Said when a pin holds approvals that no decision in it accounts for. */
 export const carriedLine = (names: string[]): string =>
   `${names.length} tool(s) in this pin are ${CARRIED_LABEL}: they were approved at an earlier version, ` +
@@ -128,6 +151,9 @@ export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], 
   const instructions = instructionsItemOf(pin, instructionsSeen);
   if (instructions && "note" in instructions) notes.push(instructions.note);
   if (instructions && "item" in instructions) queue.items.push(instructions.item);
+  const prepared = prepare(queue, seenAt);
+  const risk = riskLine(prepared);
+  if (risk) notes.push(risk);
   const carried = Object.values(pin.tools).filter(isCarried).map((t) => t.name).sort();
   if (carried.length) notes.unshift(carriedLine(carried));
   if (pin.source === ADOPTED) notes.unshift(ADOPTED_LINE);
@@ -150,7 +176,7 @@ export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], 
     wouldHide,
     notes,
     ...(instructions && "item" in instructions ? { instructions: { seen: instructions.seen } } : {}),
-    prepared: prepare(queue, seenAt),
+    prepared,
   };
 }
 

@@ -46,6 +46,7 @@ export const SOURCES = [
   ["watch", "schemadiff.ts"],
   ["watch", "decisions.ts"],
   ["watch", "review.ts"],
+  ["watch", "risk.ts"],
   ["watch", "page.ts"],
   ["watch", "gate", "transport.ts"],
   ["watch", "gate", "router.ts"],

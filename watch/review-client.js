@@ -165,11 +165,29 @@
     /* The instructions item names no tool; it is the server's own text. */
     add(head, el("span", "tool", item.kind === "instructions" ? "the server's instructions (initialize result)" : item.tool));
     add(head, el("span", "kind", item.kind));
+    /*
+     * The inferred class, and the words that must travel with it. Every
+     * string here comes from the page's own data: class names and tokens
+     * out of watch/risk.ts, never a description.
+     */
+    if (item.risk) {
+      add(head, el("span", "risk", item.risk.classes.join(", ")));
+      add(head, el("span", "inferred", item.risk.inferred));
+    }
 
     if (item.kind === "new tool") {
       add(box, el("p", "counts", item.words && item.words.after.present
         ? "It was not in " + DATA.from + ". What it says about itself:"
         : "It was not in " + DATA.from + ", and it says nothing about itself."));
+    }
+    if (item.risk && item.risk.signals.length) {
+      var used = [];
+      for (var si = 0; si < item.risk.signals.length; si++) {
+        var sig = item.risk.signals[si];
+        if (sig.says === "discounted") continue;
+        used.push(sig.where + ': "' + sig.what + '"');
+      }
+      if (used.length) add(box, el("p", "counts", "What it was read from — " + used.join("; ")));
     }
     if (item.words) wordsInto(box, item.words);
     if (item.schema) schemaInto(box, item.schema);

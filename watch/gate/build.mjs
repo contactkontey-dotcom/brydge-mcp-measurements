@@ -42,6 +42,7 @@ export const SOURCES = [
   join(ROOT, "watch", "schemadiff.ts"),
   join(ROOT, "watch", "decisions.ts"),
   join(ROOT, "watch", "review.ts"),
+  join(ROOT, "watch", "risk.ts"),
   join(ROOT, "watch", "page.ts"),
   join(ROOT, "watch", "gate", "transport.ts"),
   join(ROOT, "watch", "gate", "router.ts"),
