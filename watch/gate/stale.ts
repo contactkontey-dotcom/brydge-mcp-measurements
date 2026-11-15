@@ -27,7 +27,17 @@ export const ROOT = isBuilt ? join(HERE, "..", "..", "..", "..") : join(HERE, ".
 /** The entry the client launches when it launches the build. */
 export const ENTRY = join(ROOT, "watch", "gate", "built", "gate", "run.js");
 
-const SOURCES = [
+/**
+ * Every source the built gate is made of.
+ *
+ * EXPORTED SO A TEST CAN HOLD IT COMPLETE. Six runtime modules were missing
+ * from this list for several stages — enforce.ts, relist.ts, verify.ts,
+ * history.ts, approve.ts and spawning.ts — so a build older than a change
+ * to enforcement would have started rather than refused, which is the one
+ * thing this file exists to stop. A list kept by hand drifts; a test that
+ * reads the directory does not.
+ */
+export const SOURCES = [
   ["watch", "tools.ts"],
   ["watch", "fields.ts"],
   ["watch", "approved.ts"],
@@ -43,6 +53,12 @@ const SOURCES = [
   ["watch", "gate", "pin.ts"],
   ["watch", "gate", "report.ts"],
   ["watch", "gate", "stale.ts"],
+  ["watch", "gate", "enforce.ts"],
+  ["watch", "gate", "relist.ts"],
+  ["watch", "gate", "verify.ts"],
+  ["watch", "gate", "history.ts"],
+  ["watch", "gate", "approve.ts"],
+  ["watch", "gate", "spawning.ts"],
   ["watch", "gate", "run.ts"],
 ].map((parts) => join(ROOT, ...parts));
 
