@@ -831,12 +831,16 @@ Plainly, because the value of this depends on them.
   milliseconds" and measure your own rather than trusting a single figure.
   Enforcement adds nothing measurable to that, and neither does
   `--relist-on-change`. Per message, the gate copies bytes and parses a
-  copy to decide. Two kinds of message are ever rewritten: an `initialize`
-  result whose `instructions` differ from the pin, which loses that one
-  field by a byte-level cut and keeps every other byte; and a tool list
-  with a hidden tool in it, which is re-serialised from the parsed copy —
-  so its id, if it is a number past 2^53 or a `-0`, comes back as
-  JavaScript writes it, not as the server did.
+  copy to decide. Two kinds of message are ever rewritten — an `initialize`
+  result whose `instructions` differ from the pin, and a tool list with a
+  hidden tool in it — and both are rewritten the same way: the one field,
+  or each hidden element, is cut out of the server's bytes with the one
+  comma that joined it, and every other byte is forwarded as the server
+  wrote it. The id token in particular is never read and never rebuilt, so
+  `0`, `-0`, a number past 2^53 and `1.0` all reach the client exactly as
+  the server sent them. When the bytes cannot be cut without doubt — two
+  members of the same name, say — the session ends saying why, rather than
+  forwarding a message that was supposed to be changed.
 
 ---
 

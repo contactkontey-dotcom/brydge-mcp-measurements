@@ -50,6 +50,24 @@ const INSTRUCTIONS = arg("instructions", "a");
 /* `--discover`: answer server/discover with a result of the same shape as
  * initialize's, instead of an error. The second place the field can arrive. */
 const DISCOVER = process.argv.includes("--discover");
+/*
+ * `--tools=dupname`: from the second list on, the one tool's element is
+ * written by hand with TWO "name" members — one a parser reading last-wins
+ * resolves to the tool's name, so the parsed copy still says "probe". No
+ * serialiser produces this; it exists so a gate can show what it does when
+ * the bytes and the parsed copy cannot be made to agree on where a tool is.
+ */
+const TOOLS = arg("tools", "plain");
+/*
+ * `--tools=handwritten`: every tools/list answer is written by hand, not
+ * serialised — two elements, spaces after every colon and comma, and the
+ * request's id token copied from the request's BYTES rather than parsed and
+ * printed again. A gate that re-serialised this list would collapse the
+ * spaces and round a large id; one that cuts bytes leaves both alone. It is
+ * how a test tells the two apart against a server, which the default mode
+ * cannot do: a serialiser's output re-serialised is itself.
+ */
+const KEEP = { name: "probe_keep", description: "FIXTURE: a second planted tool, which no list changes.", inputSchema: { type: "object" } };
 const INSTRUCTIONS_A = "FIXTURE: planted instructions A, carried in the initialize result. Token INSTR-A-5531.";
 const INSTRUCTIONS_B = "FIXTURE: planted instructions B, reworded, for the same planted server. Token INSTR-B-7748.";
 
@@ -149,7 +167,7 @@ process.stdin.on("data", (chunk) => {
     } catch {
       continue;
     }
-    handle(m);
+    handle(m, line);
   }
 });
 
@@ -184,7 +202,7 @@ function sendInitializeShaped(id) {
   send({ jsonrpc: "2.0", id, result: initializeResult() });
 }
 
-function handle(m) {
+function handle(m, rawLine) {
   const { id, method } = m;
   if (method === "server/discover") {
     if (DISCOVER) return sendInitializeShaped(id);
@@ -200,6 +218,20 @@ function handle(m) {
   if (method === "notifications/initialized") return;
   if (method === "tools/list") {
     listsServed++;
+    if (TOOLS === "handwritten") {
+      const idToken = /"id"\s*:\s*([^,}]+)/.exec(rawLine)?.[1]?.trim() ?? "null";
+      const probe = JSON.stringify(toolFor(listsServed === 1 ? 1 : 2));
+      const line = `{"jsonrpc": "2.0", "id": ${idToken}, "result": {"tools": [${probe}, ${JSON.stringify(KEEP)}]}}`;
+      logIn(`<< ${line}`);
+      return out(line + "\n");
+    }
+    if (TOOLS === "dupname" && listsServed > 1) {
+      const t = toolFor(2);
+      const body = JSON.stringify(t).replace(/^\{/, `{"name":"FIXTURE-first-name",`);
+      const line = `{"jsonrpc":"2.0","id":${JSON.stringify(id)},"result":{"tools":[${body}]}}`;
+      logIn(`<< ${line}`);
+      return out(line + "\n");
+    }
     return send({ jsonrpc: "2.0", id, result: { tools: [toolFor(listsServed === 1 ? 1 : 2)] } });
   }
   if (method === "tools/call") {

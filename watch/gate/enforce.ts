@@ -73,7 +73,7 @@ import type { Line } from "./transport.ts";
 import { toolsOf, type WouldHide } from "./router.ts";
 import { ADOPTED, type Pin } from "./pin.ts";
 import { compare as compareInstructions, seenIn, type State as InstructionsState } from "./instructions.ts";
-import { exciseInstructions } from "./excise.ts";
+import { exciseInstructions, exciseTools } from "./excise.ts";
 
 /** The sentence a refusal always opens with. */
 export const DID_NOT_FORWARD = "the gate did not forward this call";
@@ -437,13 +437,37 @@ export class Enforcer {
     const kept = read.tools.filter((t) => !this.hidden.has(String(t.name)));
     if (kept.length === read.tools.length) return pass;
 
-    const result = { ...(message.result as Record<string, unknown>), tools: kept };
-    const out = Buffer.from(JSON.stringify({ ...message, result }), "utf8");
+    /*
+     * BY THE BYTES, NOT BY RE-SERIALISING. Each hidden element is cut out
+     * of the server's message with the one comma that joined it, and every
+     * other byte — the id token above all — is forwarded as the server
+     * wrote it. The parsed copy decided WHICH names; the scanner finds
+     * WHERE. If the two cannot be made to agree on the bytes, the session
+     * stops: forwarding a list that was supposed to lose a tool is the one
+     * thing enforcement must never do.
+     */
+    const cut = exciseTools(line.raw, new Set(this.hidden.keys()));
+    if (!cut.ok) {
+      const because =
+        `${this.hidden.size} tool(s) are hidden and could not be taken out of the tool list without doubt: ${cut.because}. ` +
+        `Forwarding a list that was supposed to be changed is not something this does. Pin: ${this.opts.pinFile}.`;
+      this.opts.onFailClosed?.(because);
+      return { forward: false, stop: because };
+    }
+    if (cut.kept !== kept.length) {
+      /* The scanner and the parsed copy disagree about how many are left.
+       * That is a message this does not understand well enough to change. */
+      const because =
+        `the parsed tool list keeps ${kept.length} tool(s) and the bytes keep ${cut.kept}; they do not agree, so the list was not changed. ` +
+        `Forwarding a list that was supposed to be changed is not something this does. Pin: ${this.opts.pinFile}.`;
+      this.opts.onFailClosed?.(because);
+      return { forward: false, stop: because };
+    }
     this.opts.onHide?.(
       [...this.hidden.entries()].map(([tool, because]) => ({ tool, because })) as WouldHide[],
       kept.length,
     );
-    return { forward: false, replaceWith: out };
+    return { forward: false, replaceWith: cut.bytes };
   }
 
   private stopOnBatch(n: number, where: string): Action {

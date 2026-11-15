@@ -552,3 +552,18 @@ test("the sheet asks about the call that waited", () => {
    * a forwarded call as a fault. */
   assert.match(SHEET, /The flag-off column is expected to show the call going through/);
 });
+
+test("the README says both rewrites are byte-level cuts, and no longer says a list is re-serialised", () => {
+  /*
+   * I3 added one sentence saying a rewritten tool list was re-serialised,
+   * because it was. I3b made it a cut like the instructions field, and the
+   * sentence has to go with it: a README that understates its own gate is
+   * better than one that overstates it, but neither is the goal.
+   */
+  const flat = flatten(README);
+  assert.ok(!flat.includes("re-serialised from the parsed copy"), "the README still says a tool list is re-serialised");
+  assert.match(README, /both are rewritten the same way/);
+  assert.match(README, /each hidden element, is cut out of the server's bytes with the one\s+comma that joined it/);
+  assert.match(README, /`0`, `-0`, a number past 2\^53 and `1\.0` all reach the client exactly as\s+the server sent them/);
+  assert.match(README, /the session ends saying why, rather than\s+forwarding a message that was supposed to be changed/);
+});

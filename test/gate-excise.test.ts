@@ -146,3 +146,111 @@ test("not one object: an array, trailing bytes, a string that never closes", () 
 test("the field name is fixed", () => {
   assert.equal(FIELD, "instructions");
 });
+
+/* ── Tools out of a tools/list result ───────────────────────────────────── */
+
+import { exciseTools } from "../watch/gate/excise.ts";
+
+const T = (name: string, extra = "") => `{"name":${JSON.stringify(name)},"description":"FIXTURE: planted.","inputSchema":{"type":"object"}${extra}}`;
+const list = (id: string, ...tools: string[]) => `{"jsonrpc":"2.0","id":${id},"result":{"tools":[${tools.join(",")}]}}`;
+
+/** Every removed span put back is the original; what remains parses and lacks the names. */
+function toolsHold(input: string, hidden: string[]): string {
+  const raw = buf(input);
+  const r = exciseTools(raw, new Set(hidden));
+  assert.ok(r.ok, `refused: ${!r.ok && r.because}`);
+  if (!r.ok) throw new Error("unreachable");
+  let restored = Buffer.alloc(0);
+  let cursor = 0;
+  let outCursor = 0;
+  for (const s of r.removed) {
+    const keptLen = s.start - cursor;
+    restored = Buffer.concat([restored, r.bytes.subarray(outCursor, outCursor + keptLen), raw.subarray(s.start, s.end)]);
+    outCursor += keptLen;
+    cursor = s.end;
+  }
+  restored = Buffer.concat([restored, r.bytes.subarray(outCursor)]);
+  assert.ok(restored.equals(raw), "the spans put back are not the original");
+  const parsed = JSON.parse(r.bytes.toString("utf8")) as { result: { tools: Array<{ name: string }> } };
+  for (const h of hidden) assert.ok(!parsed.result.tools.some((t) => t.name === h), `${h} is still in the list`);
+  assert.equal(r.kept, parsed.result.tools.length);
+  return r.bytes.toString("utf8");
+}
+
+test("a hidden tool in the middle goes with the comma after it", () => {
+  const out = toolsHold(list("1", T("a"), T("b"), T("c")), ["b"]);
+  assert.equal(out, list("1", T("a"), T("c")));
+});
+
+test("a hidden tool first, last, and two adjacent ones", () => {
+  assert.equal(toolsHold(list("1", T("a"), T("b"), T("c")), ["a"]), list("1", T("b"), T("c")));
+  assert.equal(toolsHold(list("1", T("a"), T("b"), T("c")), ["c"]), list("1", T("a"), T("b")));
+  assert.equal(toolsHold(list("1", T("a"), T("b"), T("c"), T("d")), ["b", "c"]), list("1", T("a"), T("d")));
+  assert.equal(toolsHold(list("1", T("a"), T("b"), T("c")), ["b", "c"]), list("1", T("a")));
+  assert.equal(toolsHold(list("1", T("a"), T("b"), T("c")), ["a", "b"]), list("1", T("c")));
+});
+
+test("every tool hidden: an empty array remains, and the rest of the message is untouched", () => {
+  assert.equal(toolsHold(list("1", T("a"), T("b")), ["a", "b"]), `{"jsonrpc":"2.0","id":1,"result":{"tools":[]}}`);
+});
+
+test("nothing hidden among them: the bytes come back unchanged, with no spans", () => {
+  const raw = buf(list("1", T("a"), T("b")));
+  const r = exciseTools(raw, new Set(["zzz"]));
+  assert.ok(r.ok && r.removed.length === 0 && r.bytes.equals(raw) && r.kept === 2);
+});
+
+for (const [label, id] of [
+  ["zero", "0"],
+  ["negative zero", "-0"],
+  ["an integer past 2^53", "9007199254740993"],
+  ["a float with a trailing zero", "1.0"],
+  ["a string", '"req-7"'],
+] as const) {
+  test(`the list's id token survives a hidden tool: ${label}`, () => {
+    const out = toolsHold(list(id, T("a"), T("hide_me"), T("c")), ["hide_me"]);
+    assert.ok(out.includes(`"id":${id},`), `the id token ${id} was altered`);
+  });
+}
+
+test("pretty-printed lists keep their whitespace outside the spans", () => {
+  const input = `{\n  "jsonrpc": "2.0",\n  "id": 0,\n  "result": {\n    "tools": [\n      ${T("a")},\n      ${T("b")},\n      ${T("c")}\n    ],\n    "nextCursor": null\n  }\n}`;
+  const out = toolsHold(input, ["b"]);
+  assert.equal(out, `{\n  "jsonrpc": "2.0",\n  "id": 0,\n  "result": {\n    "tools": [\n      ${T("a")},\n      ${T("c")}\n    ],\n    "nextCursor": null\n  }\n}`);
+});
+
+test("a tools array nested inside a tool is somebody else's and is left alone", () => {
+  const nested = T("a", `,"_meta":{"tools":[{"name":"hide_me"}]}`);
+  const out = toolsHold(list("1", nested, T("hide_me")), ["hide_me"]);
+  assert.equal(out, list("1", nested), "the nested array was touched, or the real element was not");
+});
+
+test("a name spelled with an escape is still the name", () => {
+  const escaped = `{"name":"hide\\u005fme","description":"FIXTURE: planted."}`;
+  const out = toolsHold(list("1", T("a"), escaped), ["hide_me"]);
+  assert.equal(out, list("1", T("a")));
+});
+
+test("the result's other members are untouched when tools are cut", () => {
+  const input = `{"jsonrpc":"2.0","id":1,"result":{"before":{"x":[1,2]},"tools":[${T("a")},${T("b")}],"nextCursor":"FIXTURE"}}`;
+  assert.equal(toolsHold(input, ["a"]), `{"jsonrpc":"2.0","id":1,"result":{"before":{"x":[1,2]},"tools":[${T("b")}],"nextCursor":"FIXTURE"}}`);
+});
+
+const toolsRefuse = (input: string, hidden: string[], why: RegExp) => {
+  const r = exciseTools(buf(input), new Set(hidden));
+  assert.ok(!r.ok, `not refused: ${input}`);
+  if (r.ok) throw new Error("unreachable");
+  assert.match(r.because, why);
+};
+
+test("tools that cannot be placed without doubt are refused by name", () => {
+  toolsRefuse(`{"jsonrpc":"2.0","id":1,"result":{"notools":[]}}`, ["a"], /0 "tools" member/);
+  toolsRefuse(`{"jsonrpc":"2.0","id":1,"result":{"tools":{"a":1}}}`, ["a"], /"tools" is not an array/);
+  toolsRefuse(`{"jsonrpc":"2.0","id":1,"result":{"tools":[1]}}`, ["a"], /tool 1 is not an object/);
+  toolsRefuse(`{"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"a","name":"b"}]}}`, ["a"], /tool 1 has 2 "name" member/);
+  toolsRefuse(`{"jsonrpc":"2.0","id":1,"result":{"tools":[{"description":"x"}]}}`, ["a"], /tool 1 has 0 "name" member/);
+  toolsRefuse(`{"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":7}]}}`, ["a"], /its name is not a string/);
+  toolsRefuse(`{"jsonrpc":"2.0","id":1,"result":{"tools":[]},"result":{"tools":[]}}`, ["a"], /2 "result" member/);
+  toolsRefuse(`{"jsonrpc":"2.0","id":1,"result":{"tools":[],"tools":[]}}`, ["a"], /2 "tools" member/);
+  toolsRefuse(`{"jsonrpc":"2.0","id":1,"error":{"code":1}}`, ["a"], /0 "result" member/);
+});

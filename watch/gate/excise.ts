@@ -250,3 +250,152 @@ export function exciseInstructions(raw: Buffer): Excised {
     removed: { start, end },
   };
 }
+
+/* ── Taking tools out of a tools/list result ──────────────────────────────── */
+
+/*
+ * THE SAME IDEA FOR AN ARRAY. A tools/list result whose `tools` array holds
+ * a hidden tool used to be parsed, filtered and serialised again — which is
+ * how an id of 9007199254740993 came back as ...992 on exactly the message
+ * a client matches to its request. Now each hidden element is cut out of
+ * the bytes with the one comma that joined it, and every other byte stays.
+ *
+ * A tool is identified by the `name` member of its element, decoded from
+ * its bytes — the caller has already decided WHICH names are hidden from a
+ * parsed copy; this finds WHERE they are. The two readings have to agree:
+ * an element whose name cannot be read, or that has two, is a message this
+ * cannot cut without guessing, and the caller stops rather than forwards.
+ */
+
+export type ToolsExcised =
+  | {
+      ok: true;
+      /** The message with every hidden element removed. */
+      bytes: Buffer;
+      /** The spans removed, in order, [start, end) in the original. */
+      removed: Array<{ start: number; end: number }>;
+      /** Elements left in the array. */
+      kept: number;
+    }
+  | { ok: false; because: string };
+
+/** The index just past `"key"` `:` for the top-level member named `key`, or -1. */
+function valueStartOf(raw: Buffer, m: Member): number {
+  let v = skipString(raw, m.keyStart);
+  v = skipWs(raw, v);
+  return raw[v] === COLON ? v + 1 : -1;
+}
+
+/**
+ * The elements of the array starting at `i`, one level, or why not.
+ */
+function elementsOf(buf: Buffer, i: number): { elements: Array<{ start: number; end: number }>; end: number } | { because: string } {
+  i = skipWs(buf, i);
+  if (buf[i] !== LBRACKET) return { because: "not an array" };
+  i++;
+  const elements: Array<{ start: number; end: number }> = [];
+  for (;;) {
+    i = skipWs(buf, i);
+    if (i >= buf.length) return { because: "the array does not close" };
+    if (buf[i] === RBRACKET) return { elements, end: i + 1 };
+    const start = i;
+    const end = skipValue(buf, i);
+    if (end < 0) return { because: `element ${elements.length + 1} could not be read` };
+    elements.push({ start, end });
+    i = skipWs(buf, end);
+    if (buf[i] === COMMA) {
+      i++;
+      continue;
+    }
+    if (buf[i] === RBRACKET) return { elements, end: i + 1 };
+    return { because: `unexpected byte after element ${elements.length}` };
+  }
+}
+
+/**
+ * The message with every element of `result.tools` whose name is in
+ * `hidden` removed, or why it could not be done.
+ *
+ * With nothing to remove the message comes back unchanged and `removed` is
+ * empty; a caller then forwards the original bytes.
+ */
+export function exciseTools(raw: Buffer, hidden: ReadonlySet<string>): ToolsExcised {
+  const top = membersOf(raw, 0);
+  if ("because" in top) return { ok: false, because: `the message is not one JSON object: ${top.because}` };
+  if (skipWs(raw, top.end) !== raw.length) return { ok: false, because: "there are bytes after the message's closing brace" };
+  const results = top.members.filter((m) => m.key === "result");
+  if (results.length !== 1) return { ok: false, because: `the message has ${results.length} "result" member(s), not one` };
+  const rv = valueStartOf(raw, results[0]!);
+  if (rv < 0) return { ok: false, because: 'no colon after "result"' };
+  const inner = membersOf(raw, rv);
+  if ("because" in inner) return { ok: false, because: `"result" is not an object: ${inner.because}` };
+  const toolsMembers = inner.members.filter((m) => m.key === "tools");
+  if (toolsMembers.length !== 1) return { ok: false, because: `"result" has ${toolsMembers.length} "tools" member(s), not one` };
+  const tv = valueStartOf(raw, toolsMembers[0]!);
+  if (tv < 0) return { ok: false, because: 'no colon after "tools"' };
+  const arr = elementsOf(raw, tv);
+  if ("because" in arr) return { ok: false, because: `"tools" is not an array: ${arr.because}` };
+
+  /* Which elements go, by the decoded name of each. */
+  const going: number[] = [];
+  for (const [idx, el] of arr.elements.entries()) {
+    const members = membersOf(raw, el.start);
+    if ("because" in members) return { ok: false, because: `tool ${idx + 1} is not an object: ${members.because}` };
+    const names = members.members.filter((m) => m.key === "name");
+    if (names.length !== 1) return { ok: false, because: `tool ${idx + 1} has ${names.length} "name" member(s), not one` };
+    const nv = valueStartOf(raw, names[0]!);
+    if (nv < 0) return { ok: false, because: `tool ${idx + 1}: no colon after "name"` };
+    const ns = skipWs(raw, nv);
+    const ne = skipString(raw, ns);
+    if (ne < 0) return { ok: false, because: `tool ${idx + 1}: its name is not a string` };
+    const name = keyOf(raw, ns, ne);
+    if (name === null) return { ok: false, because: `tool ${idx + 1}: its name could not be decoded` };
+    if (hidden.has(name)) going.push(idx);
+  }
+  if (!going.length) return { ok: true, bytes: raw, removed: [], kept: arr.elements.length };
+
+  /*
+   * THE SPANS. Each removed element takes one comma with it: the one after
+   * it when a kept element follows, otherwise the one before it. Computed
+   * against the ORIGINAL positions, and applied from the back so earlier
+   * offsets stay true. Runs of adjacent removed elements collapse into one
+   * span, so that "the comma after" is the comma before the next KEPT
+   * element and not one that is itself being removed.
+   */
+  const goingSet = new Set(going);
+  const spans: Array<{ start: number; end: number }> = [];
+  let i = 0;
+  while (i < arr.elements.length) {
+    if (!goingSet.has(i)) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j + 1 < arr.elements.length && goingSet.has(j + 1)) j++;
+    /* elements i..j go */
+    let start = arr.elements[i]!.start;
+    let end = arr.elements[j]!.end;
+    if (j + 1 < arr.elements.length) {
+      /* a kept element follows: take the comma and whitespace up to it */
+      const comma = skipWs(raw, end);
+      if (raw[comma] !== COMMA) return { ok: false, because: "no comma after a removed tool" };
+      end = arr.elements[j + 1]!.start;
+    } else if (i > 0) {
+      /* last elements go, a kept one precedes: take the comma before */
+      const prevEnd = arr.elements[i - 1]!.end;
+      const comma = skipWs(raw, prevEnd);
+      if (raw[comma] !== COMMA) return { ok: false, because: "no comma before a removed tool" };
+      start = comma;
+    }
+    spans.push({ start, end });
+    i = j + 1;
+  }
+  const parts: Buffer[] = [];
+  let cursor = 0;
+  for (const s of spans) {
+    parts.push(raw.subarray(cursor, s.start));
+    cursor = s.end;
+  }
+  parts.push(raw.subarray(cursor));
+  return { ok: true, bytes: Buffer.concat(parts), removed: spans, kept: arr.elements.length - going.length };
+}
