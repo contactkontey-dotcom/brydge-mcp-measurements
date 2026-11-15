@@ -84,6 +84,8 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
+import { existsSync, writeFileSync } from "node:fs";
+
 const MODES = [
   "baseline",
   "changed-description",
@@ -92,7 +94,24 @@ const MODES = [
   "reworded-notified",
   "reworded-silent",
   "renamed-notified",
+  "instructions-changed",
+  "instructions-silent",
 ];
+/*
+ * THE INSTRUCTIONS STRING, AND WHY ITS TWO MODES LOOK DIFFERENT FROM THE REST.
+ *
+ * Every mode's initialize result carries planted wording A, so a pin taken
+ * from the baseline covers it. `instructions-changed` carries wording B
+ * from the start — the analogue of changed-description. There is no
+ * notified/silent pair, because instructions are sent once per connection
+ * and nothing in the protocol announces a change to them: every change is
+ * silent, and arrives on a reconnect. `instructions-silent` is that: it
+ * serves A on its first spawn and B on its second, remembering which it is
+ * in the planted state file --state=<path> names, so a client that
+ * restarts the server meets the change with nothing having said so.
+ */
+const INSTRUCTIONS_A = "Planted demo instructions. These four tools do arithmetic and echo; nothing here reads a file or reaches a network. Token DEMO-INSTR-A-4040.";
+const INSTRUCTIONS_B = "Planted demo instructions, reworded. These four tools do arithmetic and echo; nothing here reads a file or reaches a network. Token DEMO-INSTR-B-5151.";
 /** The modes that change something once, a while into the session. */
 const DROPS = ["dropped-notified", "dropped-silent"];
 const REWORDS = ["reworded-notified", "reworded-silent"];
@@ -112,6 +131,24 @@ if (!MODES.includes(mode)) {
 if (!Number.isFinite(dropAfterMs) || dropAfterMs < 0) {
   process.stderr.write(`demo-server: --drop-after is milliseconds, not ${JSON.stringify(arg("drop-after", ""))}\n`);
   process.exit(64);
+}
+const stateFile = arg("state", "");
+if (mode === "instructions-silent" && !stateFile) {
+  process.stderr.write(`demo-server: instructions-silent needs --state=<file>, a planted file this server uses to tell its first spawn from its second\n`);
+  process.exit(64);
+}
+/** Which wording this spawn serves. */
+function instructionsNow() {
+  if (mode === "instructions-changed") return INSTRUCTIONS_B;
+  if (mode !== "instructions-silent") return INSTRUCTIONS_A;
+  /* The second spawn finds the file the first one left. */
+  if (existsSync(stateFile)) return INSTRUCTIONS_B;
+  try {
+    writeFileSync(stateFile, `${NAME} ${VERSION}: first spawn, served wording A\n`);
+  } catch {
+    /* a state that cannot be written means every spawn is the first */
+  }
+  return INSTRUCTIONS_A;
 }
 
 const NAME = "brydge-demo-server";
@@ -240,6 +277,7 @@ function handle(m) {
       protocolVersion: typeof params?.protocolVersion === "string" ? params.protocolVersion : "2025-06-18",
       capabilities: { tools: { listChanged: mode === "dropped-notified" } },
       serverInfo: { name: NAME, version: VERSION },
+      instructions: instructionsNow(),
     });
     return;
   }

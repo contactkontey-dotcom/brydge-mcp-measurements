@@ -218,7 +218,7 @@ test("an unknown mode does not start it", async () => {
   const r = await drive([DEMO, "--mode=whatever"], [INIT], 0, 5_000);
   assert.match(
     r.stderr,
-    /--mode is one of baseline, changed-description, dropped-notified, dropped-silent, reworded-notified, reworded-silent, renamed-notified/,
+    /--mode is one of baseline, changed-description, dropped-notified, dropped-silent, reworded-notified, reworded-silent, renamed-notified, instructions-changed, instructions-silent/,
   );
   assert.equal(r.code, 64);
   assert.equal(r.answers.length, 0);
@@ -663,4 +663,56 @@ test("renamed-notified under enforcement: the new name is hidden, the old one wi
   const fresh = r.answers.find((m) => m.id === 5)!;
   assert.equal(fresh.error?.code, -32000);
   assert.match(fresh.error!.message, /"demo_echo_v2" is hidden, because not in the baseline/);
+});
+
+/* ── The instructions modes ─────────────────────────────────────────────── */
+
+const DEMO_A = "DEMO-INSTR-A-4040";
+const DEMO_B = "DEMO-INSTR-B-5151";
+const initResult = (r: Ran) => JSON.stringify(r.answers.find((m) => m.id === 1)?.result ?? null);
+
+test("every demo mode's initialize result carries the baseline wording, so a baseline pin covers it", async () => {
+  const r = await drive([DEMO, "--mode=baseline"], [INIT]);
+  assert.ok(initResult(r).includes(DEMO_A), "the baseline sends no planted instructions");
+  const pin = await pinned();
+  const read = readPin(pin);
+  assert.equal(read.instructions?.length, (JSON.parse(initResult(r)) as { instructions: string }).instructions.length);
+});
+
+test("instructions-changed: a different wording from the start, cut out under enforcement", { timeout: 60_000 }, async () => {
+  const pin = await pinned();
+  const bare = await drive([DEMO, "--mode=instructions-changed"], [INIT]);
+  assert.ok(initResult(bare).includes(DEMO_B), "the mode does not serve the second wording");
+  const r = await drive([GATE, "--pin", pin, "--mode", "enforce", "--", process.execPath, DEMO, "--mode=instructions-changed"], [INIT, listMsg(2), callMsg(3, "demo_add", { a: 2, b: 3 })]);
+  assert.ok(!initResult(r).includes(DEMO_B), "the changed wording reached the client");
+  assert.ok(!initResult(r).includes("instructions"), "the field was not cut");
+  assert.match(r.stderr, /did not pass the server's instructions to the client/);
+  /* The tools are the baseline's, so nothing else is hidden or refused. */
+  assert.deepEqual(namesIn(r, 2), ["demo_add", "demo_subtract", "demo_echo", "demo_now"]);
+  assert.equal(r.answers.find((m) => m.id === 3)?.result?.content[0].text, "5");
+  assert.ok(!/did not pass 1 tool/.test(r.stderr));
+});
+
+test("instructions-silent: the first spawn matches the pin, the second does not, and nothing announced it", { timeout: 60_000 }, async () => {
+  const pin = await pinned();
+  const state = join(mkdtempSync(join(tmpdir(), "gate-demo-state-")), "state.txt");
+  const args = (extra: string[] = []) => [GATE, "--pin", pin, "--mode", "enforce", ...extra, "--", process.execPath, DEMO, "--mode=instructions-silent", `--state=${state}`];
+  const first = await drive(args(), [INIT, listMsg(2)]);
+  assert.ok(initResult(first).includes(DEMO_A), "the first spawn did not serve the baseline wording");
+  assert.ok(!/did not pass the server's instructions/.test(first.stderr), "the first spawn was treated as changed");
+  assert.ok(existsSync(state), "the state file was not written");
+  /* Nothing in the first session says anything about a change to come. */
+  assert.equal(first.notifications.length, 0);
+
+  const second = await drive(args(), [INIT, listMsg(2)]);
+  assert.ok(!initResult(second).includes(DEMO_B), "the second wording reached the client");
+  assert.ok(!initResult(second).includes(DEMO_A), "the field was not cut");
+  assert.match(second.stderr, /did not pass the server's instructions to the client/);
+  assert.equal(second.notifications.length, 0, "something announced the change");
+});
+
+test("instructions-silent refuses to start without a state file, by name", async () => {
+  const r = await drive([DEMO, "--mode=instructions-silent"], [INIT], 0, 5_000);
+  assert.equal(r.code, 64);
+  assert.match(r.stderr, /instructions-silent needs --state=<file>/);
 });

@@ -440,10 +440,22 @@ node watch/gate/fixtures/demo-server.mjs --mode=<mode>
 | `reworded-notified` | starts as the baseline, then changes `demo_add`'s description to a second planted wording and sends `notifications/tools/list_changed`. |
 | `reworded-silent` | the same rewording, and sends nothing. |
 | `renamed-notified` | starts as the baseline, then renames `demo_echo` to `demo_echo_v2`, keeping its description word for word, and sends `notifications/tools/list_changed`. |
+| `instructions-changed` | the tools are the baseline's; the `instructions` string in the `initialize` result is a second planted wording, from the start. |
+| `instructions-silent` | serves the baseline's wording on its first spawn and the second wording on its second, remembering which in the planted file `--state=<path>` names. Nothing announces it. |
 
 The change happens two seconds after the first tool list, in all four modes
 that change something mid-session; `--drop-after=<ms>` moves it, whatever
 the change is.
+
+**Why the instructions modes have no notified/silent pair.** The
+`instructions` string is sent once, in the `initialize` result, and nothing
+in the protocol announces a change to it — so every change to it is silent,
+and reaches a client only when it reconnects. `instructions-silent` is that
+case: start it with `--state=<some new file>`, run a session, stop the
+server, run another session with the same `--state`, and the second one
+meets the new wording with nothing having said so. Every mode's `initialize`
+result carries the planted baseline wording, so a pin taken from `baseline`
+covers it and the two modes have something to differ from.
 
 Take a pin from `baseline`, then point your client at the gate in front of
 one of the other six. The two dropping modes are there because the
@@ -673,6 +685,34 @@ the observation sheet.
 Two questions worth answering exactly, because a gate that watched the
 wrong fields would be one a server could walk straight past.
 
+### What is pinned, and what is not
+
+| | pinned | what happens under enforcement when it differs |
+| --- | --- | --- |
+| every field of a tool definition | yes | the tool is taken out of the list; calls to it are answered by the gate |
+| the `instructions` string in the `initialize` result | yes | that one field is cut out of the result; every other byte is forwarded |
+| `serverInfo`, `protocolVersion`, `capabilities` | no | — |
+| prompts (`prompts/list`, `prompts/get`) | no | — |
+| resources (`resources/list`, `resources/read`) | no | — |
+| what a tool call returns | no | — |
+| anything a `server/discover` result might carry that an `initialize` result does not | no | — |
+
+The second row is there because it was measured: a planted token put in a
+stdio server's `instructions` string came back out of Claude Code 2.1.325
+when the model was asked whether it had been given one, with no tool
+called. That string reaches a model like a tool description does, so it is
+pinned like one — hashed over its exact bytes, shown as a word diff with
+every invisible character marked, approved or held by the same decision
+file, and pinned as "none" when a reviewer approves its absence. A pin
+written before this covers tools only, and the gate says so once per
+session rather than treating what it never looked at as a change.
+
+Prompts and resources are server-authored text too, and the client this
+project measured asks for both at startup. They are not pinned. Neither is
+what a tool call returns. A server with nothing worth noting in its tool
+list or its instructions, and something worth noting in a prompt, is a
+server this gate has nothing to say about.
+
 ### Every field of a tool definition, not a chosen few
 
 A pin stores each tool as the server declared it, and compares by a
@@ -800,13 +840,13 @@ Plainly, because the value of this depends on them.
   doing anything, inspect what a tool does when it runs, or examine the
   arguments of a call it forwards.
 
-* **Tools are the only surface it pins.** Resources, prompts, the
-  `instructions` field of the `initialize` result and everything a tool
-  call returns are carried between the client and the server without being
-  read. A server with nothing worth noting in its tool list and something
-  worth noting in a prompt is a server this gate has nothing to say about.
-  See [what a pin compares, and what the gate never
-  reads](#what-a-pin-compares-and-what-the-gate-never-reads).
+* **Tool definitions and the `instructions` string are the only surface it
+  pins.** Resources, prompts, `serverInfo` and everything a tool call
+  returns are carried between the client and the server without being
+  read. A server with nothing worth noting in its tool list or its
+  instructions, and something worth noting in a prompt, is a server this
+  gate has nothing to say about. See [what is pinned, and what is
+  not](#what-is-pinned-and-what-is-not).
 
 * **It does not restrain the model it is running under.** The pin and the
   reports are ordinary files belonging to your user. Nothing the gate sends
