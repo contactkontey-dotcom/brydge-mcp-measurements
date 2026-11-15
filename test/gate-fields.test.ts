@@ -413,14 +413,24 @@ test("everything that is not tools/* reaches the server and comes back byte for 
    * reordered, nothing rewritten. */
   assert.equal(readFileSync(through, "utf8"), readFileSync(direct, "utf8"), "the server received different lines through the gate");
 
-  /* What the CLIENT received. The gate writes nothing of its own to stdout
-   * here, because nothing differs from the pin and nothing is refused. */
+  /*
+   * What the CLIENT received. The gate writes nothing of its own to stdout
+   * here, because nothing differs from the pin and nothing is refused.
+   *
+   * Since I2 this comparison covers a message the gate MAY rewrite: the pin
+   * taken above looked at the handshake and names these very instructions,
+   * so the initialize result is compared, found the same, and forwarded as
+   * the server's bytes. Byte identity here is the excision path standing
+   * down, not standing aside.
+   */
   assert.equal(b.stdout.toString("hex"), a.stdout.toString("hex"), "the client received different bytes through the gate");
 
   /* And the claims the README makes about particular ones, named so a
-   * failure says which. */
+   * failure says which. The instructions reach the client WHEN APPROVED OR
+   * UNPINNED, which is this case; test/gate-instructions-wire.test.ts has
+   * the other one. */
   const out = b.stdout.toString("utf8");
-  assert.match(out, /FIXTURE: planted instructions, carried in the initialize result\./, "the initialize result's instructions did not reach the client");
+  assert.match(out, /FIXTURE: planted instructions A, carried in the initialize result\./, "the initialize result's approved instructions did not reach the client");
   assert.match(out, /FIXTURE: a planted resource/, "a resource listing did not reach the client");
   assert.match(out, /FIXTURE: planted prompt text\./, "a prompt did not reach the client");
   assert.match(out, /FIXTURE-ONE/, "a completion did not reach the client");

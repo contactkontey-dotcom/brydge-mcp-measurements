@@ -40,9 +40,13 @@ the wrong one.
   record carries the label and so does every report. Reviewing is a
   separate act, by a person, and nothing here does it for you.
 
-* **Tools only.** Resources, prompts, the `instructions` field of the
-  `initialize` result, and everything a tool call returns are carried
-  between the client and the server without being read.
+* **Tool definitions and the `instructions` string. Nothing else.** The
+  `instructions` field of the `initialize` result is server-authored text
+  that a client puts in front of a model — it was measured arriving there —
+  so it is pinned like a tool and, under enforcement, taken out of the
+  result when it differs. Resources, prompts, `serverInfo` and everything a
+  tool call returns are carried between the client and the server without
+  being read.
 
 * **Everything else passes through.** The gate reads five kinds of message
   and forwards the rest as they arrived — [the list is
@@ -712,6 +716,8 @@ pin written so far hashes, which is a format change and not a patch.
 
 The gate reads:
 
+* the answer to `initialize` (and to `server/discover`, should a server
+  answer one) — for its `instructions` string, and nothing else in it
 * `tools/list`, to know an answer is on its way
 * the answer to it — compared against the pin, and the one kind of message
   the gate ever rewrites
@@ -727,9 +733,13 @@ gate, in either direction, and does not reach the other side.
 
 **Everything else is passed on as it arrived and is not read.** That is:
 
-* the `initialize` request and its result — including `instructions`,
-  which is server-authored text that a client may put in front of a model.
-  The gate does not look at it, compare it, or pin it.
+* the `initialize` request, and everything in its result **except
+  `instructions`**: `protocolVersion`, `capabilities`, `serverInfo`. The
+  `instructions` string is pinned — see [what a pin
+  compares](#every-field-of-a-tool-definition-not-a-chosen-few) — and when
+  it differs from the pin, under enforcement, that one field is cut out of
+  the result and every other byte of the message is forwarded as the
+  server wrote it.
 * `resources/list`, `resources/templates/list`, `resources/read`,
   `resources/subscribe`, and the resource notifications
 * `prompts/list`, `prompts/get`, and `notifications/prompts/list_changed`

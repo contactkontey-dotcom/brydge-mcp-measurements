@@ -561,9 +561,17 @@ function gatePin(ref: string, fromCurrent: boolean, listFile: string, decisionsF
   const file = pinPathFor(dir, name, version);
 
   if (fromCurrent) {
+    /*
+     * The stored capture holds the tool list and not the initialize result,
+     * so nothing here has looked at the server's instructions: the pin is
+     * written without covering them, and says so. A pin that covers them
+     * comes from --write-pin on the running gate, which sees the handshake.
+     */
     const pin = adopt(name, version, capture.tools, at);
     writePin(file, pin);
     console.error(`gate: pinned ${Object.keys(pin.tools).length} tool(s) for ${name}@${version}, ${ADOPTED} -> ${file}`);
+    console.error(`gate: this pin does not cover the server's instructions: the capture holds no initialize result.`);
+    console.error(`gate: a pin that covers them is taken with --write-pin on the gate itself.`);
     console.error(`gate: nobody approved these. A difference from this pin is a difference from what the server`);
     console.error(`gate: was offering when it was taken, and the report says so every time.`);
     return;

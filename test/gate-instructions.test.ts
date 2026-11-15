@@ -340,22 +340,17 @@ test("NOT_LOOKED is what it says, so a caller cannot pass it by accident", () =>
 
 /* ── Nothing on the wire yet ────────────────────────────────────────────── */
 
-test("I1 changes no behaviour: the gate still names instructions nowhere it speaks", () => {
+test("I2 moved the stage boundary: the router, the enforcer and the gate now read the field", () => {
   /*
-   * The stage boundary, held to by a test rather than by intention. The
-   * runnable gate does not yet read, compare or remove instructions, so
-   * nothing it writes may mention them. I2 moves this line, and this test
-   * is where the move has to be made deliberately.
+   * In I1 this test asserted the opposite — that none of these three files
+   * touched the field — so that the move would have to be made on purpose.
+   * This is the move. The three places are named so a later refactor that
+   * drops one of them is noticed here, not in a client.
    */
-  /*
-   * The FIELD, not the English word: enforce.ts already uses "instructions"
-   * in a sentence about the person running the client, and a test that
-   * cannot tell those apart would have to be deleted rather than moved.
-   */
-  const uses = (src: string) => /["'`]instructions["'`]|\.instructions\b|instructions\.ts/.test(src);
+  const uses = (src: string) => /instructions\.ts/.test(src);
   for (const file of ["run.ts", "enforce.ts", "router.ts"]) {
     const src = readFileSync(join(import.meta.dirname, "..", "watch", "gate", file), "utf8");
-    assert.ok(!uses(src), `${file} reads the instructions field before the stage that adds it`);
+    assert.ok(uses(src), `${file} no longer uses the instructions module`);
   }
 });
 
@@ -432,7 +427,11 @@ test("a version-1 pin still enforces, and nothing about it reads as changed", { 
   await drive([gate, "--write-pin", file, "--package", "brydge-demo-server@1.0.0", "--", process.execPath, demo, "--mode=baseline"], [init, { jsonrpc: "2.0", id: 2, method: "tools/list" }]);
   const asV2 = JSON.parse(readFileSync(file, "utf8")) as Record<string, any>;
   assert.equal(asV2.version, 2, "the writer did not write the current version");
-  assert.ok(!("instructions" in asV2), "a writer that did not look named instructions anyway");
+  /* Since I2 the writer looks, so the pin names the demo's instructions
+   * (it sends none, so: null). A version-1 file cannot carry the key at
+   * all, so making one means removing it as well as changing the number. */
+  assert.ok("instructions" in asV2, "the writer no longer looks at the handshake");
+  delete asV2.instructions;
   asV2.version = 1;
   const v1 = join(dir, "v1.json");
   writeFileSync(v1, JSON.stringify(asV2, null, 2) + "\n");
@@ -455,5 +454,9 @@ test("a version-1 pin still enforces, and nothing about it reads as changed", { 
    * the gate said.
    */
   const said = r.stderr.split(/\s+/).filter((w) => !w.includes("/")).join(" ");
-  assert.ok(!/instructions/i.test(said), `the gate spoke about instructions in I1:\n${said}`);
+  /* Since I2 the gate says exactly one thing about instructions against a
+   * version-1 pin: that the pin does not cover them. Once. */
+  const times = r.stderr.split(UNPINNED_LINE).length - 1;
+  assert.equal(times, 1, `the unpinned line was said ${times} time(s), not once:\n${said}`);
+  assert.ok(!/did not pass the server's instructions/.test(said), "something was hidden against a version-1 pin");
 });

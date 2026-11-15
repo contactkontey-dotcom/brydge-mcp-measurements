@@ -72,6 +72,8 @@
 import type { Line } from "./transport.ts";
 import { toolsOf, type WouldHide } from "./router.ts";
 import { ADOPTED, type Pin } from "./pin.ts";
+import { compare as compareInstructions, seenIn, type State as InstructionsState } from "./instructions.ts";
+import { exciseInstructions } from "./excise.ts";
 
 /** The sentence a refusal always opens with. */
 export const DID_NOT_FORWARD = "the gate did not forward this call";
@@ -142,6 +144,10 @@ export interface EnforcerOptions {
   onRefuse?: (tool: string, why: Why) => void;
   /** Called when something fails closed. */
   onFailClosed?: (because: string) => void;
+  /** What the pin says about instructions. Unpinned compares nothing. */
+  instructions?: InstructionsState;
+  /** Called when the instructions field is taken out of a result. */
+  onHideInstructions?: (because: string) => void;
 }
 
 /**
@@ -360,6 +366,42 @@ export class Enforcer {
     const asked = this.inFlight.get(keyOf(id));
     if (!asked) return pass;
     this.inFlight.delete(keyOf(id));
+
+    /*
+     * ── THE INSTRUCTIONS FIELD ──────────────────────────────────────────
+     *
+     * The answer to initialize or to server/discover. If what it carries
+     * differs from the pin, the field comes out and the rest of the message
+     * goes on AS THE SERVER'S BYTES: excise.ts cuts one span and touches
+     * nothing else, so the id token is whatever the server wrote. No text
+     * goes in its place — the gate does not put words in a model's context
+     * — and the reason goes to stderr and the journal, not to the client.
+     *
+     * The field cannot be placed without doubt → the session stops. The
+     * alternative, forwarding a message the gate was supposed to change,
+     * is the one thing enforcement must never do.
+     */
+    if (asked.method === "initialize" || asked.method === "server/discover") {
+      if (message.error !== undefined) return pass;
+      const seen = seenIn(message.result);
+      const verdict = compareInstructions(this.opts.instructions ?? { kind: "unpinned" }, seen);
+      if (verdict.kind !== "differs") return pass;
+      /* Pinned text, and the server sent none: nothing unapproved is in the
+       * message, so there is nothing to take out of it. The difference is
+       * in the journal; the bytes go on. */
+      if (seen.kind === "none") return pass;
+      const cut = exciseInstructions(line.raw);
+      if (!cut.ok) {
+        const because =
+          `${verdict.because}, and the field could not be taken out of the message without doubt: ${cut.because}. ` +
+          `Forwarding a message that was supposed to be changed is not something this does. Pin: ${this.opts.pinFile}.`;
+        this.opts.onFailClosed?.(because);
+        return { forward: false, stop: because };
+      }
+      this.opts.onHideInstructions?.(verdict.because);
+      return { forward: false, replaceWith: cut.bytes };
+    }
+
     if (asked.method !== "tools/list") return pass;
     if (message.error !== undefined) return pass;
 

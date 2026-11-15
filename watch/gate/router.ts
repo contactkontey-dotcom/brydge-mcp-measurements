@@ -45,6 +45,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { canonical, normalise, recordOf, type ToolRecord } from "../tools.ts";
+import { compare as compareInstructions, seenIn, type Seen, type State as InstructionsState, type Verdict } from "./instructions.ts";
 import type { Line } from "./transport.ts";
 
 export type Side = "client-to-server" | "server-to-client";
@@ -119,7 +120,23 @@ export type Note =
    * --verify-on-call. `ms` is how long the client's call waited, which is
    * the cost of the flag and the reason it is written down.
    */
-  | { kind: "checked"; at: number; tool: string | null; outcome: string; ms: number; held: boolean };
+  | { kind: "checked"; at: number; tool: string | null; outcome: string; ms: number; held: boolean }
+  /*
+   * ── THE INSTRUCTIONS STRING ─────────────────────────────────────────
+   *
+   * Written when an initialize (or server/discover) result arrives. None
+   * carries the text: a reason written in instructions.ts and nothing
+   * else. `would-hide-instructions` is its own kind rather than an entry
+   * in `would-hide`, because that one is a list of TOOLS and feeds the
+   * "did not pass N tool(s)" count; a reader adding up hidden tools must
+   * not count a string as one.
+   */
+  /** The pin in use does not cover instructions. Said once per session. */
+  | { kind: "instructions-unpinned"; at: number }
+  | { kind: "instructions-unchanged"; at: number }
+  | { kind: "would-hide-instructions"; at: number; because: string }
+  /** Under --mode enforce only: the field really was taken out of the result the client received. */
+  | { kind: "hidden-instructions"; at: number; because: string; n: number };
 
 const idKey = (id: unknown): string => (typeof id === "string" ? `s:${id}` : `n:${String(id)}`);
 
@@ -164,6 +181,10 @@ export interface RouterOptions {
    * caller can write down what the server was offering.
    */
   onBaseline?: (records: ToolRecord[]) => void;
+  /** What the pin says about instructions. Unpinned when there is no pin. */
+  instructions?: InstructionsState;
+  /** Called with each comparison of an initialize-shaped result's instructions. */
+  onInstructions?: (verdict: Verdict, seen: Seen) => void;
 }
 
 export class Router {
@@ -173,6 +194,15 @@ export class Router {
   private readonly now: () => number;
   private readonly onList: ((records: ToolRecord[], hidden: WouldHide[]) => void) | null;
   private readonly onBaseline: ((records: ToolRecord[]) => void) | null;
+  private readonly instructions: InstructionsState;
+  private readonly onInstructions: ((verdict: Verdict, seen: Seen) => void) | null;
+  /**
+   * What the server most recently sent as instructions, for a pin writer.
+   *
+   * Held, not read: the string is here so --write-pin can store it, and
+   * for no other reason. Nothing prints it.
+   */
+  instructionsSeen: Seen | null = null;
   /** Client request ids in flight, to the method they asked for. */
   private readonly inFlight = new Map<string, string>();
   /** Ids this gate has reserved for its own use. G1 reserves none. */
@@ -184,6 +214,8 @@ export class Router {
     this.now = opts.now ?? Date.now;
     this.onList = opts.onList ?? null;
     this.onBaseline = opts.onBaseline ?? null;
+    this.instructions = opts.instructions ?? { kind: "unpinned" };
+    this.onInstructions = opts.onInstructions ?? null;
     if (opts.baseline) {
       this.baseline = new Map(opts.baseline.map((p) => [p.name, p]));
       this.notes.push({ kind: "baseline", at: this.now(), tools: opts.baseline.length, source: "given" });
@@ -297,6 +329,28 @@ export class Router {
     const asked = this.inFlight.get(key);
     if (asked === undefined) return made;
     this.inFlight.delete(key);
+
+    /*
+     * THE ANSWER TO initialize, OR TO server/discover.
+     *
+     * Both result shapes: Claude Code 2.1.325 probes with server/discover
+     * and falls back to initialize, and a later build may take the first
+     * answer as the handshake. Whichever result reaches the client is a
+     * result that may carry `instructions`, so both are compared. An error
+     * carries no result and is nothing to compare.
+     */
+    if (asked === "initialize" || asked === "server/discover") {
+      if (message.error !== undefined) return made;
+      const seen = seenIn(message.result);
+      this.instructionsSeen = seen;
+      const verdict = compareInstructions(this.instructions, seen);
+      if (verdict.kind === "unpinned") note({ kind: "instructions-unpinned", at });
+      else if (verdict.kind === "same") note({ kind: "instructions-unchanged", at });
+      else note({ kind: "would-hide-instructions", at, because: verdict.because });
+      this.onInstructions?.(verdict, seen);
+      return made;
+    }
+
     if (asked !== "tools/list") return made;
 
     const listId = `${++this.lists}`;

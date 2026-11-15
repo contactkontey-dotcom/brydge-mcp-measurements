@@ -49,7 +49,8 @@ import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { relay, type Line, type Relay } from "./transport.ts";
 import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./router.ts";
-import { ADOPTED, FORMAT_VERSION as PIN_FORMAT_VERSION, NotAPin, adopt, read as readPin, write as writePin, type Pin } from "./pin.ts";
+import { ADOPTED, FORMAT_VERSION as PIN_FORMAT_VERSION, NOT_LOOKED, NotAPin, adopt, instructionsStateOf, read as readPin, write as writePin, type Looked, type Pin } from "./pin.ts";
+import { UNPINNED_LINE } from "./instructions.ts";
 import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, nameOf, REFUSAL_STYLES, type RefusalStyle, type Why } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
@@ -345,6 +346,10 @@ function reportOn(records: ToolRecord[], hidden: WouldHide[]): void {
  */
 let refusalsSoFar = 0;
 let hiddenSoFar = 0;
+let hiddenInstructionsSoFar = 0;
+
+/** What the pin says about instructions. With no pin there is nothing to compare against. */
+const instructionsState = pin ? instructionsStateOf(pin) : ({ kind: "unpinned" } as const);
 
 /**
  * Why a call was not forwarded, in the few fixed phrases.
@@ -388,6 +393,12 @@ const enforcer =
           note({ kind: "refused", at: Date.now(), tool, because, n: ++refusalsSoFar });
         },
         onFailClosed: (because) => process.stderr.write(`gate: failing closed: ${because}\n`),
+        instructions: instructionsState,
+        onHideInstructions: (because) => {
+          hiddenInstructionsSoFar++;
+          process.stderr.write(`gate: did not pass the server's instructions to the client: ${because}.\n`);
+          note({ kind: "hidden-instructions", at: Date.now(), because, n: hiddenInstructionsSoFar });
+        },
       })
     : null;
 
@@ -405,10 +416,21 @@ function takePin(records: ToolRecord[]): void {
   const at = packageRef.lastIndexOf("@");
   const name = packageRef.slice(0, at);
   const version = packageRef.slice(at + 1);
+  /*
+   * What the server sent as instructions, if the handshake has been seen.
+   *
+   * A non-string field is not pinned: only a string can be, and a pin that
+   * said "none" while the server sends something would misdescribe it. The
+   * pin then does not cover instructions, and the gate says so each run.
+   */
+  const seen = router.instructionsSeen;
+  const looked: Looked =
+    seen === null || seen.kind === "other" ? NOT_LOOKED : seen.kind === "none" ? { looked: true, text: null } : { looked: true, text: seen.text };
+  const covers = looked.looked ? (looked.text === null ? "and that it sends no instructions" : "and its instructions") : "and does not cover its instructions";
   try {
-    writePin(writePinPath, adopt(name, version, records, today));
+    writePin(writePinPath, adopt(name, version, records, today, looked));
     process.stderr.write(
-      `gate: wrote a pin for ${name}@${version} naming ${records.length} tool(s) -> ${writePinPath}\n` +
+      `gate: wrote a pin for ${name}@${version} naming ${records.length} tool(s) ${covers} -> ${writePinPath}\n` +
         `gate: ${ADOPTED}. It is what this server offered just now, not something somebody signed off.\n` +
         `gate: to use it: --pin ${writePinPath}\n`,
     );
@@ -488,7 +510,22 @@ const router = new Router({
     verifier?.pictureSeen();
     if (writePinPath) takePin(records);
   },
+  instructions: instructionsState,
+  onInstructions: (verdict) => {
+    if (verdict.kind === "unpinned") {
+      /* Once, and only when there is a pin to say it about. */
+      if (pin && !saidUnpinned) {
+        saidUnpinned = true;
+        process.stderr.write(`${UNPINNED_LINE}\n`);
+      }
+      return;
+    }
+    if (verdict.kind === "differs" && !enforcer) {
+      process.stderr.write(`gate: ${verdict.because}; shadow mode, so they were passed on as they arrived.\n`);
+    }
+  },
 });
+let saidUnpinned = false;
 
 if (enforcer && pin) {
   process.stderr.write(`${enforcingLine(pin, pinPath ?? "(none)")}\n`);
@@ -754,7 +791,9 @@ child.on("exit", (code, signal) => {
     .sort()
     .join(" ");
   const against = pin ? `pin ${pin.package}@${pin.packageVersion} (${pin.source})` : "no pin: the first list seen";
-  const said = enforcer ? `enforce, ${enforcer.hiddenCount} hidden` : "shadow";
+  const said = enforcer
+    ? `enforce, ${enforcer.hiddenCount} hidden${hiddenInstructionsSoFar ? ", instructions not passed on" : ""}`
+    : "shadow";
   /*
    * What the flag cost, in the one place somebody reads at the end. The
    * total is what a client waited, which is the whole point of writing it

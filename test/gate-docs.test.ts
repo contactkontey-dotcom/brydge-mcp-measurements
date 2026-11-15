@@ -439,11 +439,18 @@ test("the README lists what passes through without being read", () => {
   ]) {
     assert.ok(README.includes(m), `the README does not say ${m} passes through`);
   }
-  /* The two that matter most, because both are server-authored text a
-   * client may put in front of a model. */
-  assert.match(README, /`instructions`/);
+  /*
+   * The tool-call result is still not read. The initialize result's
+   * `instructions` string no longer belongs on this list: since I2 it is
+   * pinned, and the README has to say so where it used to say the
+   * opposite. This assertion used to require the opposite sentence.
+   */
   assert.match(README, /the result of a `tools\/call`/);
-  /* And the five it does read, so the two lists are both in one place. */
+  assert.match(README, /everything in its result \*\*except\s+`instructions`\*\*/);
+  assert.ok(!flatten(README).includes("the gate does not look at it, compare it, or pin it"), "the README still says instructions are not looked at");
+  assert.ok(!flatten(README).includes("**tools only.**"), "the README still says tools only");
+  /* And what it does read, so the two lists are both in one place. */
+  assert.match(README, /the answer to `initialize`/);
   assert.match(README, /Five things are looked at/);
 });
 
@@ -474,8 +481,11 @@ test("the README says what this is: an allow-list over a tool list, and what tha
   assert.match(s, /The first pin is "adopted, not reviewed"/);
   assert.match(s, /Reviewing is a\s+separate act/);
 
-  /* Tools only, and what passes through. */
-  assert.match(s, /\*\*Tools only\.\*\*/);
+  /* What is pinned — tool definitions and, since I2, the instructions
+   * string — and what passes through. This used to assert "Tools only",
+   * which I2 made untrue. */
+  assert.match(s, /\*\*Tool definitions and the `instructions` string\. Nothing else\.\*\*/);
+  assert.match(s, /it was measured arriving there/);
   assert.match(s, /\*\*Everything else passes through\.\*\*/);
   assert.match(s, /byte for byte\s+what it reads with no gate at all/);
 

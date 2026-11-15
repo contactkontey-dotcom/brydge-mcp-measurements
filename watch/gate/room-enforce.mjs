@@ -146,6 +146,29 @@ function toolsIn(buf) {
   return null;
 }
 
+/**
+ * What the server sent as instructions in its initialize result, read back
+ * out of the bytes it wrote. `{ looked: true }` either way, so the pin
+ * covers the field and the enforce run compares it — which is what makes
+ * the kill rule below a test of the excision path and not a bypass of it.
+ */
+function instructionsIn(buf) {
+  if (!buf) return { looked: false };
+  for (const l of buf.toString("utf8").split("\n")) {
+    if (!l.trim()) continue;
+    try {
+      const m = JSON.parse(l);
+      if (m?.result && typeof m.result.protocolVersion === "string") {
+        const v = m.result.instructions;
+        return { looked: true, text: typeof v === "string" ? v : null };
+      }
+    } catch {
+      /* not a message */
+    }
+  }
+  return { looked: false };
+}
+
 process.stderr.write(`install tree: ${found.from}\n`);
 const a = session("direct-a", null);
 const b = session("direct-b", null);
@@ -156,7 +179,9 @@ if (!tools) {
   process.exit(1);
 }
 const pinFile = join(SHARED, "pin.json");
-writePin(pinFile, adopt("@modelcontextprotocol/server-memory", "2.0.1", tools.map(recordOf), new Date().toISOString().slice(0, 10)));
+const looked = instructionsIn(a.bytes);
+writePin(pinFile, adopt("@modelcontextprotocol/server-memory", "2.0.1", tools.map(recordOf), new Date().toISOString().slice(0, 10), looked));
+process.stderr.write(`pin covers instructions: ${looked.looked ? (looked.text === null ? "yes, as none" : `yes, ${looked.text.length} characters`) : "no"}\n`);
 chmodSync(pinFile, 0o644);
 
 const emptyPin = join(SHARED, "pin-empty.json");

@@ -46,6 +46,7 @@ export const SOURCES = [
   join(ROOT, "watch", "gate", "transport.ts"),
   join(ROOT, "watch", "gate", "router.ts"),
   join(ROOT, "watch", "gate", "instructions.ts"),
+  join(ROOT, "watch", "gate", "excise.ts"),
   join(ROOT, "watch", "gate", "pin.ts"),
   join(ROOT, "watch", "gate", "report.ts"),
   join(ROOT, "watch", "gate", "run.ts"),

@@ -35,6 +35,23 @@ const CHANGE = arg("change", "none");
 const NOTIFY = process.argv.includes("--notify");
 const NOTIFY_AFTER = Number(arg("notify-after", "250"));
 const LOG_IN = arg("log-in", "") || null;
+/*
+ * What the initialize result carries as `instructions`.
+ *
+ *   a       planted wording A (the default)
+ *   b       planted wording B
+ *   none    no instructions key at all
+ *   other   the key, with a value that is not a string
+ *   dup     two instructions keys in one result — written by hand, because
+ *           no serialiser will produce it, and sent so a gate can show what
+ *           it does when the bytes are not unambiguous
+ */
+const INSTRUCTIONS = arg("instructions", "a");
+/* `--discover`: answer server/discover with a result of the same shape as
+ * initialize's, instead of an error. The second place the field can arrive. */
+const DISCOVER = process.argv.includes("--discover");
+const INSTRUCTIONS_A = "FIXTURE: planted instructions A, carried in the initialize result. Token INSTR-A-5531.";
+const INSTRUCTIONS_B = "FIXTURE: planted instructions B, reworded, for the same planted server. Token INSTR-B-7748.";
 
 const out = (s) => process.stdout.write(s);
 const send = (m) => out(JSON.stringify(m) + "\n");
@@ -136,24 +153,45 @@ process.stdin.on("data", (chunk) => {
   }
 });
 
+/** The initialize-shaped result, with the instructions this run was told to carry. */
+function initializeResult() {
+  const result = {
+    protocolVersion: "2025-06-18",
+    capabilities: { tools: { listChanged: true }, resources: {}, prompts: {}, logging: {}, completions: {} },
+    serverInfo: { name: "brydge-fields-server", version: "1.0.0" },
+  };
+  /*
+   * Server-authored text that a client may put in front of a model. It was
+   * measured reaching one, which is why a gate now pins it.
+   */
+  if (INSTRUCTIONS === "a") result.instructions = INSTRUCTIONS_A;
+  if (INSTRUCTIONS === "b") result.instructions = INSTRUCTIONS_B;
+  if (INSTRUCTIONS === "other") result.instructions = { text: INSTRUCTIONS_A };
+  return result;
+}
+
+/** Send an initialize-shaped answer, including the one no serialiser can make. */
+function sendInitializeShaped(id) {
+  if (INSTRUCTIONS === "dup") {
+    /* Two keys. Hand-written, so JSON.stringify cannot be the one to drop one. */
+    const line =
+      `{"jsonrpc":"2.0","id":${JSON.stringify(id)},"result":{"protocolVersion":"2025-06-18",` +
+      `"capabilities":{"tools":{"listChanged":true}},"serverInfo":{"name":"brydge-fields-server","version":"1.0.0"},` +
+      `"instructions":${JSON.stringify(INSTRUCTIONS_A)},"instructions":${JSON.stringify(INSTRUCTIONS_B)}}}`;
+    logIn(`<< ${line}`);
+    return out(line + "\n");
+  }
+  send({ jsonrpc: "2.0", id, result: initializeResult() });
+}
+
 function handle(m) {
   const { id, method } = m;
+  if (method === "server/discover") {
+    if (DISCOVER) return sendInitializeShaped(id);
+    return send({ jsonrpc: "2.0", id, error: { code: -32601, message: "FIXTURE: no server/discover here." } });
+  }
   if (method === "initialize") {
-    send({
-      jsonrpc: "2.0",
-      id,
-      result: {
-        protocolVersion: "2025-06-18",
-        capabilities: { tools: { listChanged: true }, resources: {}, prompts: {}, logging: {}, completions: {} },
-        serverInfo: { name: "brydge-fields-server", version: "1.0.0" },
-        /*
-         * Server-authored text that a client may put in front of a model.
-         * It is here because the gate does not look at it, and a test that
-         * says so needs something to point at.
-         */
-        instructions: "FIXTURE: planted instructions, carried in the initialize result.",
-      },
-    });
+    sendInitializeShaped(id);
     if (NOTIFY) {
       setTimeout(() => send({ jsonrpc: "2.0", method: "notifications/tools/list_changed" }), NOTIFY_AFTER).unref?.();
     }
