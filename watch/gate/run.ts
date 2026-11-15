@@ -49,7 +49,7 @@ import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { relay, type Line, type Relay } from "./transport.ts";
 import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./router.ts";
-import { ADOPTED, NotAPin, adopt, read as readPin, write as writePin, type Pin } from "./pin.ts";
+import { ADOPTED, FORMAT_VERSION as PIN_FORMAT_VERSION, NotAPin, adopt, read as readPin, write as writePin, type Pin } from "./pin.ts";
 import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, nameOf, REFUSAL_STYLES, type RefusalStyle, type Why } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
@@ -274,7 +274,7 @@ if (pinPath !== null) {
       emptyPin = true;
       pin = {
         format: "brydge-gate-pin",
-        version: 1,
+        version: PIN_FORMAT_VERSION,
         package: "unknown",
         packageVersion: "unknown",
         pinnedAt: today,

@@ -39,6 +39,7 @@ const SOURCES = [
   ["watch", "page.ts"],
   ["watch", "gate", "transport.ts"],
   ["watch", "gate", "router.ts"],
+  ["watch", "gate", "instructions.ts"],
   ["watch", "gate", "pin.ts"],
   ["watch", "gate", "report.ts"],
   ["watch", "gate", "stale.ts"],

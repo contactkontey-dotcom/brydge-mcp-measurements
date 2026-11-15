@@ -97,6 +97,7 @@ export const CHECKED = [
   "watch/gate/spawning.ts",
   "watch/gate/relist.ts",
   "watch/gate/verify.ts",
+  "watch/gate/instructions.ts",
   "watch/gate/fixtures/demo-server.mjs",
   "watch/gate/fixtures/fields-server.mjs",
 ];

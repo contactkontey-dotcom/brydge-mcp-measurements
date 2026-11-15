@@ -45,9 +45,27 @@
 import { closeSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync, writeSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { canonical, definitionOf, normalise, recordOf, type ToolRecord } from "../tools.ts";
+import { hashedOf, sha256Of, type Hashed, type State } from "./instructions.ts";
 
 export const FORMAT = "brydge-gate-pin";
-export const FORMAT_VERSION = 1;
+/*
+ * VERSION 2 ADDS `instructions`, AND THE BUMP IS FOR THE OLD BUILD'S SAKE.
+ *
+ * A version-1 pin is still read: refusing it would stop every server whose
+ * pin was written before this, and the gate fails closed on a pin it
+ * cannot read. It is read as not covering instructions — see `State` in
+ * ./instructions.ts — so an old pin can never produce a change nobody made.
+ *
+ * The number has to go up all the same, because an older gate reading a
+ * version-2 pin would ignore an `instructions` key it knows nothing about
+ * and enforce less than the pin says. Its version check refuses the whole
+ * file instead, which is the direction to fail in. Upgrade the build
+ * before the pin.
+ */
+export const FORMAT_VERSION = 2;
+
+/** Versions this can read. Writing is always the current one. */
+export const READABLE_VERSIONS = [1, 2];
 
 /** The label for a surface nobody reviewed. Used wherever such a pin is shown. */
 export const ADOPTED = "adopted, not reviewed";
@@ -69,6 +87,20 @@ export interface PinnedTool {
   itemHash: string | null;
 }
 
+/**
+ * The instructions a pin names, and who said so.
+ *
+ * `null` in a pin is not the same as the key being absent: null is somebody
+ * pinning that this server sends none, and absent is nobody having pinned
+ * anything. Only the second is `unpinned`.
+ */
+export interface PinnedInstructions extends Hashed {
+  how: How;
+  by: string | null;
+  at: string | null;
+  itemHash: string | null;
+}
+
 export interface Pin {
   format: string;
   version: number;
@@ -78,8 +110,28 @@ export interface Pin {
   pinnedAt: string;
   /** Where the whole pin came from, for the one line a report has to carry. */
   source: "decisions" | typeof ADOPTED;
+  /**
+   * The instructions string this server was pinned with.
+   *
+   * Absent: nobody pinned instructions — a version-1 pin, or one written by
+   * a gate that did not look. `null`: pinned as sending none. A record: the
+   * string somebody pinned.
+   */
+  instructions?: PinnedInstructions | null;
   tools: Record<string, PinnedTool>;
 }
+
+/**
+ * What a server was seen to send, as a caller reports it to a writer here.
+ *
+ * `{ looked: false }` is the state of every caller that predates this, and
+ * writes a pin with no instructions key at all. That is deliberate: a pin
+ * must not say a server sends none when nothing ever looked.
+ */
+export type Looked = { looked: false } | { looked: true; text: string | null };
+
+/** Nobody looked. */
+export const NOT_LOOKED: Looked = { looked: false };
 
 export class NotAPin extends Error {}
 
@@ -121,11 +173,27 @@ export function recordsOf(pin: Pin): ToolRecord[] {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/**
+ * What this pin says about instructions.
+ *
+ * The one place the three states are derived, so nothing else has to know
+ * that a missing key and a null mean different things.
+ */
+export function instructionsStateOf(pin: Pin): State {
+  if (!("instructions" in pin)) return { kind: "unpinned" };
+  const i = pin.instructions;
+  if (i === null || i === undefined) return { kind: "absent" };
+  return { kind: "text", hash: i.hash, length: i.length };
+}
+
 /* ── Writing ────────────────────────────────────────────────────────────── */
 
 export function serialize(pin: Pin): string {
   const tools: Record<string, PinnedTool> = {};
   for (const k of Object.keys(pin.tools).sort()) tools[k] = pin.tools[k]!;
+  /* The spread keeps every key the pin has, including an `instructions` of
+   * null — which JSON.stringify writes and `in` then finds again, so a pin
+   * that names "none" survives a round trip as that and not as unpinned. */
   return JSON.stringify({ ...pin, tools }, null, 2) + "\n";
 }
 
@@ -172,13 +240,46 @@ export function parse(text: string): Pin {
   if (!plain(raw)) throw new NotAPin("it is not an object");
   const p = raw as Partial<Pin>;
   if (p.format !== FORMAT) throw new NotAPin(`its format is ${JSON.stringify(p.format)}, not ${JSON.stringify(FORMAT)}`);
-  if (p.version !== FORMAT_VERSION) throw new NotAPin(`its format version is ${JSON.stringify(p.version)}, and this reads ${FORMAT_VERSION}`);
+  if (typeof p.version !== "number" || !READABLE_VERSIONS.includes(p.version)) {
+    throw new NotAPin(`its format version is ${JSON.stringify(p.version)}, and this reads ${READABLE_VERSIONS.join(" or ")}`);
+  }
   for (const k of ["package", "packageVersion", "pinnedAt"] as const) {
     if (typeof p[k] !== "string" || !p[k]) throw new NotAPin(`it names no ${k}`);
   }
   if (!DATE.test(p.pinnedAt!)) throw new NotAPin(`its date ${JSON.stringify(p.pinnedAt)} is not YYYY-MM-DD`);
   if (p.source !== "decisions" && p.source !== ADOPTED) throw new NotAPin(`its source is ${JSON.stringify(p.source)}`);
   if (!plain(p.tools)) throw new NotAPin("it carries no tools");
+
+  /*
+   * Instructions, if the pin names any.
+   *
+   * A version-1 pin carrying the key is refused rather than read: it was
+   * written by something that did not know the field, so the key did not
+   * come from there, and a pin somebody has edited by hand is exactly the
+   * file not to guess about.
+   */
+  if ("instructions" in p) {
+    if (p.version === 1) throw new NotAPin("its format version is 1 and it names instructions, which that version cannot");
+    const i = p.instructions;
+    if (i !== null) {
+      const say = (why: string) => {
+        throw new NotAPin(`the instructions it names ${why}`);
+      };
+      if (!plain(i)) say("are not a record");
+      const r = i as Partial<PinnedInstructions>;
+      if (typeof r.text !== "string") say("carry no text, so nothing could be shown against them");
+      if (typeof r.hash !== "string" || !HEX.test(r.hash)) say("have no sha256");
+      if (r.hash !== sha256Of(r.text as string)) say("have a hash that is not the hash of the text beside it");
+      if (r.length !== (r.text as string).length) say(`state a length of ${JSON.stringify(r.length)} and carry ${(r.text as string).length} characters`);
+      if (r.how !== "approve" && r.how !== ADOPTED) say(`say they were pinned by ${JSON.stringify(r.how)}`);
+      if (r.by !== null && (typeof r.by !== "string" || !r.by)) say("have a reviewer that is not a name");
+      if (r.at !== null && (typeof r.at !== "string" || !DATE.test(r.at))) say("have a date that is not YYYY-MM-DD");
+      if (r.itemHash !== null && (typeof r.itemHash !== "string" || !HEX.test(r.itemHash))) say("have an itemHash that is not a sha256");
+      if (r.how === "approve" && r.itemHash === null && r.by === null) {
+        say("say they were approved and name neither a decision nor a reviewer");
+      }
+    }
+  }
 
   for (const [key, v] of Object.entries(p.tools)) {
     const say = (why: string) => {
@@ -235,10 +336,29 @@ export function read(file: string): Pin {
  * and an operator who concludes the thing is broken. The label travels with
  * every record and is said again in the report.
  */
-export function adopt(pkg: string, version: string, tools: ToolRecord[], at: string): Pin {
+export function adopt(pkg: string, version: string, tools: ToolRecord[], at: string, instructions: Looked = NOT_LOOKED): Pin {
   const out: Record<string, PinnedTool> = {};
   for (const t of tools) out[t.name] = pinnedToolOf(t, ADOPTED, { by: null, at, itemHash: null });
-  return { format: FORMAT, version: FORMAT_VERSION, package: pkg, packageVersion: version, pinnedAt: at, source: ADOPTED, tools: out };
+  const pin: Pin = {
+    format: FORMAT,
+    version: FORMAT_VERSION,
+    package: pkg,
+    packageVersion: version,
+    pinnedAt: at,
+    source: ADOPTED,
+    tools: out,
+  };
+  /* Only a caller that looked gets a key at all. A caller that did not is
+   * every caller written before this existed, and a pin of theirs says
+   * nothing about instructions rather than saying there are none. */
+  if (instructions.looked) pin.instructions = adoptedInstructions(instructions.text, at);
+  return pin;
+}
+
+/** An instructions record as adopted: labelled, and nobody's approval. */
+export function adoptedInstructions(text: string | null, at: string): PinnedInstructions | null {
+  if (text === null) return null;
+  return { ...hashedOf(text), how: ADOPTED, by: null, at, itemHash: null };
 }
 
 export interface FromDecisions {
@@ -266,6 +386,16 @@ export function fromDecisions(opts: {
   tools: ToolRecord[];
   decisions: Record<string, { by: string; at: string; itemHash: string; decision: string }>;
   at: string;
+  /** What the server was seen to send, where anything looked. */
+  instructions?: Looked;
+  /**
+   * The decision that approved those instructions, where one did.
+   *
+   * Approving "none" is a real decision and is recorded as one: the pin
+   * then names no instructions, by approval, and anything the server
+   * sends later differs from it.
+   */
+  instructionsApproval?: { by: string; at: string; itemHash: string } | null;
 }): FromDecisions {
   const byName = new Map(opts.tools.map((t) => [t.name, t]));
   const out: Record<string, PinnedTool> = {};
@@ -289,17 +419,28 @@ export function fromDecisions(opts: {
     });
   }
   const notPinned = opts.tools.map((t) => t.name).filter((n) => !out[n]).sort();
-  return {
-    pin: {
-      format: FORMAT,
-      version: FORMAT_VERSION,
-      package: opts.package,
-      packageVersion: opts.version,
-      pinnedAt: opts.at,
-      source: "decisions",
-      tools: out,
-    },
-    notPinned,
-    missing,
+  const pin: Pin = {
+    format: FORMAT,
+    version: FORMAT_VERSION,
+    package: opts.package,
+    packageVersion: opts.version,
+    pinnedAt: opts.at,
+    source: "decisions",
+    tools: out,
   };
+  const seen = opts.instructions ?? NOT_LOOKED;
+  if (seen.looked) {
+    const approval = opts.instructionsApproval ?? null;
+    if (seen.text === null) {
+      /* Nothing to carry either way: the pin names none. Who approved that
+       * is recorded in watch/decisions.json against the item, not here,
+       * because there is no record to hang it on. */
+      pin.instructions = null;
+    } else if (approval) {
+      pin.instructions = { ...hashedOf(seen.text), how: "approve", by: approval.by, at: approval.at, itemHash: approval.itemHash };
+    } else {
+      pin.instructions = adoptedInstructions(seen.text, opts.at);
+    }
+  }
+  return { pin, notPinned, missing };
 }
