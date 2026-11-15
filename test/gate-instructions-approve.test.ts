@@ -12,7 +12,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { INSTRUCTIONS_LABEL, carry, renderCarried } from "../watch/gate/approve.ts";
+import { INSTRUCTIONS_LABEL, carry, counted, renderCarried } from "../watch/gate/approve.ts";
 import { compare, sha256Of, type Seen } from "../watch/gate/instructions.ts";
 import { adopt, instructionsStateOf, parse, serialize } from "../watch/gate/pin.ts";
 import { instructionsItemOf, pendingOf, stderrLine } from "../watch/gate/report.ts";
@@ -299,4 +299,57 @@ test("the gate writes a report carrying the instructions item, and approving it 
   assert.equal(a.pin.instructions!.hash, sha256Of(report.instructions!.seen!));
   assert.equal(a.pin.instructions!.how, "approve");
   noText(err, "the gate's stderr");
+});
+
+/* ── The summary counts it as what it is ────────────────────────────────── */
+
+test("the summary says N tool(s) and the server's instructions, never N+1 tools", () => {
+  const pin = pinWith(A);
+  const B_TOOL = recordOf({ name: "read_file", description: "FIXTURE: planted, reworded.", inputSchema: { type: "object" } });
+  const p = pendingOf(pin, [B_TOOL], [{ tool: "read_file", because: "its description differs from the baseline" }], DAY, sawText(B));
+  const toolItem = p.prepared.items.find((i) => i.kind === "description")!;
+  const both = carry({
+    pin,
+    pending: p,
+    incoming: exportOf([
+      { kind: "description", name: "read_file", decision: "approve", by: WHO, at: DAY, itemHash: toolItem.itemHash },
+      decisionOn(p, "approve"),
+    ]),
+    decisions: {},
+  });
+  const line = renderCarried(both, "/planted/pin.json").split("\n")[0]!;
+  assert.match(line, /1 tool\(s\) and the server's instructions approved, 0 held, 0 applied to nothing\./);
+  assert.ok(!/2 approved/.test(line), "the instructions were counted as a tool");
+});
+
+test("the instructions alone, approved: the summary names them and counts no tools", () => {
+  const pin = pinWith(A);
+  const p = pendingOf(pin, live, [], DAY, sawText(B));
+  const a = carry({ pin, pending: p, incoming: exportOf([decisionOn(p, "approve")]), decisions: {} });
+  const line = renderCarried(a, "/planted/pin.json").split("\n")[0]!;
+  assert.match(line, /the server's instructions approved, 0 held, 0 applied to nothing\./);
+  assert.ok(!/^.*: 1 approved/.test(line), "the instructions were counted as a tool");
+});
+
+test("a line about only tools reads exactly as it did before", () => {
+  /* The common case must not have gained a clause it does not need. */
+  assert.equal(counted([{ kind: "description" }, { kind: "input schema" }]), "2");
+  assert.equal(counted([]), "0");
+  assert.equal(counted([{ kind: "instructions" }]), "the server's instructions");
+  assert.equal(counted([{ kind: "new tool" }, { kind: "instructions" }]), "1 tool(s) and the server's instructions");
+});
+
+test("still-flagged says it in words rather than counting the instructions among the tools", () => {
+  const pin = pinWith(A);
+  /* A tool that differs and is not approved, and instructions likewise. */
+  const B_TOOL = recordOf({ name: "read_file", description: "FIXTURE: planted, reworded.", inputSchema: { type: "object" } });
+  const p = pendingOf(pin, [B_TOOL], [{ tool: "read_file", because: "its description differs from the baseline" }], DAY, sawText(B));
+  const none = carry({ pin, pending: p, incoming: exportOf([]), decisions: {} });
+  assert.match(renderCarried(none, "/p"), /1 tool\(s\) and the server's instructions still differ from the pin: read_file\./);
+
+  /* Instructions alone. */
+  const only = pendingOf(pin, live, [], DAY, sawText(B));
+  const a = carry({ pin, pending: only, incoming: exportOf([]), decisions: {} });
+  assert.match(renderCarried(a, "/p"), /The server's instructions still differ from the pin\./);
+  assert.ok(!/tool\(s\) still differ/.test(renderCarried(a, "/p")));
 });

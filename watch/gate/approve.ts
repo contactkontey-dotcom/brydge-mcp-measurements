@@ -214,10 +214,24 @@ export function carry(opts: {
 }
 
 /** What carrying a set of decisions did. Names and counts; never a description. */
+/**
+ * How many items, counting the instructions string as what it is.
+ *
+ * It is not a tool, and a summary that said "2 approved" when one of the
+ * two was the server's instructions would be counting a string as one.
+ * "2" on its own is kept where every item IS a tool, so the common line
+ * reads as it always has.
+ */
+export function counted(items: Array<{ kind: ItemKind }>): string {
+  const tools = items.filter((x) => x.kind !== "instructions").length;
+  if (!items.some((x) => x.kind === "instructions")) return String(tools);
+  return tools ? `${tools} tool(s) and ${INSTRUCTIONS_LABEL}` : INSTRUCTIONS_LABEL;
+}
+
 export function renderCarried(a: Applied, pinFile: string): string {
   const out: string[] = [];
   const c = a.carried;
-  out.push(`${a.pin.package}@${a.pin.packageVersion}: ${c.approved.length} approved, ${c.held.length} held, ${c.refused.length} applied to nothing.`);
+  out.push(`${a.pin.package}@${a.pin.packageVersion}: ${counted(c.approved)} approved, ${counted(c.held)} held, ${counted(c.refused)} applied to nothing.`);
   const group = (title: string, lines: string[]) => {
     if (!lines.length) return;
     out.push("");
@@ -232,10 +246,21 @@ export function renderCarried(a: Applied, pinFile: string): string {
   );
   group("applied to nothing", c.refused.map((x) => `${named(x)}: ${x.because}`));
   out.push("");
+  /*
+   * The same count, and the same reason: `stillFlagged` can hold the
+   * instructions label beside tool names, and "2 tool(s) still differ:
+   * read_file, the server's instructions" would be calling a string a tool.
+   */
+  const flaggedTools = c.stillFlagged.filter((n) => n !== INSTRUCTIONS_LABEL);
+  const flaggedInstructions = c.stillFlagged.includes(INSTRUCTIONS_LABEL);
   out.push(
-    c.stillFlagged.length
-      ? `${c.stillFlagged.length} tool(s) still differ from the pin: ${c.stillFlagged.join(", ")}.`
-      : `Nothing in that report still differs from the pin.`,
+    flaggedTools.length && flaggedInstructions
+      ? `${flaggedTools.length} tool(s) and ${INSTRUCTIONS_LABEL} still differ from the pin: ${flaggedTools.join(", ")}.`
+      : flaggedTools.length
+        ? `${flaggedTools.length} tool(s) still differ from the pin: ${flaggedTools.join(", ")}.`
+        : flaggedInstructions
+          ? `${INSTRUCTIONS_LABEL.charAt(0).toUpperCase()}${INSTRUCTIONS_LABEL.slice(1)} still differ from the pin.`
+          : `Nothing in that report still differs from the pin.`,
   );
   out.push(a.pinChanged ? `pin -> ${pinFile}` : `The pin is unchanged, so it was not written.`);
   return out.join("\n");
