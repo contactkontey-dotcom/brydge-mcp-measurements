@@ -42,6 +42,7 @@
  */
 import { itemHashOf, type ItemKind, type ReviewItem } from "./decisions.ts";
 import { classify, parametersOf as riskParametersOf, triage, type Assessment } from "./risk.ts";
+import { KEPT } from "./gate/lane.ts";
 import { FORMAT, FORMAT_VERSION, otherFieldLines, type Queue } from "./review.ts";
 import { paramsOf, renderSchemaDiff, schemaDiff, type Change } from "./schemadiff.ts";
 import { legendFor, markup, visible, wordDiff, MARKER_KEY, type Run } from "./words.ts";
@@ -90,6 +91,13 @@ export interface PreparedItem {
   risk: Assessment | null;
   /** Where this sits in the reading order. Lower is read first. */
   rank: number;
+  /**
+   * Set when the lane kept this tool on its approved version: the client
+   * is still using the definition in the pin, not the one this item is
+   * about. Absent means the tool was held, which is what a report has
+   * always meant.
+   */
+  lane?: string;
 }
 
 export interface Prepared {
@@ -192,12 +200,14 @@ function riskOf(item: ReviewItem): Assessment | null {
   return classify({ name: item.tool }, item.kind);
 }
 
-export function prepare(q: Queue, generatedAt: string): Prepared {
+export function prepare(q: Queue, generatedAt: string, keptOnApproved: string[] = []): Prepared {
+  const kept = new Set(keptOnApproved);
   const items: PreparedItem[] = q.items.map((item) => {
     const risk = riskOf(item);
+    const lane = kept.has(item.tool) ? { lane: KEPT } : {};
     /* -1 for an item with no tool to classify, so the server's own
      * instructions are read before the tools rather than after them. */
-    const base = { kind: item.kind, tool: item.tool, itemHash: itemHashOf(item), risk, rank: risk ? risk.rank : -1 };
+    const base = { kind: item.kind, tool: item.tool, itemHash: itemHashOf(item), risk, rank: risk ? risk.rank : -1, ...lane };
     if (item.kind === "description") {
       return { ...base, words: wordsPart(item.before as string | null, item.after as string | null), schema: null, parameters: null };
     }

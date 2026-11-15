@@ -270,12 +270,14 @@ export function exciseInstructions(raw: Buffer): Excised {
 export type ToolsExcised =
   | {
       ok: true;
-      /** The message with every hidden element removed. */
+      /** The message with every hidden element removed and every replacement spliced in. */
       bytes: Buffer;
       /** The spans removed, in order, [start, end) in the original. */
       removed: Array<{ start: number; end: number }>;
-      /** Elements left in the array. */
+      /** Elements left in the array, replacements included. */
       kept: number;
+      /** The spans replaced, [start, end) in the original, with what went in. */
+      inserted: Array<{ start: number; end: number; bytes: number }>;
     }
   | { ok: false; because: string };
 
@@ -320,6 +322,28 @@ function elementsOf(buf: Buffer, i: number): { elements: Array<{ start: number; 
  * empty; a caller then forwards the original bytes.
  */
 export function exciseTools(raw: Buffer, hidden: ReadonlySet<string>): ToolsExcised {
+  return rewriteTools(raw, hidden, new Map());
+}
+
+/**
+ * The same, and also REPLACING elements with a definition of our own.
+ *
+ * `replace` maps a tool name to the definition to put in its place —
+ * the pin's, when the lane is serving an approved version across a change.
+ * The replacement is serialised once and spliced in; every byte outside
+ * the spliced span is the server's, in the server's order, which is what
+ * the cuts already promise and what a test holds both to.
+ *
+ * THIS IS THE ONE PLACE THE GATE PUTS BYTES ON THE WIRE THAT NO SERVER
+ * SENT. Every other rewrite in this file is subtractive. A reader deciding
+ * whether to trust the result should know which of the two it is looking
+ * at, so the spliced spans come back in `inserted`.
+ */
+export function rewriteTools(
+  raw: Buffer,
+  hidden: ReadonlySet<string>,
+  replace: ReadonlyMap<string, Record<string, unknown>>,
+): ToolsExcised {
   const top = membersOf(raw, 0);
   if ("because" in top) return { ok: false, because: `the message is not one JSON object: ${top.because}` };
   if (skipWs(raw, top.end) !== raw.length) return { ok: false, because: "there are bytes after the message's closing brace" };
@@ -336,8 +360,9 @@ export function exciseTools(raw: Buffer, hidden: ReadonlySet<string>): ToolsExci
   const arr = elementsOf(raw, tv);
   if ("because" in arr) return { ok: false, because: `"tools" is not an array: ${arr.because}` };
 
-  /* Which elements go, by the decoded name of each. */
+  /* Which elements go, and which are replaced, by the decoded name of each. */
   const going: number[] = [];
+  const replacing = new Map<number, Record<string, unknown>>();
   for (const [idx, el] of arr.elements.entries()) {
     const members = membersOf(raw, el.start);
     if ("because" in members) return { ok: false, because: `tool ${idx + 1} is not an object: ${members.because}` };
@@ -351,8 +376,12 @@ export function exciseTools(raw: Buffer, hidden: ReadonlySet<string>): ToolsExci
     const name = keyOf(raw, ns, ne);
     if (name === null) return { ok: false, because: `tool ${idx + 1}: its name could not be decoded` };
     if (hidden.has(name)) going.push(idx);
+    else {
+      const instead = replace.get(name);
+      if (instead) replacing.set(idx, instead);
+    }
   }
-  if (!going.length) return { ok: true, bytes: raw, removed: [], kept: arr.elements.length };
+  if (!going.length && !replacing.size) return { ok: true, bytes: raw, removed: [], kept: arr.elements.length, inserted: [] };
 
   /*
    * THE SPANS. Each removed element takes one comma with it: the one after
@@ -390,12 +419,32 @@ export function exciseTools(raw: Buffer, hidden: ReadonlySet<string>): ToolsExci
     spans.push({ start, end });
     i = j + 1;
   }
+  /*
+   * The edits: a cut is a span replaced by nothing, a lane element is a
+   * span replaced by the pin's definition. They cannot overlap — a cut
+   * span ends at the start of the next KEPT element, and a replaced
+   * element is kept — so applying them in order is enough.
+   */
+  const inserted: Array<{ start: number; end: number; bytes: number }> = [];
+  const edits: Array<{ start: number; end: number; with: Buffer }> = spans.map((s) => ({ ...s, with: Buffer.alloc(0) }));
+  for (const [idx, definition] of [...replacing.entries()].sort((a, b) => a[0] - b[0])) {
+    const el = arr.elements[idx]!;
+    const bytes = Buffer.from(JSON.stringify(definition), "utf8");
+    edits.push({ start: el.start, end: el.end, with: bytes });
+    inserted.push({ start: el.start, end: el.end, bytes: bytes.length });
+  }
+  edits.sort((a, b) => a.start - b.start);
+  for (let i = 1; i < edits.length; i++) {
+    if (edits[i]!.start < edits[i - 1]!.end) {
+      return { ok: false, because: "two edits to the tool list overlap, so the list was not changed" };
+    }
+  }
   const parts: Buffer[] = [];
   let cursor = 0;
-  for (const s of spans) {
-    parts.push(raw.subarray(cursor, s.start));
-    cursor = s.end;
+  for (const e of edits) {
+    parts.push(raw.subarray(cursor, e.start), e.with);
+    cursor = e.end;
   }
   parts.push(raw.subarray(cursor));
-  return { ok: true, bytes: Buffer.concat(parts), removed: spans, kept: arr.elements.length - going.length };
+  return { ok: true, bytes: Buffer.concat(parts), removed: spans, kept: arr.elements.length - going.length, inserted };
 }

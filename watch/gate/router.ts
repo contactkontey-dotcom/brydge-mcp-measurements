@@ -129,6 +129,12 @@ export type Note =
    */
   /** A tools/call the gate answered itself instead of forwarding. */
   | { kind: "refused"; at: number; tool: string; because: string; n: number }
+  /**
+   * A tool the lane kept on its approved version: the client was sent the
+   * pinned definition in place of the one the server offered. Only with
+   * --lane-read-only, and only under --mode enforce.
+   */
+  | { kind: "served-pinned"; at: number; tool: string; because: string; classes: string; n: number }
   /** Tools kept out of a tools/list result the client then received. */
   | { kind: "hidden"; at: number; tools: Array<{ tool: string; because: string }>; shown: number; n: number }
   /**

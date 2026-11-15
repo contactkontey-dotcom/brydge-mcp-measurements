@@ -53,6 +53,7 @@ import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./ro
 import { ADOPTED, FORMAT_VERSION as PIN_FORMAT_VERSION, NOT_LOOKED, NotAPin, adopt, instructionsStateOf, read as readPin, write as writePin, type Looked, type Pin } from "./pin.ts";
 import { UNPINNED_LINE, type Seen } from "./instructions.ts";
 import { append as appendHeld } from "./held.ts";
+import { ANNOUNCEMENT as LANE_ANNOUNCEMENT, FLAG as LANE_FLAG, keptLine } from "./lane.ts";
 import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, nameOf, REFUSAL_STYLES, type RefusalStyle, type Why } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
@@ -103,6 +104,7 @@ if (dashdash === -1 || dashdash === argv.length - 1) {
     "  --pending <dir>                where a report goes when the live list differs",
     "  --journal <file>               one line per note",
     "  --held <file>                  the calls that waited and did not go: tool, time, argument fingerprint",
+    "  --lane-read-only               on a change that reads as read-only, keep serving the approved definition",
     "  --write-pin <file>             take a pin from the first live list (shadow only)",
     "  --package <name@version>       what that pin is a pin of",
     "  --mode shadow|enforce          shadow unless this says otherwise",
@@ -127,6 +129,12 @@ const journalPath = flag("--journal");
  * not the journal, for the reason in ./held.ts.
  */
 const heldPath = flag("--held");
+
+/*
+ * The lane. Off unless typed, and enforce-only: shadow mode changes
+ * nothing a client receives, so there would be nothing for it to do.
+ */
+const laneReadOnly = flags.includes(LANE_FLAG);
 const pinPath = flag("--pin");
 const pendingDir = flag("--pending");
 /*
@@ -233,6 +241,12 @@ if (!ON_VERIFY_TIMEOUTS.includes(onVerifyTimeout)) {
  * silence would be entitled to think the gate was broken. Said rather
  * than ignored, like the settings below.
  */
+if (laneReadOnly && mode !== "enforce") {
+  refuse(64, [
+    `gate: ${LANE_FLAG} only applies with --mode enforce.`,
+    "gate: shadow mode sends the client every tool list exactly as it arrived, so there is nothing for a lane to decide. The server was not started.",
+  ]);
+}
 if (heldPath !== null) {
   if (!verifyOnCall) {
     refuse(64, [
@@ -398,7 +412,7 @@ let reports = 0;
 function reportOn(records: ToolRecord[], hidden: WouldHide[]): void {
   if (!pin || !pendingDir || (!hidden.length && !instructionsForReport)) return;
   try {
-    const pending = pendingOf(pin, records, hidden, today, instructionsForReport);
+    const pending = pendingOf(pin, records, hidden, today, instructionsForReport, enforcer?.keptOnApproved ?? []);
     const file = join(pendingDir, `${pin.package.replace(/[^A-Za-z0-9._@-]+/g, "--")}-${Date.now()}.json`);
     writeFileSync(file, JSON.stringify(pending, null, 2) + "\n");
     reports++;
@@ -415,6 +429,7 @@ function reportOn(records: ToolRecord[], hidden: WouldHide[]): void {
 let refusalsSoFar = 0;
 let hiddenSoFar = 0;
 let hiddenInstructionsSoFar = 0;
+let keptSoFar = 0;
 
 /** What the pin says about instructions. With no pin there is nothing to compare against. */
 const instructionsState = pin ? instructionsStateOf(pin) : ({ kind: "unpinned" } as const);
@@ -432,7 +447,9 @@ const reasonOf = (why: Why): string =>
       ? "the tool list has not been read in full"
       : why.kind === "unchecked"
         ? "the tool list could not be checked before this call"
-        : why.because;
+        : why.kind === "only-the-new-version"
+          ? "the call uses a parameter only a newer version of the tool has"
+          : why.because;
 
 const enforcer =
   mode === "enforce" && pin
@@ -461,6 +478,26 @@ const enforcer =
           note({ kind: "refused", at: Date.now(), tool, because, n: ++refusalsSoFar });
         },
         onFailClosed: (because) => process.stderr.write(`gate: failing closed: ${because}\n`),
+        /*
+         * The definitions the lane serves. Only when the flag is on: with
+         * it off the enforcer is given none and the lane cannot engage,
+         * whatever else changes.
+         */
+        pinned: laneReadOnly && pin ? Object.fromEntries(Object.entries(pin.tools).map(([n, t]) => [n, t.definition])) : undefined,
+        onKept: (tools) => {
+          process.stderr.write(`${keptLine(tools.length)}\n`);
+          for (const tool of tools) {
+            keptSoFar++;
+            note({
+              kind: "served-pinned",
+              at: Date.now(),
+              tool,
+              because: "the change reads as read-only",
+              classes: "read-only",
+              n: keptSoFar,
+            });
+          }
+        },
         instructions: instructionsState,
         onHideInstructions: (because) => {
           hiddenInstructionsSoFar++;
@@ -605,6 +642,7 @@ if (enforcer && pin) {
  * something on, and a log should not leave somebody guessing where an extra
  * request came from. */
 if (relistOnChange) process.stderr.write(`${ANNOUNCEMENT}\n`);
+if (laneReadOnly) process.stderr.write(`${LANE_ANNOUNCEMENT}\n`);
 if (verifyOnCall) {
   process.stderr.write(`${verifyAnnouncement(verifyWindow, verifyTimeout, onVerifyTimeout, mode === "enforce")}\n`);
 }
@@ -889,7 +927,8 @@ child.on("exit", (code, signal) => {
     .join(" ");
   const against = pin ? `pin ${pin.package}@${pin.packageVersion} (${pin.source})` : "no pin: the first list seen";
   const said = enforcer
-    ? `enforce, ${enforcer.hiddenCount} hidden${hiddenInstructionsSoFar ? ", instructions not passed on" : ""}`
+    ? `enforce, ${enforcer.hiddenCount} hidden${keptSoFar ? `, ${keptSoFar} kept on the approved version` : ""}` +
+      `${hiddenInstructionsSoFar ? ", instructions not passed on" : ""}`
     : "shadow";
   /*
    * What the flag cost, in the one place somebody reads at the end. The

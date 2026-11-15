@@ -11,7 +11,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { CONTAINMENT, flatten, GATEKEEPING } from "./banned.ts";
+import { CONTAINMENT, GATEKEEPING, flatten, withoutDisclaimers } from "./banned.ts";
 
 const ROOT = join(import.meta.dirname, "..");
 const README = readFileSync(join(ROOT, "watch", "gate", "README.md"), "utf8");
@@ -19,11 +19,20 @@ const SHEET = readFileSync(join(ROOT, "watch", "gate", "observation-sheet.md"), 
 
 test("neither document uses a word that claims more than the gate does", () => {
   for (const [what, text] of [["the README", README], ["the observation sheet", SHEET]] as const) {
-    const flat = flatten(text);
+    /*
+     * The disclaimer is stripped first. The README says "inferred, not
+     * verified" where it describes the risk classifier, and that phrase
+     * contains "verified" in order to DENY it — the opposite of the claim
+     * this sweep exists to stop. See DISCLAIMERS in ./banned.ts; a bare
+     * "verified" anywhere else still trips.
+     */
+    const flat = withoutDisclaimers(flatten(text));
     for (const w of [...CONTAINMENT, ...GATEKEEPING]) {
       assert.ok(!flat.includes(w), `${what} says "${w}"`);
     }
   }
+  /* And the phrase is really there, so this is not passing by its absence. */
+  assert.ok(README.includes("inferred, not verified"), "the README carries no disclaimer to strip");
 });
 
 test("the README does not claim the gate contains the server", () => {
@@ -633,4 +642,25 @@ test("the README's offline claim says what was measured, not that it is impossib
   assert.match(README, /the same\s+`connect\(\)` calls as the server with no gate at all/);
   /* The thing it must not be read as claiming. */
   assert.match(README, /What the\s+server it wraps reaches is the server's business/);
+});
+
+test("the README explains the lane, and states the limit without softening it", () => {
+  const s = section("Two lanes: keeping a client on the approved version");
+  assert.match(s, /--lane-read-only` is the opt-in alternative/);
+  assert.match(s, /Every other label, `unknown` included, is held exactly as it is\s+without the flag/);
+  assert.match(s, /Off unless you type it, and enforce only/);
+  /* The three things it will not do. */
+  assert.match(s, /\*\*It never serves the new definition\.\*\*/);
+  assert.match(s, /\*\*A call that only fits the newer version is not forwarded\.\*\*/);
+  assert.match(s, /\*\*The whole tool is classified, not just the part that changed\.\*\*/);
+  assert.match(s, /gains a `webhook_url` is not a reader/);
+  /* The limit, in the words it has to be in. */
+  assert.match(s, /\*\*The definition the client has may no longer describe what the server\s+does\.\*\*/);
+  assert.match(s, /\*\*Read-only here is inferred, not verified, from names\.\*\*/);
+  assert.match(s, /does \*\*not\*\* read the description/);
+  assert.match(s, /\*\*Nothing expires\.\*\*/);
+  /* And where a person finds out. */
+  assert.match(s, /kept on the approved version\s+across a change recorded for review/);
+  assert.match(s, /a `served-pinned` line per tool/);
+  assert.match(s, /`gate approve`\. That pins what the server offers now/);
 });

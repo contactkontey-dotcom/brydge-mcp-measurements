@@ -73,7 +73,9 @@ import type { Line } from "./transport.ts";
 import { toolsOf, type WouldHide } from "./router.ts";
 import { ADOPTED, type Pin } from "./pin.ts";
 import { compare as compareInstructions, seenIn, type State as InstructionsState } from "./instructions.ts";
-import { exciseInstructions, exciseTools } from "./excise.ts";
+import { exciseInstructions, rewriteTools } from "./excise.ts";
+import { BECAUSE as LANE_BECAUSE, decide as laneDecide, type Decision as LaneDecision } from "./lane.ts";
+import { parametersOf as riskParametersOf } from "../risk.ts";
 
 /** The sentence a refusal always opens with. */
 export const DID_NOT_FORWARD = "the gate did not forward this call";
@@ -101,7 +103,12 @@ export type Why =
    * The gate asked the server for its current list before forwarding this
    * call, and did not get one in time. Only under --verify-on-call.
    */
-  | { kind: "unchecked" };
+  | { kind: "unchecked" }
+  /**
+   * The tool is being served on the version somebody approved, and this
+   * call names a parameter only a newer version has. Only with the lane.
+   */
+  | { kind: "only-the-new-version" };
 
 /**
  * The shape a refused tools/call comes back in.
@@ -146,6 +153,13 @@ export interface EnforcerOptions {
   onFailClosed?: (because: string) => void;
   /** What the pin says about instructions. Unpinned compares nothing. */
   instructions?: InstructionsState;
+  /**
+   * The definitions the pin holds, by tool name, for the lane to serve.
+   * Absent turns the lane off however the flag was given.
+   */
+  pinned?: Record<string, Record<string, unknown>>;
+  /** Called once per list with the tools the lane kept on their approved version. */
+  onKept?: (tools: string[]) => void;
   /** Called when the instructions field is taken out of a result. */
   onHideInstructions?: (because: string) => void;
 }
@@ -163,6 +177,17 @@ export class Enforcer {
   private everOffered = new Set<string>();
   /** The names in the most recent list the server answered. */
   private offeredNow = new Set<string>();
+  /**
+   * Tools the lane is serving on their approved version: name to the
+   * definition that goes on the wire in place of the server's.
+   */
+  private served = new Map<string, Record<string, unknown>>();
+  /**
+   * For each of those, the parameter names the approved version declares
+   * and the ones only the live version does. A call naming one of the
+   * second is a call built against something the client was not sent.
+   */
+  private onlyNew = new Map<string, Set<string>>();
   /** Client request ids that asked for a tools/list, to their method. */
   private readonly inFlight = new Map<string, { method: string; tool: string | null }>();
   private sawList = false;
@@ -202,12 +227,48 @@ export class Enforcer {
   }
 
   /** What the router decided about one list, taken as the state to enforce. */
-  noteList(records: Array<{ name: string }>, hidden: WouldHide[]): void {
+  noteList(records: Array<{ name: string; inputSchema?: unknown; description?: unknown }>, hidden: WouldHide[]): void {
     this.unread = null;
     this.sawList = true;
     this.offeredNow = new Set(records.map((r) => r.name));
     for (const n of this.offeredNow) this.everOffered.add(n);
     this.hidden = new Map(hidden.map((h) => [h.tool, h.because]));
+    this.served = new Map();
+    this.onlyNew = new Map();
+    if (!this.opts.pinned) return;
+
+    /*
+     * THE LANE. Each tool the gate would hide is asked which lane it goes
+     * down; the ones that read as read-only keep their approved
+     * definition and come OUT of the hidden set, so their calls are
+     * forwarded as calls to an approved tool — which is what they are.
+     */
+    const pinned = this.opts.pinned;
+    for (const h of hidden) {
+      const was = pinned[h.tool];
+      const live = records.find((r) => r.name === h.tool);
+      if (!live) continue; /* withdrawn: there is nothing in the list to replace */
+      const before = new Set(riskParametersOf(was?.inputSchema));
+      const addedParameters = riskParametersOf(live.inputSchema).filter((n) => !before.has(n));
+      const decision: LaneDecision = laneDecide({
+        pinned: was,
+        live: live as unknown as Record<string, unknown>,
+        differs: h.because,
+        addedParameters,
+      });
+      if (decision.lane !== "serve-pinned" || !was) continue;
+      this.served.set(h.tool, was);
+      this.hidden.delete(h.tool);
+      /* The parameters only the live version has, for the call refusal. */
+      const onlyNew = new Set(riskParametersOf(live.inputSchema).filter((n) => !before.has(n)));
+      if (onlyNew.size) this.onlyNew.set(h.tool, onlyNew);
+    }
+    if (this.served.size) this.opts.onKept?.([...this.served.keys()].sort());
+  }
+
+  /** The tools the lane is serving, for a report that has to say so. */
+  get keptOnApproved(): string[] {
+    return [...this.served.keys()].sort();
   }
 
   /* ── Client to server ─────────────────────────────────────────────────── */
@@ -225,6 +286,29 @@ export class Enforcer {
     const tool = method === "tools/call" ? nameOf(message.params) : null;
     this.inFlight.set(keyOf(id), { method, tool });
     if (method !== "tools/call" || tool === null) return pass;
+
+    /*
+     * A CALL THAT ONLY FITS THE VERSION THE CLIENT WAS NOT SENT.
+     *
+     * The lane served the approved definition, so the client was told the
+     * approved parameters. A call naming a parameter that only the live
+     * version declares was not built from what this gate sent, and
+     * forwarding it would let the newer version be used through a door
+     * the gate holds open for the older one.
+     *
+     * Names only. Nothing here validates a type or a value: that would be
+     * the gate deciding whether a call is well formed, which is the
+     * server's business.
+     */
+    const onlyNew = this.onlyNew.get(tool);
+    if (onlyNew?.size) {
+      const args = argumentNamesOf(message.params);
+      if (args.some((a) => onlyNew.has(a))) {
+        const why: Why = { kind: "only-the-new-version" };
+        this.opts.onRefuse?.(tool, why);
+        return { forward: false, replyToClient: this.refusal(id, tool, why) };
+      }
+    }
 
     const why = this.whyRefused(tool);
     if (!why) return pass;
@@ -283,6 +367,19 @@ export class Enforcer {
         `The person running this client can see what happened in the gate's own output.`
       );
     }
+    if (why.kind === "only-the-new-version") {
+      /*
+       * No parameter name in it. The client already knows what it sent,
+       * and naming the parameter would tell the model about a version of
+       * the tool nobody approved. The name is on stderr and in the
+       * journal, where a person reads it.
+       */
+      return (
+        `${DID_NOT_FORWARD}: "${tool}" is being served on the version somebody approved, and this call uses a ` +
+        `parameter that only a newer version of it has. The tool as this gate passed it on is the one to call. ` +
+        `The person running this client decides what is approved.`
+      );
+    }
     return why.kind === "withdrawn"
       ? `${DID_NOT_FORWARD}: the server is no longer offering "${tool}". It was in an earlier tool list in this session and is not in the current one.`
       : `${DID_NOT_FORWARD}: "${tool}" is hidden, because ${why.because}. ` +
@@ -318,7 +415,9 @@ export class Enforcer {
           ? "the tool list has not been read in full"
           : why.kind === "unchecked"
             ? "the tool list could not be checked before this call"
-            : why.because;
+            : why.kind === "only-the-new-version"
+              ? "the call uses a parameter only a newer version of the tool has"
+              : why.because;
     /* Said as data as well as in words, because a client that shows only a
      * code and a field should still be able to show who refused. */
     const data = { gate: GATE, tool, reason, didNotForward: true };
@@ -432,10 +531,11 @@ export class Enforcer {
       };
     }
 
-    if (!this.hidden.size) return pass; /* nothing to take out: the server's own bytes go on */
+    /* Nothing to take out and nothing to put in: the server's own bytes go on. */
+    if (!this.hidden.size && !this.served.size) return pass;
 
     const kept = read.tools.filter((t) => !this.hidden.has(String(t.name)));
-    if (kept.length === read.tools.length) return pass;
+    if (kept.length === read.tools.length && !this.served.size) return pass;
 
     /*
      * BY THE BYTES, NOT BY RE-SERIALISING. Each hidden element is cut out
@@ -446,7 +546,7 @@ export class Enforcer {
      * stops: forwarding a list that was supposed to lose a tool is the one
      * thing enforcement must never do.
      */
-    const cut = exciseTools(line.raw, new Set(this.hidden.keys()));
+    const cut = rewriteTools(line.raw, new Set(this.hidden.keys()), this.served);
     if (!cut.ok) {
       const because =
         `${this.hidden.size} tool(s) are hidden and could not be taken out of the tool list without doubt: ${cut.because}. ` +
@@ -454,7 +554,7 @@ export class Enforcer {
       this.opts.onFailClosed?.(because);
       return { forward: false, stop: because };
     }
-    if (cut.kept !== kept.length) {
+    if (cut.ok && cut.kept !== kept.length) {
       /* The scanner and the parsed copy disagree about how many are left.
        * That is a message this does not understand well enough to change. */
       const because =
@@ -463,10 +563,18 @@ export class Enforcer {
       this.opts.onFailClosed?.(because);
       return { forward: false, stop: because };
     }
-    this.opts.onHide?.(
-      [...this.hidden.entries()].map(([tool, because]) => ({ tool, because })) as WouldHide[],
-      kept.length,
-    );
+    /*
+     * Only when something really was hidden. The lane rewrites a list
+     * without hiding anything, and a line reading "did not pass 0 tool(s)"
+     * — with a journal note to match — would be the gate reporting an act
+     * it did not perform.
+     */
+    if (this.hidden.size) {
+      this.opts.onHide?.(
+        [...this.hidden.entries()].map(([tool, because]) => ({ tool, because })) as WouldHide[],
+        kept.length,
+      );
+    }
     return { forward: false, replaceWith: cut.bytes };
   }
 
@@ -480,6 +588,14 @@ export class Enforcer {
 }
 
 const keyOf = (id: unknown): string => (typeof id === "string" ? `s:${id}` : `n:${String(id)}`);
+
+/** The argument names a tools/call carries, or none. */
+export function argumentNamesOf(params: unknown): string[] {
+  if (!plain(params)) return [];
+  const args = params.arguments;
+  if (!plain(args)) return [];
+  return Object.keys(args);
+}
 
 /** The tool a tools/call names, or null. */
 export function nameOf(params: unknown): string | null {

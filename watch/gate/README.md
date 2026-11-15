@@ -604,6 +604,87 @@ call should have gone through, you ask the client to make it again.
 
 ---
 
+## Two lanes: keeping a client on the approved version
+
+Under enforcement a tool whose definition changed comes out of the list
+and the client loses it until somebody reviews the change. That is right
+for a tool that charges a card and heavy-handed for one that lists files.
+`--lane-read-only` is the opt-in alternative:
+
+```
+gate --pin <pin> --mode enforce --lane-read-only -- <your server command>
+```
+
+When a change reads as **read-only**, the client keeps being sent the
+definition in the pin — the one somebody approved — and the change goes
+into the report to be reviewed whenever you get to it. The tool keeps
+working. Every other label, `unknown` included, is held exactly as it is
+without the flag.
+
+Off unless you type it, and enforce only: in shadow mode the client gets
+every list exactly as it arrived, so there would be nothing for a lane to
+decide.
+
+### What it will not do
+
+* **It never serves the new definition.** What goes to the client is the
+  approved one. A change you have not reviewed does not reach the model by
+  this route.
+* **A call that only fits the newer version is not forwarded.** If the
+  change added a parameter, the client was sent a schema without it; a
+  call naming it is a call built against something this gate did not send,
+  and it is answered by the gate. Names only — nothing here validates a
+  type or a value.
+* **The whole tool is classified, not just the part that changed.** A
+  `get_report` that gains a `webhook_url` is not a reader, whatever its
+  name and whatever its `readOnlyHint` says, and it is held. A tool whose
+  parameters were already risky stays held even when only its description
+  moved.
+
+### The limit, plainly
+
+**The definition the client has may no longer describe what the server
+does.** That is the trade: a working client against a stale contract. The
+server has changed something and is serving the new thing; the client is
+being shown the old words and may call the tool believing them.
+
+**Read-only here is inferred, not verified, from names.** The classifier
+reads the tool's name, its parameter names and three annotation fields. It
+does **not** read the description — that is the field a server controls
+most cheaply, and a classifier keyed on it would be the easiest thing here
+to fool. So "read-only" means *nothing in the name, the parameters or the
+annotations suggested otherwise*. It is not a reading of what changed,
+because what changed was prose and prose is not read.
+
+Two consequences worth stating:
+
+* A server can reword `get_report`'s description from "returns a report"
+  to "returns a report, and emails a copy" and the lane will keep the tool
+  working on the old wording. The new words never reach the model — and
+  the gate cannot tell you the old ones are still true.
+* **Nothing expires.** A definition served from the pin for six weeks is
+  six weeks stale. The count on stderr and the report are the only
+  pressure to review it.
+
+### How you find out, and how you approve it later
+
+Three places, and the third is the one to act on:
+
+* **stderr**, once per list: `N tool(s) kept on the approved version
+  across a change recorded for review`.
+* **the journal**, a `served-pinned` line per tool, with a running count.
+  Tool names and fixed phrases, as ever.
+* **the report** in `--pending`, where the item is marked *kept on the
+  approved version* — so you can tell "the client lost this" from "the
+  client is still using the old one" — with a note saying the definition
+  may no longer describe what the server does.
+
+Approving is the path you already have: open the report, decide the item,
+and `gate approve`. That pins what the server offers now, and the lane
+stops engaging for that tool because there is no longer a difference.
+
+---
+
 ## Keeping the model away from the gate's own files
 
 The gate's value depends on one thing: that the person decides what is

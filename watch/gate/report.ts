@@ -29,6 +29,7 @@ import { ADOPTED, CARRIED_LABEL, instructionsStateOf, isCarried, recordsOf, type
 import { INSTRUCTIONS_TOOL, type ReviewItem } from "../decisions.ts";
 import { compare as compareInstructions, type Seen } from "./instructions.ts";
 import { CLASSES, INFERRED, type Class } from "../risk.ts";
+import { KEPT } from "./lane.ts";
 import type { WouldHide } from "./router.ts";
 
 export const PENDING_FORMAT = "brydge-gate-pending";
@@ -78,6 +79,14 @@ export interface Pending {
    * `offered`: it is somebody's prose.
    */
   instructions?: { seen: string | null };
+  /**
+   * Tools the lane kept on their approved version, by name.
+   *
+   * The items for them are in `prepared` like any other, marked so a
+   * reviewer can tell "the client lost this" from "the client is still
+   * using the old one".
+   */
+  keptOnApproved?: string[];
   /** The queue, prepared: word diffs, schema diffs, visible markers. */
   prepared: Prepared;
 }
@@ -145,15 +154,30 @@ export function instructionsItemOf(pin: Pin, seen: Seen | undefined): { item: Re
   return { item: { kind: "instructions", tool: INSTRUCTIONS_TOOL, before, after }, seen: after };
 }
 
-export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], seenAt: string, instructionsSeen?: Seen): Pending {
+/** Said when the lane kept tools on their approved version. */
+export const keptNote = (tools: string[]): string =>
+  `${tools.length} tool(s) were ${KEPT}: the client was sent the definition in this pin, not the one the server is ` +
+  `offering now, because the change read as read-only — ${INFERRED}, from names, parameters and annotations and never ` +
+  `from a description. The definition the client has may no longer describe what the server does. ` +
+  `Approving an item below replaces it with what the server offers now: ${tools.join(", ")}.`;
+
+export function pendingOf(
+  pin: Pin,
+  live: ToolRecord[],
+  wouldHide: WouldHide[],
+  seenAt: string,
+  instructionsSeen?: Seen,
+  keptOnApproved: string[] = [],
+): Pending {
   const queue = queueFor(pin.package, `pinned ${pin.pinnedAt}`, `offered ${seenAt}`, recordsOf(pin), live);
   const notes = otherFieldLines(queue);
   const instructions = instructionsItemOf(pin, instructionsSeen);
   if (instructions && "note" in instructions) notes.push(instructions.note);
   if (instructions && "item" in instructions) queue.items.push(instructions.item);
-  const prepared = prepare(queue, seenAt);
+  const prepared = prepare(queue, seenAt, keptOnApproved);
   const risk = riskLine(prepared);
   if (risk) notes.push(risk);
+  if (keptOnApproved.length) notes.unshift(keptNote(keptOnApproved));
   const carried = Object.values(pin.tools).filter(isCarried).map((t) => t.name).sort();
   if (carried.length) notes.unshift(carriedLine(carried));
   if (pin.source === ADOPTED) notes.unshift(ADOPTED_LINE);
@@ -176,6 +200,7 @@ export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], 
     wouldHide,
     notes,
     ...(instructions && "item" in instructions ? { instructions: { seen: instructions.seen } } : {}),
+    ...(keptOnApproved.length ? { keptOnApproved } : {}),
     prepared,
   };
 }
@@ -191,5 +216,6 @@ export function stderrLine(p: Pending, file: string): string {
       .join("; ") || "none";
   const adopted = p.pinnedBy === ADOPTED ? `, against a pin that was ${ADOPTED}` : "";
   const instructions = p.instructions ? ", and the server's instructions differ from the pin" : "";
-  return `gate: ${p.wouldHide.length} tool(s) differ from the pin${adopted} (${kinds})${instructions}; written to ${file}`;
+  const kept = p.keptOnApproved?.length ? `, ${p.keptOnApproved.length} ${KEPT}` : "";
+  return `gate: ${p.wouldHide.length} tool(s) differ from the pin${adopted} (${kinds})${instructions}${kept}; written to ${file}`;
 }
