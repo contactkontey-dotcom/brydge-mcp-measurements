@@ -64,8 +64,21 @@ export const DECISIONS: Decision[] = ["approve", "hold"];
  * tool that differs only in some other field is not among them — Stage 4
  * counts those in one line rather than asking anybody to decide about each.
  */
-export type ItemKind = "description" | "input schema" | "new tool";
-export const ITEM_KINDS: ItemKind[] = ["description", "input schema", "new tool"];
+export type ItemKind = "description" | "input schema" | "new tool" | "instructions";
+export const ITEM_KINDS: ItemKind[] = ["description", "input schema", "new tool", "instructions"];
+
+/*
+ * THE FOURTH KIND IS NOT ABOUT A TOOL.
+ *
+ * The `instructions` string in a server's initialize result is pinned like a
+ * description, and a change in it is one more thing to decide about. Every
+ * item and every record carries a tool name, so this one carries a fixed
+ * one that no tool can be called — a name with parentheses in it — and the
+ * decisions file keys it as `instructions:(server)`. The kind is in the key,
+ * so a tool that happened to be named "instructions" would be filed as
+ * `description:instructions` and never collide.
+ */
+export const INSTRUCTIONS_TOOL = "(server)";
 
 /**
  * One thing to decide about.

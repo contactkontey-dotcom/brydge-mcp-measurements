@@ -98,8 +98,11 @@ test("a decision refuses rather than guessing", () => {
   refuses({ toVersion: "" }, /between two named versions/);
 });
 
-test("the three kinds are the three the diffs can show", () => {
-  assert.deepEqual(ITEM_KINDS, ["description", "input schema", "new tool"]);
+test("the four kinds are the three the diffs can show, and the server's instructions", () => {
+  /* Three until I3, which added the instructions string: pinned like a
+   * description, and one more thing to decide about. This assertion used
+   * to name three. */
+  assert.deepEqual(ITEM_KINDS, ["description", "input schema", "new tool", "instructions"]);
   /* A tool differing only in some other field is deliberately not among
    * them: Stage 4 counts those in one line. */
   assert.ok(!ITEM_KINDS.includes("_meta" as any));

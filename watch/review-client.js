@@ -144,7 +144,7 @@
     var host = document.getElementById("items");
     while (host.firstChild) host.removeChild(host.firstChild);
 
-    var kinds = ["description", "input schema", "new tool"];
+    var kinds = ["description", "input schema", "new tool", "instructions"];
     for (var k = 0; k < kinds.length; k++) {
       var of = DATA.items.filter(function (i) { return i.kind === kinds[k]; });
       if (!of.length) continue;
@@ -162,7 +162,8 @@
      * [data-key="description:nasty"] selects it. */
     box.setAttribute("data-key", itemKey(item));
     var head = add(box, el("header", null));
-    add(head, el("span", "tool", item.tool));
+    /* The instructions item names no tool; it is the server's own text. */
+    add(head, el("span", "tool", item.kind === "instructions" ? "the server's instructions (initialize result)" : item.tool));
     add(head, el("span", "kind", item.kind));
 
     if (item.kind === "new tool") {

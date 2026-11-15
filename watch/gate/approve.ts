@@ -30,11 +30,15 @@
  * Files in, files out, as values. The I/O is the CLI's.
  * ═══════════════════════════════════════════════════════════════════════════
  */
-import { decide, itemHashOf, itemKeyOf, put, Refused, type DecisionsFile, type ItemKind, type ReviewItem } from "../decisions.ts";
+import { decide, INSTRUCTIONS_TOOL, itemHashOf, itemKeyOf, put, Refused, type DecisionsFile, type ItemKind, type ReviewItem } from "../decisions.ts";
 import { recordOf } from "../tools.ts";
 import type { Exported } from "../review.ts";
-import { pinnedToolOf, type Pin, type PinnedTool } from "./pin.ts";
+import { hashedOf } from "./instructions.ts";
+import { pinnedToolOf, type Pin, type PinnedInstructions, type PinnedTool } from "./pin.ts";
 import type { Pending } from "./report.ts";
+
+/** How the instructions item is named wherever a tool name would be printed. */
+export const INSTRUCTIONS_LABEL = "the server's instructions";
 
 export interface Carried {
   /** Tools whose live definition is now pinned, with who approved it. */
@@ -94,6 +98,8 @@ export function carry(opts: {
 
   const byKey = new Map(pending.prepared.items.map((i) => [itemKeyOf({ kind: i.kind, tool: i.tool }), i]));
   const tools: Record<string, PinnedTool> = { ...pin.tools };
+  /* `undefined` means "leave the pin's instructions as they are". */
+  let instructions: PinnedInstructions | null | undefined = undefined;
   const carried: Carried = { approved: [], held: [], refused: [], stillFlagged: [] };
   let merged = decisions;
   let changed = false;
@@ -111,6 +117,43 @@ export function carry(opts: {
         `the decision was made about a different ${d.kind} for ${d.name} ` +
           `(the file says ${d.itemHash.slice(0, 12)}, the report says ${entry.itemHash.slice(0, 12)})`,
       );
+      continue;
+    }
+
+    /*
+     * ── THE INSTRUCTIONS ITEM ───────────────────────────────────────────
+     *
+     * Same rule as a tool, different place to land: the hash is rebuilt
+     * from the pin's text and the text the report saw, and only if it is
+     * still the hash the reviewer decided about does the decision apply.
+     * Approving pins the seen string; approving a seen `null` pins "none",
+     * which is a real decision and is recorded as one. Holding records the
+     * decision and leaves the pin as it was.
+     */
+    if (d.kind === "instructions") {
+      if (d.name !== INSTRUCTIONS_TOOL || !pending.instructions) {
+        reject(`the report carries no instructions to decide about`);
+        continue;
+      }
+      const item: ReviewItem = { kind: "instructions", tool: INSTRUCTIONS_TOOL, before: pin.instructions?.text ?? null, after: pending.instructions.seen };
+      const now = itemHashOf(item);
+      if (now !== d.itemHash) {
+        reject(`the instructions have changed since that report was written (the decision is about ${d.itemHash.slice(0, 12)}, this is ${now.slice(0, 12)})`);
+        continue;
+      }
+      try {
+        merged = put(merged, pin.package, decide({ item, decision: d.decision, by: d.by, at: d.at, fromVersion: `pinned ${pin.pinnedAt}`, toVersion: `offered ${pending.seenAt}` }));
+      } catch (e) {
+        reject((e as Error).message);
+        continue;
+      }
+      if (d.decision === "hold") {
+        carried.held.push({ tool: d.name, kind: d.kind, by: d.by, at: d.at });
+        continue;
+      }
+      instructions = pending.instructions.seen === null ? null : { ...hashedOf(pending.instructions.seen), how: "approve", by: d.by, at: d.at, itemHash: d.itemHash };
+      carried.approved.push({ tool: d.name, kind: d.kind, by: d.by, at: d.at });
+      changed = true;
       continue;
     }
     /* And the same question again, against what is in front of the gate
@@ -161,9 +204,13 @@ export function carry(opts: {
     if (!live) continue;
     if (!pinned || pinned.hash !== recordOf(live).hash) carried.stillFlagged.push(h.tool);
   }
+  /* The instructions, if the report flagged them and nothing approved them. */
+  if (pending.instructions && instructions === undefined) carried.stillFlagged.push(INSTRUCTIONS_LABEL);
   carried.stillFlagged = [...new Set(carried.stillFlagged)].sort();
 
-  return { pin: { ...pin, tools }, decisions: merged, carried, pinChanged: changed };
+  const next: Pin = { ...pin, tools };
+  if (instructions !== undefined) next.instructions = instructions;
+  return { pin: next, decisions: merged, carried, pinChanged: changed };
 }
 
 /** What carrying a set of decisions did. Names and counts; never a description. */
@@ -177,12 +224,13 @@ export function renderCarried(a: Applied, pinFile: string): string {
     out.push(`${title}:`);
     for (const l of lines) out.push(`  ${l}`);
   };
-  group("pinned", c.approved.map((x) => `${x.kind} — ${x.tool}, by ${x.by} on ${x.at}`));
+  const named = (x: { kind: ItemKind; tool: string }) => `${x.kind} — ${x.kind === "instructions" ? INSTRUCTIONS_LABEL : x.tool}`;
+  group("pinned", c.approved.map((x) => `${named(x)}, by ${x.by} on ${x.at}`));
   group(
     "held, so the next run flags them again",
-    c.held.map((x) => `${x.kind} — ${x.tool}, by ${x.by} on ${x.at}`),
+    c.held.map((x) => `${named(x)}, by ${x.by} on ${x.at}`),
   );
-  group("applied to nothing", c.refused.map((x) => `${x.kind} — ${x.tool}: ${x.because}`));
+  group("applied to nothing", c.refused.map((x) => `${named(x)}: ${x.because}`));
   out.push("");
   out.push(
     c.stillFlagged.length

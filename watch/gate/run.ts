@@ -50,7 +50,7 @@ import { dirname, join } from "node:path";
 import { relay, type Line, type Relay } from "./transport.ts";
 import { Router, SHADOW_MEANS, type Note, type Side, type WouldHide } from "./router.ts";
 import { ADOPTED, FORMAT_VERSION as PIN_FORMAT_VERSION, NOT_LOOKED, NotAPin, adopt, instructionsStateOf, read as readPin, write as writePin, type Looked, type Pin } from "./pin.ts";
-import { UNPINNED_LINE } from "./instructions.ts";
+import { UNPINNED_LINE, type Seen } from "./instructions.ts";
 import { DEFAULT_REFUSAL_STYLE, Enforcer, enforcingLine, hidLine, nameOf, REFUSAL_STYLES, type RefusalStyle, type Why } from "./enforce.ts";
 import { pendingOf, stderrLine } from "./report.ts";
 import { HOW_TO_BUILD, staleness } from "./stale.ts";
@@ -326,11 +326,18 @@ function note(n: Note): void {
   }
 }
 
+/*
+ * The instructions as seen, held for the report. The handshake comes before
+ * any list, and a report needs the list to say what else is on the surface,
+ * so the verdict waits here for the first tools/list and goes out with it.
+ */
+let instructionsForReport: Seen | undefined = undefined;
+
 let reports = 0;
 function reportOn(records: ToolRecord[], hidden: WouldHide[]): void {
-  if (!pin || !pendingDir || !hidden.length) return;
+  if (!pin || !pendingDir || (!hidden.length && !instructionsForReport)) return;
   try {
-    const pending = pendingOf(pin, records, hidden, today);
+    const pending = pendingOf(pin, records, hidden, today, instructionsForReport);
     const file = join(pendingDir, `${pin.package.replace(/[^A-Za-z0-9._@-]+/g, "--")}-${Date.now()}.json`);
     writeFileSync(file, JSON.stringify(pending, null, 2) + "\n");
     reports++;
@@ -511,7 +518,8 @@ const router = new Router({
     if (writePinPath) takePin(records);
   },
   instructions: instructionsState,
-  onInstructions: (verdict) => {
+  onInstructions: (verdict, seen) => {
+    if (verdict.kind === "differs") instructionsForReport = seen;
     if (verdict.kind === "unpinned") {
       /* Once, and only when there is a pin to say it about. */
       if (pin && !saidUnpinned) {

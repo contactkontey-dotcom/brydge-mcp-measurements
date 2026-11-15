@@ -831,7 +831,12 @@ Plainly, because the value of this depends on them.
   milliseconds" and measure your own rather than trusting a single figure.
   Enforcement adds nothing measurable to that, and neither does
   `--relist-on-change`. Per message, the gate copies bytes and parses a
-  copy to decide; tool lists are the only messages it ever rewrites.
+  copy to decide. Two kinds of message are ever rewritten: an `initialize`
+  result whose `instructions` differ from the pin, which loses that one
+  field by a byte-level cut and keeps every other byte; and a tool list
+  with a hidden tool in it, which is re-serialised from the parsed copy —
+  so its id, if it is a number past 2^53 or a `-0`, comes back as
+  JavaScript writes it, not as the server did.
 
 ---
 

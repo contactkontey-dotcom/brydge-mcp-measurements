@@ -161,6 +161,11 @@ export function prepare(q: Queue, generatedAt: string): Prepared {
     if (item.kind === "input schema") {
       return { ...base, words: null, schema: schemaPart(item.before, item.after), parameters: null };
     }
+    if (item.kind === "instructions") {
+      /* Prose, like a description: a word diff with every invisible
+       * character made visible. There is no schema and no parameters. */
+      return { ...base, words: wordsPart(item.before as string | null, item.after as string | null), schema: null, parameters: null };
+    }
     const definition = (item.after ?? {}) as Record<string, unknown>;
     const description = typeof definition.description === "string" ? definition.description : null;
     return {

@@ -25,7 +25,9 @@
 import { prepare, type Prepared } from "../page.ts";
 import { otherFieldLines, queueFor } from "../review.ts";
 import { definitionOf, normalise, type ToolRecord } from "../tools.ts";
-import { ADOPTED, CARRIED_LABEL, isCarried, recordsOf, type Pin } from "./pin.ts";
+import { ADOPTED, CARRIED_LABEL, instructionsStateOf, isCarried, recordsOf, type Pin } from "./pin.ts";
+import { INSTRUCTIONS_TOOL, type ReviewItem } from "../decisions.ts";
+import { compare as compareInstructions, type Seen } from "./instructions.ts";
 import type { WouldHide } from "./router.ts";
 
 export const PENDING_FORMAT = "brydge-gate-pending";
@@ -65,6 +67,16 @@ export interface Pending {
    * reason, and this is it.
    */
   carried?: string[];
+  /**
+   * The server's instructions as seen, when they differ from the pin.
+   *
+   * What `offered` is for a tool: the thing an approval has to pin, kept so
+   * that approving does not mean reading the server again. `null` is the
+   * server sending none while the pin names some. Absent when nothing
+   * differed, or when the pin does not cover instructions. Private, like
+   * `offered`: it is somebody's prose.
+   */
+  instructions?: { seen: string | null };
   /** The queue, prepared: word diffs, schema diffs, visible markers. */
   prepared: Prepared;
 }
@@ -92,9 +104,30 @@ export const ADOPTED_LINE =
  * the whole point is that a description can move without one — so they are
  * named for what they are.
  */
-export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], seenAt: string): Pending {
+/**
+ * The review item for the instructions string, or null when there is none.
+ *
+ * Only when the pin covers instructions and what was seen differs. A
+ * non-string field cannot be shown as a diff or pinned, so it makes a note
+ * rather than an item.
+ */
+export function instructionsItemOf(pin: Pin, seen: Seen | undefined): { item: ReviewItem; seen: string | null } | { note: string } | null {
+  if (!seen) return null;
+  const state = instructionsStateOf(pin);
+  const verdict = compareInstructions(state, seen);
+  if (verdict.kind !== "differs") return null;
+  if (seen.kind === "other") return { note: `The server's initialize result carries an instructions field that is not a string. It cannot be shown or pinned, and under enforcement it is not passed on.` };
+  const before = pin.instructions?.text ?? null;
+  const after = seen.kind === "text" ? seen.text : null;
+  return { item: { kind: "instructions", tool: INSTRUCTIONS_TOOL, before, after }, seen: after };
+}
+
+export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], seenAt: string, instructionsSeen?: Seen): Pending {
   const queue = queueFor(pin.package, `pinned ${pin.pinnedAt}`, `offered ${seenAt}`, recordsOf(pin), live);
   const notes = otherFieldLines(queue);
+  const instructions = instructionsItemOf(pin, instructionsSeen);
+  if (instructions && "note" in instructions) notes.push(instructions.note);
+  if (instructions && "item" in instructions) queue.items.push(instructions.item);
   const carried = Object.values(pin.tools).filter(isCarried).map((t) => t.name).sort();
   if (carried.length) notes.unshift(carriedLine(carried));
   if (pin.source === ADOPTED) notes.unshift(ADOPTED_LINE);
@@ -116,6 +149,7 @@ export function pendingOf(pin: Pin, live: ToolRecord[], wouldHide: WouldHide[], 
     shadow: SHADOW_LINE,
     wouldHide,
     notes,
+    ...(instructions && "item" in instructions ? { instructions: { seen: instructions.seen } } : {}),
     prepared: prepare(queue, seenAt),
   };
 }
@@ -130,5 +164,6 @@ export function stderrLine(p: Pending, file: string): string {
       .map(([because, n]) => `${n} ${because}`)
       .join("; ") || "none";
   const adopted = p.pinnedBy === ADOPTED ? `, against a pin that was ${ADOPTED}` : "";
-  return `gate: ${p.wouldHide.length} tool(s) differ from the pin${adopted} (${kinds}); written to ${file}`;
+  const instructions = p.instructions ? ", and the server's instructions differ from the pin" : "";
+  return `gate: ${p.wouldHide.length} tool(s) differ from the pin${adopted} (${kinds})${instructions}; written to ${file}`;
 }

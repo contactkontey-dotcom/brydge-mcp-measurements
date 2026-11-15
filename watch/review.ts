@@ -97,7 +97,7 @@ export interface Tallied {
 }
 
 /** The order items are read in, and the order they are printed in. */
-export const KIND_ORDER: ItemKind[] = ["description", "input schema", "new tool"];
+export const KIND_ORDER: ItemKind[] = ["description", "input schema", "new tool", "instructions"];
 
 /**
  * The queue for one pair of versions.

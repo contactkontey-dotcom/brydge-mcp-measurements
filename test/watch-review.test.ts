@@ -68,7 +68,9 @@ test("the three kinds, in reading order, and two items for a tool that moved twi
   );
   /* Descriptions before schemas before new tools: what a tool says about
    * itself is the thing nobody sees without comparing. */
-  assert.deepEqual(KIND_ORDER, ["description", "input schema", "new tool"]);
+  /* Four since I3: the instructions string is read last, after the tools.
+   * This assertion used to name three. */
+  assert.deepEqual(KIND_ORDER, ["description", "input schema", "new tool", "instructions"]);
   const kinds = q.items.map((i) => KIND_ORDER.indexOf(i.kind));
   assert.deepEqual(kinds, [...kinds].sort((a, b) => a - b));
 });
